@@ -1,0 +1,189 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "judge_me_reviews_preview_badge_bnpafy": {
+          "type": "shopify://apps/judge-me-reviews/blocks/preview_badge/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "disabled": true,
+          "settings": {}
+        },
+        "trustify_reviews_app_stars_block_mppnMA": {
+          "type": "shopify://apps/trustify-reviews/blocks/app-stars-block/60d505af-e468-47cf-a184-a06ccd6703ac",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        },
+        "ns_estimated_delivery_date_nestscale_edd_product_YfWxmr": {
+          "type": "shopify://apps/ns-estimated-delivery-date/blocks/nestscale_edd_product/7446b593-1e01-4150-afbd-7d963204ef10",
+          "disabled": true,
+          "settings": {}
+        },
+        "icon_with_text_4TcqPc": {
+          "type": "icon-with-text",
+          "settings": {
+            "layout": "vertical",
+            "icon_1": "clipboard",
+            "heading_1": "Please fill out the order form below to purchase QuickClips at our wholesale pricing.",
+            "icon_2": "return",
+            "heading_2": "",
+            "icon_3": "truck",
+            "heading_3": ""
+          }
+        },
+        "joy_subscription_subscription_widget_TzW44c": {
+          "type": "shopify://apps/joy-subscription-app/blocks/subscription-widget/6aa30d9c-ff0b-4f29-a82d-a633d8e04b9a",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "judge_me_reviews_preview_badge_bnpafy",
+        "trustify_reviews_app_stars_block_mppnMA",
+        "title",
+        "description",
+        "ns_estimated_delivery_date_nestscale_edd_product_YfWxmr",
+        "icon_with_text_4TcqPc",
+        "joy_subscription_subscription_widget_TzW44c"
+      ],
+      "settings": {
+        "enable_sticky_info": true,
+        "color_scheme": "scheme-1",
+        "media_size": "medium",
+        "constrain_to_viewport": true,
+        "media_fit": "contain",
+        "gallery_layout": "thumbnail_slider",
+        "media_position": "left",
+        "image_zoom": "hover",
+        "mobile_thumbnails": "show",
+        "hide_variants": true,
+        "enable_video_looping": false,
+        "padding_top": 36,
+        "padding_bottom": 44
+      }
+    },
+    "quick_order_list_WQjxAX": {
+      "type": "quick-order-list",
+      "name": "t:sections.quick-order-list.presets.name",
+      "settings": {
+        "show_image": false,
+        "show_sku": false,
+        "color_scheme": "",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "1758820953fd1a6e17": {
+      "type": "apps",
+      "blocks": {
+        "dealeasy_cvg_progress_bar_YKCKJJ": {
+          "type": "shopify://apps/dealeasy/blocks/cvg-progress-bar/e47a8634-0496-480d-9e46-6f7fafd34b30",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "dealeasy_cvg_progress_bar_YKCKJJ"
+      ],
+      "settings": {
+        "include_margins": true
+      }
+    },
+    "related-products": {
+      "type": "related-products",
+      "disabled": true,
+      "settings": {
+        "heading": "You may also like",
+        "heading_size": "h2",
+        "products_to_show": 4,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 68
+      }
+    },
+    "rich_text_YBeEq4": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_LhhcV8": {
+          "type": "heading",
+          "settings": {
+            "heading": "",
+            "heading_size": "h1"
+          }
+        },
+        "text_jUTPHF": {
+          "type": "text",
+          "settings": {
+            "text": ""
+          }
+        }
+      },
+      "block_order": [
+        "heading_LhhcV8",
+        "text_jUTPHF"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    },
+    "17085382460cd21330": {
+      "type": "apps",
+      "blocks": {
+        "trustify_reviews_app_product_block_E8j8Jc": {
+          "type": "shopify://apps/trustify-reviews/blocks/app-product-block/60d505af-e468-47cf-a184-a06ccd6703ac",
+          "disabled": true,
+          "settings": {}
+        },
+        "judge_me_reviews_review_widget_dVhh8G": {
+          "type": "shopify://apps/judge-me-reviews/blocks/review_widget/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "disabled": true,
+          "settings": {
+            "review_data": "sample_data",
+            "max_width": 1200
+          }
+        }
+      },
+      "block_order": [
+        "trustify_reviews_app_product_block_E8j8Jc",
+        "judge_me_reviews_review_widget_dVhh8G"
+      ],
+      "settings": {
+        "include_margins": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "quick_order_list_WQjxAX",
+    "1758820953fd1a6e17",
+    "related-products",
+    "rich_text_YBeEq4",
+    "17085382460cd21330"
+  ]
+}

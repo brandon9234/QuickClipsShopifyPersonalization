@@ -1,0 +1,84 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "image_with_text_M7NUe7": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_TJUWNc": {
+          "type": "heading",
+          "settings": {
+            "heading": "Questions & Concerns",
+            "heading_size": "h1"
+          }
+        },
+        "text_bRT7Y6": {
+          "type": "text",
+          "settings": {
+            "text": "<p>We are <em>so</em> passionate about QuickClips and would <em>love</em> to help answer any questions you have! We are excited to get in touch and in the meantime, you can feel free to check out our <a href=\"/pages/faq\" target=\"_blank\" title=\"FAQ\">FAQ page</a> here!</p>",
+            "text_style": "subtitle"
+          }
+        },
+        "caption_zYrbAy": {
+          "type": "caption",
+          "settings": {
+            "caption": "Fill out the form below and you can expect a reply in 1-2 business days",
+            "text_style": "caption-with-letter-spacing",
+            "text_size": "medium"
+          }
+        }
+      },
+      "block_order": [
+        "heading_TJUWNc",
+        "text_bRT7Y6",
+        "caption_zYrbAy"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/Contact_us_Questions.jpg",
+        "height": "adapt",
+        "desktop_image_width": "small",
+        "layout": "image_first",
+        "desktop_content_position": "top",
+        "desktop_content_alignment": "left",
+        "content_layout": "no-overlap",
+        "section_color_scheme": "scheme-2",
+        "color_scheme": "scheme-4",
+        "image_behavior": "none",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "contact_form_icB8ML": {
+      "type": "contact-form",
+      "custom_css": [],
+      "settings": {
+        "heading": "Here to Help — Ask Us Anything!",
+        "heading_size": "h1",
+        "color_scheme": "scheme-2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "main",
+    "image_with_text_M7NUe7",
+    "contact_form_icB8ML"
+  ]
+}

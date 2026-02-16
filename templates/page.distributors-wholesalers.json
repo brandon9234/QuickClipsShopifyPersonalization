@@ -1,0 +1,602 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_La6V78": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_8Mj6Ez": {
+          "type": "heading",
+          "settings": {
+            "heading": "Find QuickClips Near You!",
+            "heading_size": "h1"
+          }
+        },
+        "text_9n44Nf": {
+          "type": "text",
+          "settings": {
+            "text": "<p>QuickClips are available at the following locations! Find a location near you to get QuickClips fast and affordable!</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_8Mj6Ez",
+        "text_9n44Nf"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-2",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    },
+    "collapsible_content_gaJA9U": {
+      "type": "collapsible-content",
+      "blocks": {
+        "collapsible_row_JUmn9j": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Alabama",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_RjCWEG": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Alaska",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_ACzpBC": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Arizona",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_kz6D8V": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Arkansas",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_AmDMyN": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "California",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"https://mteden.com/\" target=\"_blank\" title=\"https://mteden.com/\">Mt Eden Floral Co</a></h2><h3>- <a href=\"https://mteden.com/\" target=\"_blank\" title=\"https://mteden.com/\">Locations in: San Fancisco and San Jose</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_CzehG4": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Colorado",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_nrqNm9": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Connecticut",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"http://dvflora.com/index.php/east-berlin-ct\" target=\"_blank\" title=\"http://dvflora.com/index.php/east-berlin-ct\">DVFlora</a></h2><h3>- <a href=\"http://dvflora.com/index.php/east-berlin-ct\" target=\"_blank\" title=\"http://dvflora.com/index.php/east-berlin-ct\">Located in: Hartford</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_FGfqUB": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Delaware",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_E7MYUA": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Florida",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_NhkQjm": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Georgia",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_MDC7zX": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Hawaii",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_GBTLbE": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Idaho",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_iJD7MH": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Illinois",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://bonnettwholesale.com/\" target=\"_blank\" title=\"https://bonnettwholesale.com/\">Bonnett Wholesale Florist Inc</a></h2><h3>- <a href=\"https://bonnettwholesale.com/\" target=\"_blank\" title=\"https://bonnettwholesale.com/\">Located in: Milan</a></h3><h3></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_NDJMGx": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Indiana",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_hkKXTC": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Iowa",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_gKMBJt": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Kansas",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_gHJh69": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Kentucky",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_BJDQAY": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Louisiana",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_j8mJbJ": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Maine",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_EwbhQJ": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Maryland",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"http://dvflora.com/index.php/baltimore-md\" target=\"_blank\" title=\"http://dvflora.com/index.php/baltimore-md\">DVFlora</a></h2><h3>- <a href=\"http://dvflora.com/index.php/baltimore-md\" target=\"_blank\" title=\"http://dvflora.com/index.php/baltimore-md\">Located in: Baltimore</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_CKpwdV": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Massachusetts",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"https://dvflora.com/wholesale-flowers-supplies-plants-boston/\" target=\"_blank\" title=\"https://dvflora.com/wholesale-flowers-supplies-plants-boston/\">DVFlora</a></h2><h3>- <a href=\"https://dvflora.com/wholesale-flowers-supplies-plants-boston/\" target=\"_blank\" title=\"https://dvflora.com/wholesale-flowers-supplies-plants-boston/\">Located in: Boston</a></h3><h3></h3><h2><a href=\"https://www.rjcarbone.com/\" target=\"_blank\" title=\"https://www.rjcarbone.com/\">R.J. Carbone Wholesale Floral Distributors</a></h2><h3>- <a href=\"https://www.rjcarbone.com/Home/StoreHours\" target=\"_blank\" title=\"https://www.rjcarbone.com/Home/StoreHours\">Located in: Derry</a></h3><h3></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_jTeRfE": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Michigan",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_BpAaXG": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Minnesota",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_MDgWg3": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Mississippi",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_7LCp46": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Missouri",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_AUbJ87": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Montana",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_AdRaqJ": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Nebraska",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_eFpxJB": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Nevada",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_KQfHVk": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "New Hampshire",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://www.rjcarbone.com/\" target=\"_blank\" title=\"https://www.rjcarbone.com/\">R.J. Carbone Wholesale Floral Distributors</a></h2><h3>- <a href=\"https://www.rjcarbone.com/Home/StoreHours\" target=\"_blank\" title=\"https://www.rjcarbone.com/Home/StoreHours\">Located in: Derry</a></h3><h3></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_aXY6tq": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "New Jersey",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://dvflora.com/edison-nj/\" target=\"_blank\" title=\"https://dvflora.com/edison-nj/\">DVFlora</a></h2><h3>- <a href=\"https://dvflora.com/edison-nj/\" target=\"_blank\" title=\"https://dvflora.com/edison-nj/\">Located in: Edison</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_ypdgGz": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "New Mexico",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_EaFfMB": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "New York",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://dvflora.com/locations/\" target=\"_blank\" title=\"https://dvflora.com/locations/\">DVFlora</a></h2><h3>- <a href=\"http://dvflora.com/index.php/long-island-ny/\" target=\"_blank\" title=\"http://dvflora.com/index.php/long-island-ny/\">Located in: Long Island</a></h3><h3>- <a href=\"http://dvflora.com/index.php/syracuse-ny\" target=\"_blank\" title=\"http://dvflora.com/index.php/syracuse-ny\">Located in: Syracuse</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_6qqbiF": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "North Carolina",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://www.deritafloralclt.com/\" target=\"_blank\" title=\"https://www.deritafloralclt.com/\">Derita Floral Supply Co.</a></h2><h3>- <a href=\"https://www.deritafloralclt.com/\" target=\"_blank\" title=\"https://www.deritafloralclt.com/\">Located in: Charlotte</a></h3><h3></h3><h2><a href=\"https://dvflora.com/locations/raleigh-nc/\" target=\"_blank\" title=\"https://dvflora.com/locations/raleigh-nc/\">DVFlora</a></h2><h3>- <a href=\"https://dvflora.com/locations/raleigh-nc/\" target=\"_blank\" title=\"https://dvflora.com/locations/raleigh-nc/\">Located in: Raleigh</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_JUeraC": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "North Dakota",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_h4neCG": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Ohio",
+            "icon": "map_pin",
+            "row_content": "<p></p><h2><a href=\"https://www.cincywholesaleflorist.com/\" target=\"_blank\" title=\"https://www.cincywholesaleflorist.com/\">Cincinnati Wholesale Florist</a></h2><h3>- <a href=\"https://www.cincywholesaleflorist.com/\" target=\"_blank\" title=\"https://www.cincywholesaleflorist.com/\">Located in: Cincinnati</a></h3><h3></h3><h2><a href=\"http://dvflora.com/index.php/brecksville-oh/\" target=\"_blank\" title=\"http://dvflora.com/index.php/brecksville-oh/\">DVFlora</a></h2><h3>- <a href=\"http://dvflora.com/index.php/brecksville-oh/\" target=\"_blank\" title=\"http://dvflora.com/index.php/brecksville-oh/\">Located in: Cleveland</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_RDpfW9": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Oklahoma",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_F4hU8k": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Oregon",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_KNmaYA": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Pennsylvania",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://dvflora.com/locations/\" target=\"_blank\" title=\"https://dvflora.com/locations/\">DVFlora</a></h2><h3>- <a href=\"https://dvflora.com/pittsburgh-pa/\" target=\"_blank\" title=\"https://dvflora.com/pittsburgh-pa/\">Located in: Pittsburgh</a></h3><h3>- <a href=\"http://dvflora.com/index.php/scranton-pa\" target=\"_blank\" title=\"http://dvflora.com/index.php/scranton-pa\">Located in: Wilkes-Barre</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_wrkFhd": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Rhode Island",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"https://www.rjcarbone.com/\" target=\"_blank\" title=\"https://www.rjcarbone.com/\">R.J. Carbone Wholesale Floral Distributors</a></h2><h3>- <a href=\"https://www.rjcarbone.com/\" target=\"_blank\" title=\"https://www.rjcarbone.com/\">Located in: Cranston</a></h3><h3></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_fwTmEd": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "South Dakota",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"https://www.nawfi.com/\" target=\"_blank\" title=\"https://www.nawfi.com/\">North American Wholesale Florist</a></h2><h3>- <a href=\"https://www.nawfi.com/\" target=\"_blank\" title=\"https://www.nawfi.com/\">Located in: Sioux Falls</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_aWJkUQ": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Tennessee",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"https://shamrockwholesaleflorist.com/\" target=\"_blank\" title=\"https://shamrockwholesaleflorist.com/\">Shamrock Wholesale Florist</a></h2><h3>- <a href=\"https://shamrockwholesaleflorist.com/\" target=\"_blank\" title=\"https://shamrockwholesaleflorist.com/\">Located in: Memphis</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_U9DCK7": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Texas",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_BrqKCN": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Utah",
+            "icon": "map_pin",
+            "row_content": "<h2></h2><h2><a href=\"https://www.floraldesignwholesale.com/\" target=\"_blank\" title=\"https://www.floraldesignwholesale.com/\">Floral Design Wholesale</a></h2><h3>- <a href=\"https://www.floraldesignwholesale.com/\" target=\"_blank\" title=\"https://www.floraldesignwholesale.com/\">Located in: Salt Lake City</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_A6reAN": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Vermont",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_3Gc9Aa": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Virginia",
+            "icon": "map_pin",
+            "row_content": "<h3></h3><h2><a href=\"http://dvflora.com/index.php/richmond-va\" target=\"_blank\" title=\"http://dvflora.com/index.php/richmond-va\">DVFlora</a></h2><h3>- <a href=\"http://dvflora.com/index.php/richmond-va\" target=\"_blank\" title=\"http://dvflora.com/index.php/richmond-va\">Located in: Richmond</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_Q7BBbP": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Washington",
+            "icon": "map_pin",
+            "row_content": "<p></p><h2><a href=\"https://www.washingtonfloral.com/locations?view=article&id=422&catid=15\" target=\"_blank\" title=\"https://www.washingtonfloral.com/locations?view=article&id=422&catid=15\">Washington Floral Service</a></h2><h3>- <a href=\"https://www.washingtonfloral.com/locations?view=article&id=422&catid=15\" target=\"_blank\" title=\"https://www.washingtonfloral.com/locations?view=article&id=422&catid=15\">Located in: Tacoma</a></h3><p>Don't see your Wholesaler here?</p><p>Reach out at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_wctd6p": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "West Virginia",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_PMiQdr": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Wisconsin",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        },
+        "collapsible_row_kVMrG8": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Wyoming",
+            "icon": "map_pin",
+            "row_content": "<p>We don't currently have any locations in your state that stock QuickClips- but you can change that! </p><p>Let your Wholesaler know that you would like them to stock QuickClips (and that they will be the first in the state to get them!)  </p><p>Or you can reach out to us at wholesale@quickclipsfloral.com and let us know where you would like to find QuickClips in your area and we will reach out and see what we can do!</p>",
+            "page": ""
+          }
+        }
+      },
+      "block_order": [
+        "collapsible_row_JUmn9j",
+        "collapsible_row_RjCWEG",
+        "collapsible_row_ACzpBC",
+        "collapsible_row_kz6D8V",
+        "collapsible_row_AmDMyN",
+        "collapsible_row_CzehG4",
+        "collapsible_row_nrqNm9",
+        "collapsible_row_FGfqUB",
+        "collapsible_row_E7MYUA",
+        "collapsible_row_NhkQjm",
+        "collapsible_row_MDC7zX",
+        "collapsible_row_GBTLbE",
+        "collapsible_row_iJD7MH",
+        "collapsible_row_NDJMGx",
+        "collapsible_row_hkKXTC",
+        "collapsible_row_gKMBJt",
+        "collapsible_row_gHJh69",
+        "collapsible_row_BJDQAY",
+        "collapsible_row_j8mJbJ",
+        "collapsible_row_EwbhQJ",
+        "collapsible_row_CKpwdV",
+        "collapsible_row_jTeRfE",
+        "collapsible_row_BpAaXG",
+        "collapsible_row_MDgWg3",
+        "collapsible_row_7LCp46",
+        "collapsible_row_AUbJ87",
+        "collapsible_row_AdRaqJ",
+        "collapsible_row_eFpxJB",
+        "collapsible_row_KQfHVk",
+        "collapsible_row_aXY6tq",
+        "collapsible_row_ypdgGz",
+        "collapsible_row_EaFfMB",
+        "collapsible_row_6qqbiF",
+        "collapsible_row_JUeraC",
+        "collapsible_row_h4neCG",
+        "collapsible_row_RDpfW9",
+        "collapsible_row_F4hU8k",
+        "collapsible_row_KNmaYA",
+        "collapsible_row_wrkFhd",
+        "collapsible_row_fwTmEd",
+        "collapsible_row_aWJkUQ",
+        "collapsible_row_U9DCK7",
+        "collapsible_row_BrqKCN",
+        "collapsible_row_A6reAN",
+        "collapsible_row_3Gc9Aa",
+        "collapsible_row_Q7BBbP",
+        "collapsible_row_wctd6p",
+        "collapsible_row_PMiQdr",
+        "collapsible_row_kVMrG8"
+      ],
+      "name": "t:sections.collapsible_content.presets.name",
+      "settings": {
+        "caption": "",
+        "heading": "United States Distributors",
+        "heading_size": "h2",
+        "heading_alignment": "center",
+        "layout": "row",
+        "color_scheme": "scheme-1",
+        "container_color_scheme": "scheme-2",
+        "open_first_collapsible_row": false,
+        "image_ratio": "adapt",
+        "desktop_layout": "image_second",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "collapsible_content_QJ9tCc": {
+      "type": "collapsible-content",
+      "blocks": {
+        "collapsible_row_PGH6QN": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Coming Soon!",
+            "icon": "map_pin",
+            "row_content": "<p></p><p>We will be expanding internationally with wholesalers all around the world soon! </p><p>If you would like supply QuickClips or you know a location that might - email us at wholesale@quickclipsfloral.com and we will reach out!</p>",
+            "page": ""
+          }
+        }
+      },
+      "block_order": [
+        "collapsible_row_PGH6QN"
+      ],
+      "name": "t:sections.collapsible_content.presets.name",
+      "settings": {
+        "caption": "",
+        "heading": "International Distributors",
+        "heading_size": "h2",
+        "heading_alignment": "center",
+        "layout": "row",
+        "color_scheme": "",
+        "container_color_scheme": "",
+        "open_first_collapsible_row": false,
+        "image_ratio": "adapt",
+        "desktop_layout": "image_second",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "main",
+    "rich_text_La6V78",
+    "collapsible_content_gaJA9U",
+    "collapsible_content_QJ9tCc"
+  ]
+}
