@@ -1,4 +1,5 @@
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+{{ 'custom-engraving-preview.css' | asset_url | stylesheet_tag }}
 {{ 'section-featured-product.css' | asset_url | stylesheet_tag }}
 {{ 'component-accordion.css' | asset_url | stylesheet_tag }}
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
@@ -28,6 +29,10 @@
 <script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'show-more.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'price-per-item.js' | asset_url }}" defer="defer"></script>
+<script>
+  window.QUICKCLIPS_ENGRAVING_PREVIEW_IMAGE_URL = {{ 'quickclips-engraving-blank.png' | asset_url | json }};
+</script>
+<script src="{{ 'custom-engraving-preview.js' | asset_url }}" defer="defer"></script>
 
 {%- liquid
   assign product = section.settings.product
