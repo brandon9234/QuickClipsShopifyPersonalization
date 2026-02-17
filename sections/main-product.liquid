@@ -4,6 +4,7 @@
   data-section="{{ section.id }}"
 >
   {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+  {{ 'custom-engraving-preview.css' | asset_url | stylesheet_tag }}
   {{ 'component-accordion.css' | asset_url | stylesheet_tag }}
   {{ 'component-price.css' | asset_url | stylesheet_tag }}
   {{ 'component-slider.css' | asset_url | stylesheet_tag }}
@@ -24,16 +25,87 @@
       padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
     }
 
+    .nesting-preview__widget {
+      max-width: 58rem;
+      display: grid;
+      gap: 1.2rem;
+      margin-top: 1.6rem;
+    }
+
+    .nesting-preview__row {
+      display: grid;
+      gap: 1.2rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .nesting-preview__field {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .nesting-preview__input {
+      width: 100%;
+      min-height: 4.4rem;
+      border: 0.1rem solid rgba(var(--color-foreground), 0.2);
+      border-radius: 0.4rem;
+      padding: 0.8rem 1.2rem;
+      background: rgb(var(--color-background));
+      color: rgb(var(--color-foreground));
+      font: inherit;
+    }
+
+    .nesting-preview__input:focus {
+      outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
+      outline-offset: 0.1rem;
+    }
+
+    .nesting-preview__status {
+      margin: 0;
+      min-height: 2.4rem;
+      font-size: 1.4rem;
+    }
+
+    .nesting-preview__status[data-state='loading'] {
+      color: rgba(var(--color-foreground), 0.8);
+    }
+
+    .nesting-preview__status[data-state='success'] {
+      color: #1f7a1f;
+    }
+
+    .nesting-preview__status[data-state='error'] {
+      color: #b42318;
+    }
+
+    .nesting-preview__image {
+      width: 100%;
+      max-width: 46rem;
+      border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+      border-radius: 0.6rem;
+      background: rgba(var(--color-foreground), 0.02);
+    }
+
     @media screen and (min-width: 750px) {
       .section-{{ section.id }}-padding {
         padding-top: {{ section.settings.padding_top }}px;
         padding-bottom: {{ section.settings.padding_bottom }}px;
       }
     }
+
+    @media screen and (max-width: 749px) {
+      .nesting-preview__row {
+        grid-template-columns: 1fr;
+      }
+    }
   {%- endstyle -%}
 
   <script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
   <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+  <script>
+    window.QUICKCLIPS_ENGRAVING_PREVIEW_IMAGE_URL = {{ 'quickclips-engraving-blank.png' | asset_url | json }};
+  </script>
+  <script src="{{ 'custom-engraving-preview.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'nesting-preview.js' | asset_url }}" defer="defer"></script>
   {%- if product.quantity_price_breaks_configured? -%}
     <script src="{{ 'show-more.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'price-per-item.js' | asset_url }}" defer="defer"></script>
@@ -79,6 +151,11 @@
           class="product__info-container{% if section.settings.enable_sticky_info %} product__column-sticky{% endif %}"
         >
           {%- assign product_form_id = 'product-form-' | append: section.id -%}
+          {%- assign nesting_preview_media = product.selected_or_first_available_variant.featured_media | default: product.featured_media | default: product.media.first -%}
+          {%- assign nesting_preview_url = '' -%}
+          {%- if nesting_preview_media != blank -%}
+            {%- assign nesting_preview_url = nesting_preview_media | image_url: width: 1200 -%}
+          {%- endif -%}
 
           {%- for block in section.blocks -%}
             {%- case block.type -%}
@@ -462,6 +539,67 @@
                   section_id: section.id,
                   show_pickup_availability: true
                 -%}
+                <div
+                  class="nesting-preview__widget"
+                  data-nesting-preview-widget
+                  data-endpoint="/apps/nesting/render"
+                  data-product-id="{{ product.id }}"
+                  data-generated-preview-url=""
+                  data-generated-request-id=""
+                >
+                  <h2 class="h3">Customize your product preview</h2>
+                  <div class="nesting-preview__field">
+                    <label class="form__label" for="NestingPreviewText-{{ section.id }}">Customization text</label>
+                    <input
+                      id="NestingPreviewText-{{ section.id }}"
+                      class="nesting-preview__input"
+                      type="text"
+                      maxlength="120"
+                      placeholder="Enter your custom text"
+                      data-nesting-input="text"
+                    >
+                  </div>
+                  <div class="nesting-preview__row">
+                    <div class="nesting-preview__field">
+                      <label class="form__label" for="NestingPreviewColor-{{ section.id }}">Color (optional)</label>
+                      <select
+                        id="NestingPreviewColor-{{ section.id }}"
+                        class="nesting-preview__input"
+                        data-nesting-input="color"
+                      >
+                        <option value="">No color preference</option>
+                        <option value="Black">Black</option>
+                        <option value="White">White</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                      </select>
+                    </div>
+                    <div class="nesting-preview__field">
+                      <label class="form__label" for="NestingPreviewSize-{{ section.id }}">Size (optional)</label>
+                      <select
+                        id="NestingPreviewSize-{{ section.id }}"
+                        class="nesting-preview__input"
+                        data-nesting-input="size"
+                      >
+                        <option value="">Default size</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="button" class="button button--primary" data-nesting-generate>Generate preview</button>
+                  <p class="nesting-preview__status" data-nesting-status role="status" aria-live="polite"></p>
+                  <img
+                    class="nesting-preview__image"
+                    data-nesting-image
+                    src="{{ nesting_preview_url }}"
+                    alt="{{ product.title | escape }} preview"
+                    {% if nesting_preview_url == blank %}
+                      hidden
+                    {% endif %}
+                  >
+                </div>
               {%- when 'rating' -%}
                 {%- if product.metafields.reviews.rating.value != blank -%}
                   <div class="rating-wrapper">
