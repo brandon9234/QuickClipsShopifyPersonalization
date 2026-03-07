@@ -1,0 +1,172 @@
+<style>
+  html body:not(.samitalock-no-active) div[samita_pass_p_all],
+  html body:not(.samitalock-no-active) div[samita_pass_c_all],
+  html body:not(.samitalock-no-active) div[samita_all_p],
+  html body:not(.samitalock-no-active) div[samita_manual_p_all],
+  html body:not(.samitalock-no-active) div[samita_manual_c_all],
+  html body:not(.samitalock-no-active) div[samita_sec_p_all]{
+    display:none !important;
+  }
+
+  html body:not(.samitalock-no-active) div[samita_pass_p_priace] .price,
+  html body:not(.samitalock-no-active) div[samita_pass_c_price] .price,
+  html body:not(.samitalock-no-active) div[samita_all_p_price] .price,
+  html body:not(.samitalock-no-active) div[samita_manual_p_price] .price,
+  html body:not(.samitalock-no-active) div[samita_manual_c_price] .price,
+   html body:not(.samitalock-no-active) div[samita_sec_p_price] .price{
+    display:none !important;
+  }
+
+  html body:not(.samitalock-no-active) div[samita_pass_p_atc] .atc,
+  html body:not(.samitalock-no-active) div[samita_pass_c_atc] .atc,
+  html body:not(.samitalock-no-active) div[samita_all_p_atc] .atc,
+  html body:not(.samitalock-no-active) div[samita_manual_p_atc] .atc,
+  html body:not(.samitalock-no-active) div[samita_manual_c_atc] .atc,
+  html body:not(.samitalock-no-active) div[samita_manual_c_atc] .atc{
+    display:none !important;
+  }
+
+    html body:not(.samitalock-no-active) li[samita_pass_p_all],
+  html body:not(.samitalock-no-active) li[samita_pass_c_all],
+  html body:not(.samitalock-no-active) li[samita_all_p],
+  html body:not(.samitalock-no-active) li[samita_manual_p_all],
+  html body:not(.samitalock-no-active) li[samita_manual_c_all],
+  html body:not(.samitalock-no-active) li[samita_sec_p_all]{
+    display:none !important;
+  }
+
+  html body:not(.samitalock-no-active) li[samita_pass_p_priace] .price,
+  html body:not(.samitalock-no-active) li[samita_pass_c_price] .price,
+  html body:not(.samitalock-no-active) li[samita_all_p_price] .price,
+  html body:not(.samitalock-no-active) li[samita_manual_p_price] .price,
+  html body:not(.samitalock-no-active) li[samita_manual_c_price] .price,
+   html body:not(.samitalock-no-active) li[samita_sec_p_price] .price{
+    display:none !important;
+  }
+
+  html body:not(.samitalock-no-active) li[samita_pass_p_atc] .atc,
+  html body:not(.samitalock-no-active) li[samita_pass_c_atc] .atc,
+  html body:not(.samitalock-no-active) li[samita_all_p_atc] .atc,
+  html body:not(.samitalock-no-active) li[samita_manual_p_atc] .atc,
+  html body:not(.samitalock-no-active) li[samita_manual_c_atc] .atc,
+  html body:not(.samitalock-no-active) li[samita_manual_c_atc] .atc{
+    display:none !important;
+  }
+
+  html body .lock__notificationFooter #passcode{
+    flex:1 !important;
+  }
+
+  html body .lock__notificationTemplateWrapper{
+    width:50% !important;
+  }
+
+  html body .lock__notificationTemplateWrapper .Lock__Error{
+    margin-top:5px !important;
+  }
+
+  html body .Lock__Watermark{
+    padding: 0 40px !important;
+  }
+  
+
+  html body .Lock__Watermark p{
+    font-size: 15px !important;
+    font-family: inherit;
+  }
+
+  @media(max-width:1024px){
+    html body .lock__notificationTemplateWrapper{
+      width:100% !important;
+    }
+  }
+html body .lock__notificationFooter #passcode:focus-visible {
+    border: 1px solid #ccc !important;
+}
+
+  
+</style>
+<script>
+window.Samita = window.Samita || {}
+  window.Samita.SamitaLocksAccessParams =  window.Samita.SamitaLocksAccessParams || {}
+  window.Samita.SamitaLocksAccessParams.selector = window.Samita.SamitaLocksAccessParams.selector || {}
+  {% comment %} window.Samita.SamitaLocksAccessParams.selector.product = {
+    btnAtc: ".product-form__buttons",
+    mainContent: "main#MainContent",
+    price: 'div[id*="price-template"]'
+  }
+
+
+   window.Samita.SamitaLocksAccessParams.selector.collection = {
+    btnAtc: "button.add-to-cart.sf__btn",
+    collectionSelect: "ul.grid.grid-cols-1 li.relative.bg-primary-background.w-full",
+    price: ".sf__pcard-price, .relative .text-center.mt-1",
+    productSelector: ".sf__col-item, ul.grid.grid-cols-1 li.bg-primary-background, .swiper-slide"
+   }
+
+  window.Samita.SamitaLocksAccessParams.selector.index = {
+    btnAtc: "button.add-to-cart.sf__btn",
+    collectionSelect: "ul.grid.grid-cols-1 li.relative.bg-primary-background.w-full",
+    price: ".sf__pcard-price, .relative .text-center.mt-1",
+    productSelector: ".sf__col-item, ul.grid.grid-cols-1 li.bg-primary-background, .swiper-slide"
+  }
+
+  window.Samita.SamitaLocksAccessParams.selector.otherPage= {
+    btnAtc: "button.add-to-cart.sf__btn",
+    collectionSelect: "ul.grid.grid-cols-1 li.relative.bg-primary-background.w-full",
+    price: ".sf__pcard-price, .relative .text-center.mt-1",
+    productSelector: ".sf__col-item, ul.grid.grid-cols-1 li.bg-primary-background, .swiper-slide"
+  }
+
+  window.Samita.SamitaLocksAccessParams.selector.searchPage= {
+    btnAtc: "button.add-to-cart.sf__btn",
+    collectionSelect: "ul.grid.grid-cols-1 li.relative.bg-primary-background.w-full",
+    price: ".sf__pcard-price, .relative .text-center.mt-1",
+    productSelector: ".sf__col-item, ul.grid.grid-cols-1 li.bg-primary-background, .swiper-slide"
+  } {% endcomment %}
+  let allCookies = document.cookie;
+  let cookiesArray = allCookies.split(';');
+
+  if(allCookies.includes('secret__')){
+    setInterval(function(){
+      if(document.querySelectorAll(`div[sami_sec]`).length){
+        document.querySelectorAll(`div[sami_sec]`).forEach(function(item){
+          item.removeAttribute('sami_sec')
+          item.removeAttribute('samita_sec_p_all')
+          item.removeAttribute('samita_sec_p_atc')
+          item.removeAttribute('samita_sec_p_price')
+         
+        })
+      }
+    },500)
+  }
+
+  if (allCookies.includes('passcode')) {
+      for (const cookie of cookiesArray) {
+        const [key, value] = cookie.trim().split('=');
+        if (key.includes('passcode')) {
+          setInterval(function(){
+            if(document.querySelectorAll(`div[${key}]`).length){
+              document.querySelectorAll(`div[${key}]`).forEach(function(item){
+                item.removeAttribute(key)
+                item.removeAttribute('samita_pass_p_all')
+                item.removeAttribute('samita_pass_c_all')
+                item.removeAttribute('samita_pass_p_price')
+                item.removeAttribute('samita_pass_c_price')
+                item.removeAttribute('samita_pass_p_atc')
+                item.removeAttribute('samita_pass_c_atc')
+              })
+            }
+          },500)
+        }
+    }
+  }
+
+  setTimeout(function(){
+    
+    if(typeof Samita !== "object" || typeof Samita.LockAccess !== 'object'){
+      document.querySelector('body').classList.add('samitalock-no-active');
+    }
+  },600)
+</script>
+

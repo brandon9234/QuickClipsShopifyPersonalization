@@ -1,0 +1,68 @@
+{% comment %}
+  Renders a reusable personalization trigger button.
+
+  Accepts:
+  - product: {Object} Product object.
+  - product_form_id: {String} Related product form id.
+  - personalization_scope: {String} Unique scope for state isolation.
+  - section_id: {String} Parent section id.
+  - button_class: {String} Optional class names for button.
+  - button_label: {String} Optional button label.
+  - primary_max: {Number} Primary text max length.
+  - secondary_max: {Number} Secondary text max length.
+  - force_show: {Boolean} If true, always render trigger.
+{% endcomment %}
+
+{%- liquid
+  assign target_product = product
+  assign section_reference = section_id | default: section.id
+
+  assign scope_id = personalization_scope
+  if scope_id == blank and target_product != blank and section_reference != blank
+    assign scope_id = 'product-' | append: section_reference | append: '-' | append: target_product.id
+  endif
+
+  assign primary_limit = primary_max | default: 30
+  assign secondary_limit = secondary_max | default: 30
+  assign trigger_label = button_label | default: 'Customize Now'
+  assign tags_csv = target_product.tags | join: ',' | downcase
+  assign template_suffix = target_product.template_suffix | downcase
+  assign personalization_metafield = target_product.metafields.custom.personalization_enabled
+
+  assign show_personalization = false
+  if force_show
+    assign show_personalization = true
+  elsif personalization_metafield != blank
+    if personalization_metafield.value == true or personalization_metafield == true
+      assign show_personalization = true
+    endif
+  elsif tags_csv contains 'customizable'
+    assign show_personalization = true
+  elsif tags_csv contains 'personalized'
+    assign show_personalization = true
+  elsif tags_csv contains 'personalization'
+    assign show_personalization = true
+  elsif template_suffix contains 'custom'
+    assign show_personalization = true
+  elsif template_suffix contains 'personal'
+    assign show_personalization = true
+  endif
+-%}
+
+{%- if target_product != blank and show_personalization -%}
+  <button
+    type="button"
+    class="button button--secondary personalization-preview-trigger{% if button_class != blank %} {{ button_class }}{% endif %}"
+    aria-haspopup="dialog"
+    data-personalization-trigger
+    data-personalization-default-label="{{ trigger_label | escape }}"
+    data-personalization-scope="{{ scope_id }}"
+    data-personalization-product-id="{{ target_product.id }}"
+    data-personalization-product-title="{{ target_product.title | escape }}"
+    data-personalization-form-id="{{ product_form_id }}"
+    data-personalization-primary-max="{{ primary_limit }}"
+    data-personalization-secondary-max="{{ secondary_limit }}"
+  >
+    <span data-personalization-trigger-label>{{ trigger_label }}</span>
+  </button>
+{%- endif -%}

@@ -1,0 +1,35 @@
+{% comment %}
+  Hidden line item properties synchronized by personalization-preview.js.
+
+  Accepts:
+  - product: {Object} Product object.
+  - personalization_scope: {String} Unique scope for state isolation.
+{% endcomment %}
+
+{%- if product != blank and personalization_scope != blank -%}
+  <div
+    class="personalization-line-item-properties"
+    data-personalization-context
+    data-personalization-scope="{{ personalization_scope }}"
+    data-personalization-product-id="{{ product.id }}"
+  >
+    <input
+      type="hidden"
+      name="properties[Personalization Primary Text]"
+      value=""
+      data-personalization-property="primary"
+    >
+    <input
+      type="hidden"
+      name="properties[Personalization Secondary Text]"
+      value=""
+      data-personalization-property="secondary"
+    >
+    <input
+      type="hidden"
+      name="properties[_Personalization Scope]"
+      value="{{ personalization_scope }}"
+      data-personalization-property="scope"
+    >
+  </div>
+{%- endif -%}

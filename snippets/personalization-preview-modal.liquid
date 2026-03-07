@@ -1,0 +1,66 @@
+<modal-dialog id="PersonalizationPreviewModal" class="personalization-preview-modal">
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-label="Personalization preview"
+    class="personalization-preview-modal__content global-settings-popup"
+    tabindex="-1"
+  >
+    <button
+      id="ModalClose-PersonalizationPreviewModal"
+      type="button"
+      class="personalization-preview-modal__toggle"
+      aria-label="{{ 'accessibility.close' | t }}"
+    >
+      {% render 'icon-close' %}
+    </button>
+
+    <div class="personalization-preview-modal__body">
+      <div class="personalization-preview-modal__header">
+        <h2 class="h3">Customize Your Product</h2>
+        <p class="personalization-preview-modal__product" data-personalization-product-name></p>
+      </div>
+
+      <div class="personalization-preview-modal__fields">
+        <div class="personalization-preview-modal__field">
+          <label class="form__label" for="PersonalizationPrimaryText">Primary text</label>
+          <input
+            id="PersonalizationPrimaryText"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            data-personalization-input="primary"
+          >
+          <p class="personalization-preview-modal__count" data-personalization-count="primary"></p>
+        </div>
+
+        <div class="personalization-preview-modal__field">
+          <label class="form__label" for="PersonalizationSecondaryText">Secondary text (optional)</label>
+          <input
+            id="PersonalizationSecondaryText"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            data-personalization-input="secondary"
+          >
+          <p class="personalization-preview-modal__count" data-personalization-count="secondary"></p>
+        </div>
+      </div>
+
+      <div class="personalization-preview-modal__preview" aria-live="polite">
+        <p class="personalization-preview-modal__preview-label">Live preview</p>
+        <div class="personalization-preview-modal__preview-surface">
+          <span data-personalization-preview="primary">Primary text</span>
+          <span data-personalization-preview="secondary">Secondary text</span>
+        </div>
+      </div>
+
+      <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
+
+      <div class="personalization-preview-modal__actions">
+        <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
+        <button type="button" class="button" data-personalization-save>Save personalization</button>
+      </div>
+    </div>
+  </div>
+</modal-dialog>
