@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickClips Personalization — UI Preview</title>
+  <style>
+    /* ── Dawn-like CSS custom properties ── */
+    :root {
+      --color-background: 255, 255, 255;
+      --color-foreground: 18, 18, 18;
+      --color-button: 18, 18, 18;
+      --color-button-text: 255, 255, 255;
+      --inputs-border-opacity: 0.2;
+      --inputs-radius-outset: 0.4rem;
+      --text-boxes-radius: 0.6rem;
+      font-size: 62.5%;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 1.6rem;
+      color: rgb(var(--color-foreground));
+      background: #f6f6f6;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    /* Fake product page */
+    .demo-page {
+      max-width: 54rem;
+      margin: 4rem auto;
+      background: rgb(var(--color-background));
+      padding: 3.2rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .demo-page h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin: 0 0 0.6rem;
+    }
+
+    .demo-page .price {
+      font-size: 2rem;
+      color: rgba(var(--color-foreground), 0.75);
+      margin: 0 0 2.4rem;
+    }
+
+    /* Dawn-like button styles */
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1.2rem 2.4rem;
+      border-radius: 0.4rem;
+      font: inherit;
+      font-size: 1.4rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      min-height: 4.6rem;
+      border: 0.1rem solid transparent;
+    }
+
+    .button--primary, .button:not(.button--secondary) {
+      background-color: rgb(var(--color-button));
+      color: rgb(var(--color-button-text));
+      border-color: rgb(var(--color-button));
+    }
+
+    .button--secondary {
+      background-color: transparent;
+      color: rgb(var(--color-foreground));
+      border-color: rgba(var(--color-foreground), 0.35);
+    }
+
+    .button--secondary:hover {
+      border-color: rgb(var(--color-foreground));
+    }
+
+    .personalization-preview-trigger {
+      width: 100%;
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .personalization-preview-trigger.is-configured {
+      border-color: rgb(var(--color-button)) !important;
+    }
+
+    .atc-btn {
+      width: 100%;
+      margin-top: 0.8rem;
+    }
+
+    .form__label {
+      font-size: 1.3rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      margin: 0;
+    }
+
+    .h3 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+
+    /* ── personalization-preview.css (UI improvements) ── */
+
+    .personalization-line-item-properties { display: none; }
+
+    body.pp-modal-open { overflow: hidden; }
+
+    /* A1+A2: Backdrop with blur transition */
+    .personalization-preview-modal {
+      box-sizing: border-box;
+      position: fixed;
+      visibility: hidden;
+      z-index: -1;
+      inset: 0;
+      background: rgba(var(--color-foreground), 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      transition:
+        background 0.28s ease,
+        backdrop-filter 0.28s ease,
+        -webkit-backdrop-filter 0.28s ease,
+        visibility 0s linear 0.28s;
+    }
+
+    .personalization-preview-modal[open] {
+      visibility: visible;
+      z-index: 101;
+      background: rgba(var(--color-foreground), 0.15);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      transition:
+        background 0.28s ease,
+        backdrop-filter 0.28s ease,
+        -webkit-backdrop-filter 0.28s ease,
+        visibility 0s linear 0s;
+    }
+
+    /* A1: Content slide+scale, I3: accent stripe */
+    .personalization-preview-modal__content {
+      --modal-height-offset: 3.2rem;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(18px) scale(0.97);
+      opacity: 0;
+      margin-top: var(--modal-height-offset);
+      width: calc(100% - 3rem);
+      max-width: 64rem;
+      background-color: rgb(var(--color-background));
+      max-height: calc(100% - var(--modal-height-offset) * 2);
+      overflow-y: auto;
+      padding: 0 0 2.4rem;
+      border-top: 3px solid rgb(var(--color-button));
+      border-radius: 0 0 0.6rem 0.6rem;
+      transition:
+        transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.25s ease;
+    }
+
+    .personalization-preview-modal[open] .personalization-preview-modal__content {
+      transform: translateX(-50%) translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    /* A3: Sticky header */
+    .pp-sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.8rem 2.4rem 1.4rem;
+      background-color: rgb(var(--color-background));
+      border-bottom: 0.1rem solid transparent;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .pp-sticky-header.is-scrolled {
+      border-color: rgba(var(--color-foreground), 0.1);
+      box-shadow: 0 2px 8px rgba(var(--color-foreground), 0.06);
+    }
+
+    .personalization-preview-modal__body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+      padding: 0 2.4rem;
+    }
+
+    .personalization-preview-modal__header h2 { margin: 0; }
+    .personalization-preview-modal__header p { margin: 0.4rem 0 0; }
+
+    /* Close button */
+    .personalization-preview-modal__toggle {
+      background-color: rgb(var(--color-background));
+      border: 0.1rem solid rgba(var(--color-foreground), 0.1);
+      border-radius: 50%;
+      color: rgba(var(--color-foreground), 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 3.8rem;
+      height: 3.8rem;
+      flex-shrink: 0;
+      font-size: 2rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .personalization-preview-modal__toggle:hover {
+      background-color: rgba(var(--color-foreground), 0.06);
+      color: rgb(var(--color-foreground));
+    }
+
+    /* Fields */
+    .personalization-preview-modal__fields { display: grid; gap: 1.2rem; }
+
+    .personalization-preview-modal__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .pp-section-label { margin: 0; }
+
+    /* D1: Floating label wrapper */
+    .pp-field-wrapper { position: relative; }
+
+    .personalization-preview-modal__input {
+      width: 100%;
+      border: 0.1rem solid rgba(var(--color-foreground), var(--inputs-border-opacity));
+      border-radius: var(--inputs-radius-outset);
+      min-height: 5.2rem;
+      padding: 1.8rem 4rem 0.6rem 1.4rem;
+      font: inherit;
+      font-size: 1.4rem;
+      color: rgb(var(--color-foreground));
+      background-color: rgb(var(--color-background));
+      transition: border-color 0.15s ease;
+    }
+
+    .personalization-preview-modal__input:focus {
+      outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
+      outline-offset: 0.1rem;
+      border-color: rgba(var(--color-foreground), 0.55);
+    }
+
+    .personalization-preview-modal__input.pp-input--error {
+      border-color: rgb(208, 46, 46);
+    }
+
+    /* D1: Floating label */
+    .pp-floating-label {
+      position: absolute;
+      left: 1.4rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.4rem;
+      color: rgba(var(--color-foreground), 0.55);
+      pointer-events: none;
+      transition: top 0.18s ease, transform 0.18s ease, font-size 0.18s ease, color 0.18s ease;
+    }
+
+    .personalization-preview-modal__input:focus + .pp-floating-label,
+    .personalization-preview-modal__input:not(:placeholder-shown) + .pp-floating-label {
+      top: 1rem;
+      transform: translateY(0);
+      font-size: 1.05rem;
+      color: rgba(var(--color-foreground), 0.4);
+    }
+
+    /* D2: Clear button */
+    .pp-clear-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 0.4rem;
+      cursor: pointer;
+      color: rgba(var(--color-foreground), 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+      border-radius: 50%;
+    }
+
+    .pp-clear-btn:hover {
+      color: rgb(var(--color-foreground));
+      background-color: rgba(var(--color-foreground), 0.06);
+    }
+
+    .pp-clear-btn svg { width: 1.4rem; height: 1.4rem; }
+
+    /* B1: Color-coded counter */
+    .personalization-preview-modal__count {
+      margin: 0;
+      font-size: 1.2rem;
+      color: rgba(var(--color-foreground), 0.55);
+      transition: color 0.15s ease;
+    }
+
+    .personalization-preview-modal__count.pp-count--warn { color: rgb(180, 100, 0); }
+    .personalization-preview-modal__count.pp-count--error { color: rgb(208, 46, 46); font-weight: 600; }
+
+    /* Style options */
+    .personalization-preview-modal__style-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .personalization-preview-modal__style-option { position: relative; display: block; }
+
+    .personalization-preview-modal__style-option input {
+      position: absolute; opacity: 0; pointer-events: none;
+    }
+
+    .personalization-preview-modal__style-option span {
+      display: block;
+      text-align: center;
+      border: 0.1rem solid rgba(var(--color-foreground), 0.2);
+      border-radius: var(--inputs-radius-outset);
+      padding: 0.9rem 1rem;
+      cursor: pointer;
+      font-size: 1.3rem;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .personalization-preview-modal__style-option input:checked + span {
+      border-color: rgb(var(--color-button));
+      background-color: rgba(var(--color-button), 0.08);
+    }
+
+    /* Divider */
+    .pp-divider {
+      border: none;
+      border-top: 0.1rem solid rgba(var(--color-foreground), 0.1);
+      margin: 0;
+    }
+
+    /* Preview panel */
+    .personalization-preview-modal__preview {
+      border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+      border-radius: var(--text-boxes-radius);
+      padding: 1.6rem;
+      background: rgba(0,0,0,0.03);
+    }
+
+    .personalization-preview-modal__preview-label {
+      margin: 0 0 0.9rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* C1: Live dot */
+    .pp-live-dot {
+      display: inline-block;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background: rgb(var(--color-button));
+      animation: pp-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pp-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    .personalization-preview-modal__preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .personalization-preview-modal__blank-clip {
+      min-height: 21.6rem;
+      border: 0.1rem dashed rgba(var(--color-foreground), 0.22);
+      border-radius: var(--text-boxes-radius);
+      background: linear-gradient(180deg, rgb(255,255,255), rgba(0,0,0,0.04));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.4rem;
+      position: relative;
+    }
+
+    .personalization-preview-modal__blank-clip::before {
+      content: '';
+      position: absolute;
+      top: 1.3rem;
+      width: 6rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: rgba(var(--color-foreground), 0.2);
+    }
+
+    .personalization-preview-modal__clip-plate {
+      width: 100%;
+      max-width: 26rem;
+      border: 0.15rem solid rgba(var(--color-foreground), 0.2);
+      border-radius: 1rem;
+      background-color: rgba(255,255,255,0.95);
+      min-height: 14rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      text-align: center;
+      padding: 1.5rem 1.2rem;
+    }
+
+    .personalization-preview-modal__clip-plate [data-personalization-preview='name1'] {
+      font-size: 2rem; line-height: 1.2; font-weight: 600;
+    }
+    .personalization-preview-modal__clip-plate [data-personalization-preview='name2'] {
+      font-size: 1.5rem; line-height: 1.25;
+    }
+    .personalization-preview-modal__clip-plate [data-personalization-preview='date'] {
+      font-size: 1.3rem; opacity: 0.78;
+    }
+
+    .personalization-preview-modal__blank-clip.is-style-1 .personalization-preview-modal__clip-plate {
+      border-radius: 0.8rem;
+    }
+    .personalization-preview-modal__blank-clip.is-style-2 .personalization-preview-modal__clip-plate {
+      border-style: dashed;
+      box-shadow: inset 0 0 0 0.2rem rgba(var(--color-foreground), 0.05);
+    }
+    .personalization-preview-modal__blank-clip.is-style-3 .personalization-preview-modal__clip-plate {
+      border-radius: 3rem;
+      background: linear-gradient(135deg, rgb(255,255,255), rgba(0,0,0,0.08));
+    }
+
+    .personalization-preview-modal__generated-preview {
+      border: 0.1rem solid rgba(var(--color-foreground), 0.16);
+      border-radius: var(--text-boxes-radius);
+      background-color: rgba(255,255,255,0.95);
+      min-height: 21.6rem;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .personalization-preview-modal__generated-label {
+      margin: 0; font-size: 1.3rem; font-weight: 600;
+    }
+
+    .personalization-preview-modal__generated-output {
+      margin: 0; font-size: 1.4rem; line-height: 1.45;
+      color: rgba(var(--color-foreground), 0.86);
+    }
+
+    .personalization-preview-modal__error {
+      margin: 0; color: rgb(208, 46, 46); font-size: 1.3rem;
+    }
+
+    /* E1: Spinner */
+    .pp-btn-with-spinner {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .pp-spinner {
+      display: inline-block;
+      width: 1.4rem;
+      height: 1.4rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: pp-spin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pp-spin { to { transform: rotate(360deg); } }
+
+    /* Actions */
+    .personalization-preview-modal__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    /* F1: Mobile bottom sheet */
+    @media screen and (max-width: 749px) {
+      .personalization-preview-modal__content {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        margin: 0 !important;
+        border-radius: 1.8rem 1.8rem 0 0 !important;
+        border-top-width: 0 !important;
+        transform: translateY(100%) !important;
+        opacity: 1 !important;
+        transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1) !important;
+      }
+
+      .personalization-preview-modal__content::before {
+        content: '';
+        display: block;
+        width: 4rem;
+        height: 0.45rem;
+        background: rgba(var(--color-foreground), 0.18);
+        border-radius: 9px;
+        margin: 1rem auto 0;
+      }
+
+      .personalization-preview-modal[open] .personalization-preview-modal__content {
+        transform: translateY(0) !important;
+      }
+
+      .personalization-preview-modal__style-options { grid-template-columns: 1fr; }
+      .personalization-preview-modal__preview-grid { grid-template-columns: 1fr; }
+      .personalization-preview-modal__actions { justify-content: stretch; }
+      .personalization-preview-modal__actions .button { width: 100%; }
+    }
+
+    /* ── Demo note ── */
+    .demo-note {
+      font-size: 1.2rem;
+      color: rgba(var(--color-foreground), 0.5);
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 0.1rem solid rgba(var(--color-foreground), 0.1);
+    }
+
+    .demo-note strong {
+      color: rgba(var(--color-foreground), 0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fake product page -->
+  <div class="demo-page" id="demoPage">
+    <h1>Custom QuickClip</h1>
+    <p class="price">$24.99</p>
+
+    <!-- Personalization trigger -->
+    <button
+      class="button button--secondary personalization-preview-trigger"
+      data-personalization-trigger
+      data-personalization-scope="demo-product-1"
+      data-personalization-product-title="Custom QuickClip"
+      data-personalization-primary-max="30"
+      data-personalization-secondary-max="30"
+      data-personalization-default-label="Customize Now"
+    >
+      <span data-personalization-trigger-label>Customize Now</span>
+    </button>
+
+    <!-- ATC button (scrolls out of view to reveal sticky bar) -->
+    <button class="button atc-btn" id="mainAtcBtn">Add to Cart</button>
+
+    <p class="demo-note">
+      <strong>What to look for:</strong><br><br>
+      1. Click <em>Customize Now</em> — watch the <strong>frosted-glass backdrop fade in</strong> and the modal <strong>slide+scale up</strong> from below the center<br><br>
+      2. Type in Name 1 — the <strong>floating label</strong> lifts up, a <strong>character counter</strong> appears (turns amber at 80%, red at limit), and an <strong>× clear button</strong> appears on the right<br><br>
+      3. Click <em>Pick Now</em> — the preview panel reveals with a <strong>pulsing green dot</strong> and live clip plate reflecting your text<br><br>
+      4. Click <em>Generate</em> — a <strong>spinner</strong> appears on the button (this demo simulates a 1.5s API call)<br><br>
+      5. Click <em>Save personalization</em> — button shows <strong>spinner</strong>, button on the product page gains a colored border and switches label to <em>"Edit Customization"</em><br><br>
+      6. Scroll inside the modal — the <strong>sticky header shadow</strong> appears as you scroll past the top<br><br>
+      7. Press <strong>Escape</strong> or Tab — Escape closes modal and <strong>focus returns to the trigger button</strong>; Tab cycles only within the modal (focus trap)<br><br>
+      8. On mobile (&lt;750px): modal becomes a <strong>bottom sheet</strong> sliding up from the bottom with a drag handle
+    </p>
+  </div>
+
+  <!-- Hidden line-item properties -->
+  <div
+    class="personalization-line-item-properties"
+    data-personalization-context
+    data-personalization-scope="demo-product-1"
+    data-personalization-product-id="12345"
+  >
+    <input type="hidden" name="properties[Personalization Primary Text]" value="" data-personalization-property="primary">
+    <input type="hidden" name="properties[Personalization Secondary Text]" value="" data-personalization-property="secondary">
+    <input type="hidden" name="properties[Personalization Style]" value="Style 1" data-personalization-property="style">
+    <input type="hidden" name="properties[Personalization Name 1]" value="" data-personalization-property="name1">
+    <input type="hidden" name="properties[Personalization Name 2]" value="" data-personalization-property="name2">
+    <input type="hidden" name="properties[Personalization Date]" value="" data-personalization-property="date">
+    <input type="hidden" name="properties[_Personalization Gemini Preview]" value="" data-personalization-property="gemini_summary">
+    <input type="hidden" name="properties[_Personalization Scope]" value="demo-product-1" data-personalization-property="scope">
+  </div>
+
+  <!-- Personalization modal (polyfills modal-dialog custom element) -->
+  <div id="PersonalizationPreviewModal" class="personalization-preview-modal">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Personalization preview"
+      class="personalization-preview-modal__content"
+      tabindex="-1"
+    >
+      <!-- A3: Sticky header -->
+      <div class="pp-sticky-header">
+        <div class="personalization-preview-modal__header">
+          <h2 class="h3">Customize Your Product</h2>
+          <p style="margin: 0.4rem 0 0; font-size: 1.3rem; color: rgba(18,18,18,0.55);" data-personalization-product-name hidden></p>
+        </div>
+        <button
+          id="ModalClose-PersonalizationPreviewModal"
+          type="button"
+          class="personalization-preview-modal__toggle"
+          aria-label="Close"
+        >&#x2715;</button>
+      </div>
+
+      <div class="personalization-preview-modal__body">
+        <div class="personalization-preview-modal__fields">
+
+          <!-- Style picker -->
+          <div class="personalization-preview-modal__field">
+            <p class="form__label pp-section-label">Choose clip style</p>
+            <div class="personalization-preview-modal__style-options">
+              <label class="personalization-preview-modal__style-option">
+                <input type="radio" name="PersonalizationStyle" value="Style 1" data-personalization-input="style" checked>
+                <span>Style 1</span>
+              </label>
+              <label class="personalization-preview-modal__style-option">
+                <input type="radio" name="PersonalizationStyle" value="Style 2" data-personalization-input="style">
+                <span>Style 2</span>
+              </label>
+              <label class="personalization-preview-modal__style-option">
+                <input type="radio" name="PersonalizationStyle" value="Style 3" data-personalization-input="style">
+                <span>Style 3</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- D1+D2: Name 1 — floating label + clear button -->
+          <div class="personalization-preview-modal__field">
+            <div class="pp-field-wrapper">
+              <input
+                id="PersonalizationNameOne"
+                class="personalization-preview-modal__input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="words"
+                placeholder=" "
+                data-personalization-input="name1"
+              >
+              <label class="pp-floating-label" for="PersonalizationNameOne">Name 1</label>
+              <button type="button" class="pp-clear-btn" data-personalization-clear="name1" aria-label="Clear name 1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <p class="personalization-preview-modal__count" data-personalization-count="name1"></p>
+          </div>
+
+          <!-- D1+D2: Name 2 — floating label + clear button -->
+          <div class="personalization-preview-modal__field">
+            <div class="pp-field-wrapper">
+              <input
+                id="PersonalizationNameTwo"
+                class="personalization-preview-modal__input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="words"
+                placeholder=" "
+                data-personalization-input="name2"
+              >
+              <label class="pp-floating-label" for="PersonalizationNameTwo">Name 2</label>
+              <button type="button" class="pp-clear-btn" data-personalization-clear="name2" aria-label="Clear name 2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <p class="personalization-preview-modal__count" data-personalization-count="name2"></p>
+          </div>
+
+          <!-- Date field -->
+          <div class="personalization-preview-modal__field">
+            <label class="form__label pp-section-label" for="PersonalizationDateText">Date</label>
+            <input
+              id="PersonalizationDateText"
+              class="personalization-preview-modal__input"
+              type="text"
+              autocomplete="off"
+              placeholder="MM/DD/YYYY"
+              data-personalization-input="date"
+              style="padding: 0 1.4rem;"
+            >
+          </div>
+
+        </div>
+
+        <hr class="pp-divider">
+
+        <!-- Preview panel -->
+        <div class="personalization-preview-modal__preview" aria-live="polite" hidden data-personalization-picked-panel>
+          <p class="personalization-preview-modal__preview-label">
+            <span class="pp-live-dot" aria-hidden="true"></span>
+            QuickClip preview workspace
+          </p>
+          <div class="personalization-preview-modal__preview-grid">
+            <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
+              <div class="personalization-preview-modal__clip-plate">
+                <span data-personalization-preview="name1">Name 1</span>
+                <span data-personalization-preview="name2">Name 2</span>
+                <span data-personalization-preview="date">Date</span>
+              </div>
+            </div>
+
+            <div class="personalization-preview-modal__generated-preview">
+              <p class="personalization-preview-modal__generated-label">Gemini result</p>
+              <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
+                Click Generate to create your QuickClip preview.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
+
+        <hr class="pp-divider">
+
+        <div class="personalization-preview-modal__actions">
+          <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
+          <button type="button" class="button button--secondary" data-personalization-pick>Pick Now</button>
+          <button type="button" class="button button--secondary pp-btn-with-spinner" data-personalization-generate>
+            <span class="pp-btn-label">Generate</span>
+            <span class="pp-spinner" hidden aria-hidden="true"></span>
+          </button>
+          <button type="button" class="button pp-btn-with-spinner" data-personalization-save>
+            <span class="pp-btn-label">Save personalization</span>
+            <span class="pp-spinner" hidden aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const MODAL_ID = 'PersonalizationPreviewModal';
+    const DEFAULT_STYLE = 'Style 1';
+    const STYLE_VALUES = ['Style 1', 'Style 2', 'Style 3'];
+    const DEFAULT_NAME1_MAX = 30;
+    const DEFAULT_NAME2_MAX = 30;
+    const DEFAULT_DATE_MAX = 32;
+    const DEFAULT_GENERATED_MESSAGE = 'Click Generate to create your QuickClip preview.';
+    const GENERATING_MESSAGE = 'Generating QuickClip preview...';
+    const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
+
+    // Polyfill: modal-dialog is a Shopify custom element; here the modal is a plain div
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+
+    // Polyfill show/hide on the plain div
+    modal.show = function (trigger) { modal.setAttribute('open', ''); };
+    modal.hide = function () { modal.removeAttribute('open'); };
+
+    const modalContent    = modal.querySelector('.personalization-preview-modal__content');
+    const stickyHeader    = modal.querySelector('.pp-sticky-header');
+    const styleInputs     = Array.from(modal.querySelectorAll('[data-personalization-input="style"]'));
+    const name1Input      = modal.querySelector('[data-personalization-input="name1"]');
+    const name2Input      = modal.querySelector('[data-personalization-input="name2"]');
+    const dateInput       = modal.querySelector('[data-personalization-input="date"]');
+    const name1Count      = modal.querySelector('[data-personalization-count="name1"]');
+    const name2Count      = modal.querySelector('[data-personalization-count="name2"]');
+    const previewName1    = modal.querySelector('[data-personalization-preview="name1"]');
+    const previewName2    = modal.querySelector('[data-personalization-preview="name2"]');
+    const previewDate     = modal.querySelector('[data-personalization-preview="date"]');
+    const clipSurface     = modal.querySelector('[data-personalization-clip-surface]');
+    const pickedPanel     = modal.querySelector('[data-personalization-picked-panel]');
+    const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
+    const productName     = modal.querySelector('[data-personalization-product-name]');
+    const errorElement    = modal.querySelector('[data-personalization-error]');
+    const pickButton      = modal.querySelector('[data-personalization-pick]');
+    const generateButton  = modal.querySelector('[data-personalization-generate]');
+    const saveButton      = modal.querySelector('[data-personalization-save]');
+    const cancelButton    = modal.querySelector('[data-personalization-cancel]');
+    const closeButton     = document.getElementById('ModalClose-PersonalizationPreviewModal');
+
+    const stateByScope = new Map();
+    let activeScope    = '';
+    let activeTrigger  = null;
+    let activeName1Max = DEFAULT_NAME1_MAX;
+    let activeName2Max = DEFAULT_NAME2_MAX;
+    let isGenerating   = false;
+
+    function parseMaxLength(value, fallback) {
+      const n = Number.parseInt(value, 10);
+      return (Number.isNaN(n) || n < 1) ? fallback : n;
+    }
+
+    function normalizeStyle(value) {
+      return STYLE_VALUES.includes(value) ? value : DEFAULT_STYLE;
+    }
+
+    function createDefaultState() {
+      return { style: DEFAULT_STYLE, name1: '', name2: '', date: '', geminiSummary: '', previewOpened: false, maxName1: DEFAULT_NAME1_MAX, maxName2: DEFAULT_NAME2_MAX };
+    }
+
+    function getScopeState(scope) { return scope ? (stateByScope.get(scope) || null) : null; }
+
+    function setScopeState(scope, nextState) {
+      if (!scope) return;
+      const cur = getScopeState(scope) || createDefaultState();
+      stateByScope.set(scope, {
+        style:         normalizeStyle(nextState.style ?? cur.style),
+        name1:         String(nextState.name1 ?? cur.name1 ?? '').trim(),
+        name2:         String(nextState.name2 ?? cur.name2 ?? '').trim(),
+        date:          String(nextState.date ?? cur.date ?? '').trim(),
+        geminiSummary: String(nextState.geminiSummary ?? cur.geminiSummary ?? '').trim(),
+        previewOpened: Boolean(nextState.previewOpened ?? cur.previewOpened),
+        maxName1:      parseMaxLength(nextState.maxName1 ?? cur.maxName1, DEFAULT_NAME1_MAX),
+        maxName2:      parseMaxLength(nextState.maxName2 ?? cur.maxName2, DEFAULT_NAME2_MAX),
+      });
+    }
+
+    function setError(message) {
+      if (!message) { errorElement.setAttribute('hidden', ''); errorElement.textContent = ''; }
+      else { errorElement.removeAttribute('hidden'); errorElement.textContent = message; }
+    }
+
+    function getSelectedStyle() {
+      const checked = styleInputs.find((i) => i.checked);
+      return normalizeStyle(checked ? checked.value : DEFAULT_STYLE);
+    }
+
+    function setSelectedStyle(styleValue) {
+      const val = normalizeStyle(styleValue);
+      styleInputs.forEach((i) => { i.checked = i.value === val; });
+    }
+
+    function getClipStyleClass(styleValue) {
+      if (styleValue === 'Style 2') return 'is-style-2';
+      if (styleValue === 'Style 3') return 'is-style-3';
+      return 'is-style-1';
+    }
+
+    function getGeneratedSummary() {
+      const t = generatedOutput.textContent ? generatedOutput.textContent.trim() : '';
+      return (t && t !== DEFAULT_GENERATED_MESSAGE && t !== GENERATING_MESSAGE) ? t : '';
+    }
+
+    function getValidationError(options) {
+      const requireAll = Boolean(options && options.requireAll);
+      const n1 = name1Input.value.trim();
+      const n2 = name2Input.value.trim();
+      const dt = dateInput.value.trim();
+      if (n1.length > activeName1Max) return `Name 1 must be ${activeName1Max} characters or fewer.`;
+      if (n2.length > activeName2Max) return `Name 2 must be ${activeName2Max} characters or fewer.`;
+      if (dt.length > DEFAULT_DATE_MAX) return `Date must be ${DEFAULT_DATE_MAX} characters or fewer.`;
+      if (requireAll) {
+        if (!n1) return 'Name 1 is required before generating a preview.';
+        if (!n2) return 'Name 2 is required before generating a preview.';
+        if (!dt) return 'Date is required before generating a preview.';
+      }
+      return '';
+    }
+
+    function updateCount(input, countEl, max) {
+      if (!countEl) return;
+      const len = input.value.length, ratio = max > 0 ? len / max : 0;
+      countEl.textContent = `${len}/${max}`;
+      countEl.classList.toggle('pp-count--warn', ratio >= 0.8 && ratio < 1);
+      countEl.classList.toggle('pp-count--error', ratio >= 1);
+      input.classList.toggle('pp-input--error', len > max);
+    }
+
+    function updateClearButtons() {
+      [{ input: name1Input, field: 'name1' }, { input: name2Input, field: 'name2' }].forEach(({ input, field }) => {
+        const btn = modal.querySelector(`[data-personalization-clear="${field}"]`);
+        if (btn) btn.toggleAttribute('hidden', input.value.length === 0);
+      });
+    }
+
+    function setPickedPanelVisible(visible) { pickedPanel.toggleAttribute('hidden', !visible); }
+
+    function renderClipStyle() {
+      const styleClass = getClipStyleClass(getSelectedStyle());
+      clipSurface.classList.remove(...CLIP_STYLE_CLASSES);
+      clipSurface.classList.add(styleClass);
+    }
+
+    function renderPreviewText() {
+      previewName1.textContent = name1Input.value.trim() || 'Name 1';
+      previewName2.textContent = name2Input.value.trim() || 'Name 2';
+      previewDate.textContent  = dateInput.value.trim() || 'Date';
+    }
+
+    function renderEditorState() {
+      updateCount(name1Input, name1Count, activeName1Max);
+      updateCount(name2Input, name2Count, activeName2Max);
+      updateClearButtons();
+      renderClipStyle();
+      renderPreviewText();
+      const hasError = Boolean(getValidationError());
+      if (!isGenerating) setError(hasError ? getValidationError() : '');
+      pickButton.disabled = isGenerating || hasError;
+      generateButton.disabled = isGenerating || hasError;
+      saveButton.disabled = isGenerating || hasError;
+    }
+
+    function setButtonLoading(button, loading) {
+      const label = button.querySelector('.pp-btn-label');
+      const spinner = button.querySelector('.pp-spinner');
+      if (label) label.style.opacity = loading ? '0.55' : '';
+      if (spinner) spinner.toggleAttribute('hidden', !loading);
+    }
+
+    // A3: Sticky header shadow on scroll
+    if (modalContent && stickyHeader) {
+      modalContent.addEventListener('scroll', () => {
+        stickyHeader.classList.toggle('is-scrolled', modalContent.scrollTop > 4);
+      }, { passive: true });
+    }
+
+    function lockScroll() { document.body.classList.add('pp-modal-open'); }
+    function unlockScroll() { document.body.classList.remove('pp-modal-open'); }
+
+    // G1: Focus trap
+    function getFocusable() {
+      return [...modalContent.querySelectorAll(
+        'button:not([disabled]):not([hidden]), input:not([disabled]):not([hidden]), [tabindex]:not([tabindex="-1"])'
+      )].filter((el) => el.offsetParent !== null && !el.closest('[hidden]'));
+    }
+
+    function handleTrap(event) {
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    }
+
+    // A4: Unified close
+    function doClose() {
+      unlockScroll();
+      modal.removeEventListener('keydown', handleTrap);
+      modal.hide();
+      if (activeTrigger) {
+        const t = activeTrigger; activeTrigger = null;
+        requestAnimationFrame(() => t.focus());
+      }
+    }
+
+    // G2: Escape
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.hasAttribute('open')) doClose();
+    });
+
+    function openEditor(trigger) {
+      activeScope = trigger.dataset.personalizationScope || '';
+      if (!activeScope) return;
+
+      activeTrigger = trigger;
+      const existingState = getScopeState(activeScope) || createDefaultState();
+
+      activeName1Max = parseMaxLength(trigger.dataset.personalizationPrimaryMax, existingState.maxName1 || DEFAULT_NAME1_MAX);
+      activeName2Max = parseMaxLength(trigger.dataset.personalizationSecondaryMax, existingState.maxName2 || DEFAULT_NAME2_MAX);
+
+      const productTitle = trigger.dataset.personalizationProductTitle || '';
+      productName.textContent = productTitle;
+      productName.toggleAttribute('hidden', !productTitle);
+
+      setSelectedStyle(existingState.style || DEFAULT_STYLE);
+      name1Input.value = existingState.name1 || '';
+      name2Input.value = existingState.name2 || '';
+      dateInput.value  = existingState.date || '';
+      generatedOutput.textContent = existingState.geminiSummary || DEFAULT_GENERATED_MESSAGE;
+      setPickedPanelVisible(Boolean(existingState.previewOpened));
+      isGenerating = false;
+      setButtonLoading(generateButton, false);
+      setButtonLoading(saveButton, false);
+      renderEditorState();
+      lockScroll();
+      modal.show(trigger);
+
+      setTimeout(() => {
+        name1Input.focus();
+        modal.addEventListener('keydown', handleTrap);
+      }, 60);
+    }
+
+    // Trigger click
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-personalization-trigger]');
+      if (!trigger) return;
+      event.preventDefault();
+      openEditor(trigger);
+    });
+
+    // Close button
+    if (closeButton) closeButton.addEventListener('click', doClose);
+
+    // Backdrop click
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) doClose();
+    });
+
+    // Input listeners
+    styleInputs.forEach((input) => input.addEventListener('change', renderEditorState));
+    name1Input.addEventListener('input', renderEditorState);
+    name2Input.addEventListener('input', renderEditorState);
+    dateInput.addEventListener('input', renderEditorState);
+
+    // B2: Blur validation
+    name1Input.addEventListener('blur', () => { if (name1Input.value.length > activeName1Max) name1Input.classList.add('pp-input--error'); });
+    name2Input.addEventListener('blur', () => { if (name2Input.value.length > activeName2Max) name2Input.classList.add('pp-input--error'); });
+
+    // D2: Clear buttons
+    modal.addEventListener('click', (event) => {
+      const clearBtn = event.target.closest('[data-personalization-clear]');
+      if (!clearBtn) return;
+      const field = clearBtn.dataset.personalizationClear;
+      const input = modal.querySelector(`[data-personalization-input="${field}"]`);
+      if (!input) return;
+      input.value = '';
+      input.focus();
+      clearBtn.setAttribute('hidden', '');
+      renderEditorState();
+    });
+
+    function commitActiveState(closeModal) {
+      if (!activeScope) return false;
+      const error = getValidationError();
+      if (error) { setError(error); return false; }
+      setScopeState(activeScope, {
+        style: getSelectedStyle(),
+        name1: name1Input.value.trim(),
+        name2: name2Input.value.trim(),
+        date: dateInput.value.trim(),
+        geminiSummary: getGeneratedSummary(),
+        previewOpened: !pickedPanel.hasAttribute('hidden'),
+        maxName1: activeName1Max,
+        maxName2: activeName2Max,
+      });
+      syncScope(activeScope);
+      if (closeModal) doClose();
+      return true;
+    }
+
+    // Demo: simulated generate (replaces actual fetch)
+    async function generatePreview() {
+      if (!activeScope || isGenerating) return;
+      const blockingError = getValidationError({ requireAll: true });
+      if (blockingError) { setError(blockingError); return; }
+
+      const previousSummary = getGeneratedSummary();
+      setPickedPanelVisible(true);
+      isGenerating = true;
+      setButtonLoading(generateButton, true);
+      setError('');
+      generatedOutput.textContent = GENERATING_MESSAGE;
+      renderEditorState();
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      try {
+        const n1 = name1Input.value.trim(), n2 = name2Input.value.trim(), dt = dateInput.value.trim(), st = getSelectedStyle();
+        const summary = `${n1} & ${n2} | ${dt} | ${st} — A beautiful personalized QuickClip keepsake.`;
+        generatedOutput.textContent = summary;
+        setScopeState(activeScope, { style: st, name1: n1, name2: n2, date: dt, geminiSummary: summary, previewOpened: true, maxName1: activeName1Max, maxName2: activeName2Max });
+        syncScope(activeScope);
+      } catch (e) {
+        generatedOutput.textContent = previousSummary || DEFAULT_GENERATED_MESSAGE;
+        setError('Could not generate preview.');
+      } finally {
+        isGenerating = false;
+        setButtonLoading(generateButton, false);
+        renderEditorState();
+      }
+    }
+
+    pickButton.addEventListener('click', () => {
+      const err = getValidationError({ requireAll: true });
+      if (err) { setError(err); return; }
+      setPickedPanelVisible(true);
+      commitActiveState(false);
+      renderEditorState();
+    });
+
+    generateButton.addEventListener('click', () => generatePreview());
+
+    saveButton.addEventListener('click', () => {
+      setButtonLoading(saveButton, true);
+      const ok = commitActiveState(false);
+      if (ok) {
+        setTimeout(() => { setButtonLoading(saveButton, false); doClose(); }, 300);
+      } else {
+        setButtonLoading(saveButton, false);
+      }
+    });
+
+    cancelButton.addEventListener('click', doClose);
+
+    function applyStateToContext(context, state) {
+      function w(prop, val) {
+        const el = context.querySelector(`[data-personalization-property="${prop}"]`);
+        if (el) el.value = val;
+      }
+      w('primary', state.name1 || '');
+      w('secondary', state.name2 || '');
+      w('style', state.style || DEFAULT_STYLE);
+      w('name1', state.name1 || '');
+      w('name2', state.name2 || '');
+      w('date', state.date || '');
+      w('gemini_summary', state.geminiSummary || '');
+      w('scope', context.dataset.personalizationScope || '');
+    }
+
+    function isConfiguredState(state) {
+      return state ? Boolean(state.name1 || state.name2 || state.date || state.geminiSummary) : false;
+    }
+
+    function updateTriggerLabels(scope) {
+      if (!scope) return;
+      const state = getScopeState(scope);
+      document.querySelectorAll(`[data-personalization-trigger][data-personalization-scope="${scope}"]`).forEach((trigger) => {
+        const labelNode = trigger.querySelector('[data-personalization-trigger-label]');
+        if (!labelNode) return;
+        const defaultLabel = trigger.dataset.personalizationDefaultLabel || 'Customize Now';
+        if (isConfiguredState(state)) {
+          labelNode.textContent = 'Edit Customization';
+          trigger.classList.add('is-configured');
+        } else {
+          labelNode.textContent = defaultLabel;
+          trigger.classList.remove('is-configured');
+        }
+      });
+    }
+
+    function syncScope(scope) {
+      if (!scope) return;
+      const state = getScopeState(scope) || createDefaultState();
+      document.querySelectorAll(`[data-personalization-context][data-personalization-scope="${scope}"]`).forEach((context) => applyStateToContext(context, state));
+      updateTriggerLabels(scope);
+    }
+
+    function hydrateContexts(root) {
+      root.querySelectorAll('[data-personalization-context]').forEach((context) => {
+        const scope = context.dataset.personalizationScope;
+        if (!scope) return;
+        if (!getScopeState(scope)) {
+          setScopeState(scope, {
+            style: (context.querySelector('[data-personalization-property="style"]') || {}).value || DEFAULT_STYLE,
+            name1: (context.querySelector('[data-personalization-property="name1"]') || {}).value || '',
+            name2: (context.querySelector('[data-personalization-property="name2"]') || {}).value || '',
+            date:  (context.querySelector('[data-personalization-property="date"]') || {}).value || '',
+            geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
+            maxName1: DEFAULT_NAME1_MAX,
+            maxName2: DEFAULT_NAME2_MAX,
+          });
+        }
+        syncScope(scope);
+      });
+    }
+
+    hydrateContexts(document);
+  })();
+  </script>
+</body>
+</html>

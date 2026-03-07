@@ -6,60 +6,163 @@
     class="personalization-preview-modal__content global-settings-popup"
     tabindex="-1"
   >
-    <button
-      id="ModalClose-PersonalizationPreviewModal"
-      type="button"
-      class="personalization-preview-modal__toggle"
-      aria-label="{{ 'accessibility.close' | t }}"
-    >
-      {% render 'icon-close' %}
-    </button>
-
-    <div class="personalization-preview-modal__body">
+    <!-- A3: Sticky header with title + close button -->
+    <div class="pp-sticky-header">
       <div class="personalization-preview-modal__header">
         <h2 class="h3">Customize Your Product</h2>
-        <p class="personalization-preview-modal__product" data-personalization-product-name></p>
+        <p class="personalization-preview-modal__product" data-personalization-product-name hidden></p>
       </div>
+      <button
+        id="ModalClose-PersonalizationPreviewModal"
+        type="button"
+        class="personalization-preview-modal__toggle"
+        aria-label="{{ 'accessibility.close' | t }}"
+      >
+        {% render 'icon-close' %}
+      </button>
+    </div>
 
+    <div class="personalization-preview-modal__body">
       <div class="personalization-preview-modal__fields">
+
+        <!-- Style picker -->
         <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationPrimaryText">Primary text</label>
-          <input
-            id="PersonalizationPrimaryText"
-            class="personalization-preview-modal__input"
-            type="text"
-            autocomplete="off"
-            data-personalization-input="primary"
-          >
-          <p class="personalization-preview-modal__count" data-personalization-count="primary"></p>
+          <p class="form__label pp-section-label">Choose clip style</p>
+          <div class="personalization-preview-modal__style-options">
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 1"
+                data-personalization-input="style"
+                checked
+              >
+              <span>Style 1</span>
+            </label>
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 2"
+                data-personalization-input="style"
+              >
+              <span>Style 2</span>
+            </label>
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 3"
+                data-personalization-input="style"
+              >
+              <span>Style 3</span>
+            </label>
+          </div>
         </div>
 
+        <!-- D1+D2: Name 1 — floating label + clear button -->
         <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationSecondaryText">Secondary text (optional)</label>
+          <div class="pp-field-wrapper">
+            <input
+              id="PersonalizationNameOne"
+              class="personalization-preview-modal__input"
+              type="text"
+              autocomplete="off"
+              autocapitalize="words"
+              placeholder=" "
+              data-personalization-input="name1"
+            >
+            <label class="pp-floating-label" for="PersonalizationNameOne">Name 1</label>
+            <button type="button" class="pp-clear-btn" data-personalization-clear="name1" aria-label="Clear name 1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <p class="personalization-preview-modal__count" data-personalization-count="name1"></p>
+        </div>
+
+        <!-- D1+D2: Name 2 — floating label + clear button -->
+        <div class="personalization-preview-modal__field">
+          <div class="pp-field-wrapper">
+            <input
+              id="PersonalizationNameTwo"
+              class="personalization-preview-modal__input"
+              type="text"
+              autocomplete="off"
+              autocapitalize="words"
+              placeholder=" "
+              data-personalization-input="name2"
+            >
+            <label class="pp-floating-label" for="PersonalizationNameTwo">Name 2</label>
+            <button type="button" class="pp-clear-btn" data-personalization-clear="name2" aria-label="Clear name 2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <p class="personalization-preview-modal__count" data-personalization-count="name2"></p>
+        </div>
+
+        <!-- Date field -->
+        <div class="personalization-preview-modal__field">
+          <label class="form__label pp-section-label" for="PersonalizationDateText">Date</label>
           <input
-            id="PersonalizationSecondaryText"
+            id="PersonalizationDateText"
             class="personalization-preview-modal__input"
             type="text"
             autocomplete="off"
-            data-personalization-input="secondary"
+            placeholder="MM/DD/YYYY"
+            data-personalization-input="date"
           >
-          <p class="personalization-preview-modal__count" data-personalization-count="secondary"></p>
         </div>
+
       </div>
 
-      <div class="personalization-preview-modal__preview" aria-live="polite">
-        <p class="personalization-preview-modal__preview-label">Live preview</p>
-        <div class="personalization-preview-modal__preview-surface">
-          <span data-personalization-preview="primary">Primary text</span>
-          <span data-personalization-preview="secondary">Secondary text</span>
+      <hr class="pp-divider">
+
+      <!-- Preview panel (shown after Pick Now) -->
+      <div class="personalization-preview-modal__preview" aria-live="polite" hidden data-personalization-picked-panel>
+        <p class="personalization-preview-modal__preview-label">
+          <!-- C1: Live dot -->
+          <span class="pp-live-dot" aria-hidden="true"></span>
+          QuickClip preview workspace
+        </p>
+        <div class="personalization-preview-modal__preview-grid">
+          <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
+            <div class="personalization-preview-modal__clip-plate">
+              <span data-personalization-preview="name1">Name 1</span>
+              <span data-personalization-preview="name2">Name 2</span>
+              <span data-personalization-preview="date">Date</span>
+            </div>
+          </div>
+
+          <div class="personalization-preview-modal__generated-preview">
+            <p class="personalization-preview-modal__generated-label">Gemini result</p>
+            <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
+              Click Generate to create your QuickClip preview.
+            </p>
+          </div>
         </div>
       </div>
 
       <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
 
+      <hr class="pp-divider">
+
       <div class="personalization-preview-modal__actions">
         <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
-        <button type="button" class="button" data-personalization-save>Save personalization</button>
+        <button type="button" class="button button--secondary" data-personalization-pick>Pick Now</button>
+        <!-- E1: Generate with spinner -->
+        <button type="button" class="button button--secondary pp-btn-with-spinner" data-personalization-generate>
+          <span class="pp-btn-label">Generate</span>
+          <span class="pp-spinner" hidden aria-hidden="true"></span>
+        </button>
+        <!-- E1: Save with spinner -->
+        <button type="button" class="button pp-btn-with-spinner" data-personalization-save>
+          <span class="pp-btn-label">Save personalization</span>
+          <span class="pp-spinner" hidden aria-hidden="true"></span>
+        </button>
       </div>
     </div>
   </div>
