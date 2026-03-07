@@ -6,28 +6,24 @@
     class="personalization-preview-modal__content global-settings-popup"
     tabindex="-1"
   >
-    <!-- A3: Sticky header with title + close button -->
-    <div class="pp-sticky-header">
+    <button
+      id="ModalClose-PersonalizationPreviewModal"
+      type="button"
+      class="personalization-preview-modal__toggle"
+      aria-label="{{ 'accessibility.close' | t }}"
+    >
+      {% render 'icon-close' %}
+    </button>
+
+    <div class="personalization-preview-modal__body">
       <div class="personalization-preview-modal__header">
         <h2 class="h3">Customize Your Product</h2>
         <p class="personalization-preview-modal__product" data-personalization-product-name hidden></p>
       </div>
-      <button
-        id="ModalClose-PersonalizationPreviewModal"
-        type="button"
-        class="personalization-preview-modal__toggle"
-        aria-label="{{ 'accessibility.close' | t }}"
-      >
-        {% render 'icon-close' %}
-      </button>
-    </div>
 
-    <div class="personalization-preview-modal__body">
       <div class="personalization-preview-modal__fields">
-
-        <!-- Style picker -->
         <div class="personalization-preview-modal__field">
-          <p class="form__label pp-section-label">Choose clip style</p>
+          <p class="form__label">Choose clip style</p>
           <div class="personalization-preview-modal__style-options">
             <label class="personalization-preview-modal__style-option">
               <input
@@ -37,7 +33,15 @@
                 data-personalization-input="style"
                 checked
               >
-              <span>Style 1</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-1.png' | asset_url }}"
+                  alt="Style 1 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 1</span>
+              </span>
             </label>
             <label class="personalization-preview-modal__style-option">
               <input
@@ -46,7 +50,15 @@
                 value="Style 2"
                 data-personalization-input="style"
               >
-              <span>Style 2</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-2.png' | asset_url }}"
+                  alt="Style 2 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 2</span>
+              </span>
             </label>
             <label class="personalization-preview-modal__style-option">
               <input
@@ -55,58 +67,48 @@
                 value="Style 3"
                 data-personalization-input="style"
               >
-              <span>Style 3</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-3.png' | asset_url }}"
+                  alt="Style 3 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 3</span>
+              </span>
             </label>
           </div>
+          <p class="personalization-preview-modal__helper">
+            Upload style images in theme assets as: quickclip-style-1.png, quickclip-style-2.png, quickclip-style-3.png
+          </p>
         </div>
 
-        <!-- D1+D2: Name 1 — floating label + clear button -->
         <div class="personalization-preview-modal__field">
-          <div class="pp-field-wrapper">
-            <input
-              id="PersonalizationNameOne"
-              class="personalization-preview-modal__input"
-              type="text"
-              autocomplete="off"
-              autocapitalize="words"
-              placeholder=" "
-              data-personalization-input="name1"
-            >
-            <label class="pp-floating-label" for="PersonalizationNameOne">Name 1</label>
-            <button type="button" class="pp-clear-btn" data-personalization-clear="name1" aria-label="Clear name 1" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
+          <label class="form__label" for="PersonalizationNameOne">Name 1</label>
+          <input
+            id="PersonalizationNameOne"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            data-personalization-input="name1"
+          >
           <p class="personalization-preview-modal__count" data-personalization-count="name1"></p>
         </div>
 
-        <!-- D1+D2: Name 2 — floating label + clear button -->
         <div class="personalization-preview-modal__field">
-          <div class="pp-field-wrapper">
-            <input
-              id="PersonalizationNameTwo"
-              class="personalization-preview-modal__input"
-              type="text"
-              autocomplete="off"
-              autocapitalize="words"
-              placeholder=" "
-              data-personalization-input="name2"
-            >
-            <label class="pp-floating-label" for="PersonalizationNameTwo">Name 2</label>
-            <button type="button" class="pp-clear-btn" data-personalization-clear="name2" aria-label="Clear name 2" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
+          <label class="form__label" for="PersonalizationNameTwo">Name 2</label>
+          <input
+            id="PersonalizationNameTwo"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            data-personalization-input="name2"
+          >
           <p class="personalization-preview-modal__count" data-personalization-count="name2"></p>
         </div>
 
-        <!-- Date field -->
         <div class="personalization-preview-modal__field">
-          <label class="form__label pp-section-label" for="PersonalizationDateText">Date</label>
+          <label class="form__label" for="PersonalizationDateText">Date</label>
           <input
             id="PersonalizationDateText"
             class="personalization-preview-modal__input"
@@ -116,18 +118,10 @@
             data-personalization-input="date"
           >
         </div>
-
       </div>
 
-      <hr class="pp-divider">
-
-      <!-- Preview panel (shown after Pick Now) -->
-      <div class="personalization-preview-modal__preview" aria-live="polite" hidden data-personalization-picked-panel>
-        <p class="personalization-preview-modal__preview-label">
-          <!-- C1: Live dot -->
-          <span class="pp-live-dot" aria-hidden="true"></span>
-          QuickClip preview workspace
-        </p>
+      <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
+        <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
         <div class="personalization-preview-modal__preview-grid">
           <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
             <div class="personalization-preview-modal__clip-plate">
@@ -140,7 +134,7 @@
           <div class="personalization-preview-modal__generated-preview">
             <p class="personalization-preview-modal__generated-label">Gemini result</p>
             <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
-              Click Generate to create your QuickClip preview.
+              Fill out the fields and click Generate to create your QuickClip preview.
             </p>
           </div>
         </div>
@@ -148,21 +142,10 @@
 
       <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
 
-      <hr class="pp-divider">
-
       <div class="personalization-preview-modal__actions">
         <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
-        <button type="button" class="button button--secondary" data-personalization-pick>Pick Now</button>
-        <!-- E1: Generate with spinner -->
-        <button type="button" class="button button--secondary pp-btn-with-spinner" data-personalization-generate>
-          <span class="pp-btn-label">Generate</span>
-          <span class="pp-spinner" hidden aria-hidden="true"></span>
-        </button>
-        <!-- E1: Save with spinner -->
-        <button type="button" class="button pp-btn-with-spinner" data-personalization-save>
-          <span class="pp-btn-label">Save personalization</span>
-          <span class="pp-spinner" hidden aria-hidden="true"></span>
-        </button>
+        <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
+        <button type="button" class="button" data-personalization-save>Save personalization</button>
       </div>
     </div>
   </div>

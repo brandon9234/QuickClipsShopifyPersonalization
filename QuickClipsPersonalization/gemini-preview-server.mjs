@@ -124,9 +124,13 @@ async function callGemini(payload) {
   }
 
   const prompt = [
-    'You are creating engraving preview text for a QuickClip.',
-    'Return valid JSON only with keys: headline, subline, dateLine, styleNotes.',
-    'Keep headline under 60 chars, subline under 90 chars, styleNotes under 160 chars.',
+    'You generate personalized QuickClip preview copy from storefront form fields.',
+    'Use the selected style and the exact text-box values below to craft preview copy.',
+    'Return strict JSON only with keys: headline, subline, dateLine, styleNotes.',
+    'headline: primary engraving line based on Name 1 (max 60 chars).',
+    'subline: secondary engraving line based on Name 2 (max 90 chars).',
+    'dateLine: date line using the Date value exactly as provided (max 60 chars).',
+    'styleNotes: short style-specific arrangement guidance for selected style (max 160 chars).',
     `Style: ${payload.style}`,
     `Name 1: ${payload.name1}`,
     `Name 2: ${payload.name2}`,

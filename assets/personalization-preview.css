@@ -1,12 +1,7 @@
-/* ============================================================
-   personalization-preview.css
-   Base styles with enhanced modal UI refinements
-   ============================================================ */
-
-/* ── Trigger & line-item properties ── */
 .personalization-line-item-properties {
   display: none;
 }
+
 .personalization-preview-trigger {
   width: 100%;
   margin-top: 1rem;
@@ -20,103 +15,41 @@
   margin-bottom: 0.8rem;
 }
 
-/* ── F3: Body scroll lock ── */
-body.pp-modal-open {
-  overflow: hidden;
-}
-
-/* ── A1+A2: Backdrop with blur transition ── */
 .personalization-preview-modal {
   box-sizing: border-box;
+  opacity: 0;
   position: fixed;
   visibility: hidden;
   z-index: -1;
   inset: 0;
-  background: rgba(var(--color-foreground), 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  transition:
-    background 0.28s ease,
-    backdrop-filter 0.28s ease,
-    -webkit-backdrop-filter 0.28s ease,
-    visibility 0s linear 0.28s;
+  background: rgba(var(--color-foreground), 0.2);
 }
 
 .personalization-preview-modal[open] {
+  opacity: 1;
   visibility: visible;
   z-index: 101;
-  background: rgba(var(--color-foreground), 0.15);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  transition:
-    background 0.28s ease,
-    backdrop-filter 0.28s ease,
-    -webkit-backdrop-filter 0.28s ease,
-    visibility 0s linear 0s;
 }
 
-/* ── A1: Content slide + scale entrance, I3: accent stripe ── */
 .personalization-preview-modal__content {
   --modal-height-offset: 3.2rem;
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(18px) scale(0.97);
-  opacity: 0;
+  transform: translateX(-50%);
   margin-top: var(--modal-height-offset);
   width: calc(100% - 3rem);
-  max-width: 64rem;
+  max-width: 72rem;
   background-color: rgb(var(--color-background));
   max-height: calc(100% - var(--modal-height-offset) * 2);
   overflow-y: auto;
-  padding: 0 0 2.4rem;
-  border-top: 3px solid rgb(var(--color-button));
-  transition:
-    transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.25s ease;
+  padding: 2.4rem;
 }
 
-.personalization-preview-modal[open] .personalization-preview-modal__content {
-  transform: translateX(-50%) translateY(0) scale(1);
-  opacity: 1;
-}
-
-/* ── A3: Sticky header ── */
-.pp-sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.8rem 2.4rem 1.4rem;
-  background-color: rgb(var(--color-background));
-  border-bottom: 0.1rem solid transparent;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.pp-sticky-header.is-scrolled {
-  border-color: rgba(var(--color-foreground), 0.1);
-  box-shadow: 0 2px 8px rgba(var(--color-foreground), 0.06);
-}
-
-.personalization-preview-modal__body {
-  display: flex;
-  flex-direction: column;
-  gap: 1.8rem;
-  padding: 0 2.4rem;
-}
-
-.personalization-preview-modal__header h2 {
-  margin: 0;
-}
-
-.personalization-preview-modal__header p {
-  margin: 0.4rem 0 0;
-}
-
-/* ── Close button ── */
 .personalization-preview-modal__toggle {
+  position: absolute;
+  right: 1.6rem;
+  top: 1.6rem;
   background-color: rgb(var(--color-background));
   border: 0.1rem solid rgba(var(--color-foreground), 0.1);
   border-radius: 50%;
@@ -127,13 +60,6 @@ body.pp-modal-open {
   cursor: pointer;
   width: 3.8rem;
   height: 3.8rem;
-  flex-shrink: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.personalization-preview-modal__toggle:hover {
-  background-color: rgba(var(--color-foreground), 0.06);
-  color: rgb(var(--color-foreground));
 }
 
 .personalization-preview-modal__toggle .icon {
@@ -141,7 +67,20 @@ body.pp-modal-open {
   height: 2rem;
 }
 
-/* ── Fields ── */
+.personalization-preview-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+}
+
+.personalization-preview-modal__header h2 {
+  margin: 0;
+}
+
+.personalization-preview-modal__header p {
+  margin: 0.4rem 0 0;
+}
+
 .personalization-preview-modal__fields {
   display: grid;
   gap: 1.2rem;
@@ -153,111 +92,34 @@ body.pp-modal-open {
   gap: 0.6rem;
 }
 
-/* Section label (Choose clip style, Date) */
-.pp-section-label {
-  margin: 0;
-}
-
-/* ── D1: Floating label wrapper ── */
-.pp-field-wrapper {
-  position: relative;
-}
-
 .personalization-preview-modal__input {
   width: 100%;
   border: 0.1rem solid rgba(var(--color-foreground), var(--inputs-border-opacity));
   border-radius: var(--inputs-radius-outset);
-  min-height: 5.2rem;
-  padding: 1.8rem 4rem 0.6rem 1.4rem;
+  min-height: 4.6rem;
+  padding: 0 1.4rem;
   font: inherit;
   color: rgb(var(--color-foreground));
   background-color: rgb(var(--color-background));
-  transition: border-color 0.15s ease;
-  box-sizing: border-box;
 }
 
 .personalization-preview-modal__input:focus {
   outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
   outline-offset: 0.1rem;
-  border-color: rgba(var(--color-foreground), 0.55);
 }
 
-/* pp-input--error for over-max */
-.personalization-preview-modal__input.pp-input--error {
-  border-color: rgb(208, 46, 46);
-  outline-color: rgba(208, 46, 46, 0.35);
-}
-
-/* D1: Floating label */
-.pp-floating-label {
-  position: absolute;
-  left: 1.4rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.4rem;
-  color: rgba(var(--color-foreground), 0.55);
-  pointer-events: none;
-  transition:
-    top 0.18s ease,
-    transform 0.18s ease,
-    font-size 0.18s ease,
-    color 0.18s ease;
-}
-
-.personalization-preview-modal__input:focus + .pp-floating-label,
-.personalization-preview-modal__input:not(:placeholder-shown) + .pp-floating-label {
-  top: 1rem;
-  transform: translateY(0);
-  font-size: 1.05rem;
-  color: rgba(var(--color-foreground), 0.4);
-}
-
-/* D2: Clear button */
-.pp-clear-btn {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0.4rem;
-  cursor: pointer;
-  color: rgba(var(--color-foreground), 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s ease;
-  border-radius: 50%;
-}
-
-.pp-clear-btn:hover {
-  color: rgb(var(--color-foreground));
-  background-color: rgba(var(--color-foreground), 0.06);
-}
-
-.pp-clear-btn svg {
-  width: 1.4rem;
-  height: 1.4rem;
-}
-
-/* ── B1: Color-coded character counter ── */
 .personalization-preview-modal__count {
   margin: 0;
   font-size: 1.2rem;
-  color: rgba(var(--color-foreground), 0.55);
-  transition: color 0.15s ease;
+  color: rgba(var(--color-foreground), 0.75);
 }
 
-.personalization-preview-modal__count.pp-count--warn {
-  color: rgb(180, 100, 0);
+.personalization-preview-modal__helper {
+  margin: 0.2rem 0 0;
+  font-size: 1.2rem;
+  color: rgba(var(--color-foreground), 0.7);
 }
 
-.personalization-preview-modal__count.pp-count--error {
-  color: rgb(208, 46, 46);
-  font-weight: 600;
-}
-
-/* ── Style options ── */
 .personalization-preview-modal__style-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -275,57 +137,49 @@ body.pp-modal-open {
   pointer-events: none;
 }
 
-.personalization-preview-modal__style-option span {
+.personalization-preview-modal__style-option-display {
   display: block;
-  text-align: center;
   border: 0.1rem solid rgba(var(--color-foreground), 0.2);
   border-radius: var(--inputs-radius-outset);
-  padding: 0.9rem 1rem;
+  overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  background-color: rgba(var(--color-background), 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.personalization-preview-modal__style-option input:checked + span {
+.personalization-preview-modal__style-option-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-bottom: 0.1rem solid rgba(var(--color-foreground), 0.1);
+}
+
+.personalization-preview-modal__style-option-label {
+  display: block;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 0.7rem 0.5rem;
+  color: rgb(var(--color-foreground));
+}
+
+.personalization-preview-modal__style-option input:checked + .personalization-preview-modal__style-option-display {
   border-color: rgb(var(--color-button));
-  background-color: rgba(var(--color-button), 0.08);
+  box-shadow: 0 0 0 0.2rem rgba(var(--color-button), 0.14);
 }
 
-/* ── Divider ── */
-.pp-divider {
-  border: none;
-  border-top: 0.1rem solid rgba(var(--color-foreground), 0.1);
-  margin: 0;
-}
-
-/* ── Preview panel ── */
 .personalization-preview-modal__preview {
   border: 0.1rem solid rgba(var(--color-foreground), 0.12);
   border-radius: var(--text-boxes-radius);
   padding: 1.6rem;
-  background: rgba(var(--color-background-contrast, var(--color-foreground)), 0.05);
+  background: rgba(var(--color-background-contrast), 0.08);
 }
 
 .personalization-preview-modal__preview-label {
   margin: 0 0 0.9rem;
   font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-/* C1: Live dot */
-.pp-live-dot {
-  display: inline-block;
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  background: rgb(var(--color-button));
-  animation: pp-pulse 2s ease-in-out infinite;
-}
-
-@keyframes pp-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.75); }
+  font-weight: 600;
 }
 
 .personalization-preview-modal__preview-grid {
@@ -338,7 +192,7 @@ body.pp-modal-open {
   min-height: 21.6rem;
   border: 0.1rem dashed rgba(var(--color-foreground), 0.22);
   border-radius: var(--text-boxes-radius);
-  background: linear-gradient(180deg, rgba(var(--color-background), 1), rgba(var(--color-background-contrast, var(--color-foreground)), 0.08));
+  background: linear-gradient(180deg, rgba(var(--color-background), 1), rgba(var(--color-background-contrast), 0.14));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,7 +253,7 @@ body.pp-modal-open {
 
 .personalization-preview-modal__blank-clip.is-style-3 .personalization-preview-modal__clip-plate {
   border-radius: 3rem;
-  background: linear-gradient(135deg, rgba(var(--color-background), 1), rgba(var(--color-background-contrast, var(--color-foreground)), 0.12));
+  background: linear-gradient(135deg, rgba(var(--color-background), 1), rgba(var(--color-background-contrast), 0.2));
 }
 
 .personalization-preview-modal__generated-preview {
@@ -424,6 +278,7 @@ body.pp-modal-open {
   font-size: 1.4rem;
   line-height: 1.45;
   color: rgba(var(--color-foreground), 0.86);
+  white-space: pre-line;
 }
 
 .personalization-preview-modal__error {
@@ -431,31 +286,6 @@ body.pp-modal-open {
   color: rgb(208, 46, 46);
 }
 
-/* ── E1: Spinner ── */
-.pp-btn-with-spinner {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-.pp-spinner {
-  display: inline-block;
-  width: 1.4rem;
-  height: 1.4rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: pp-spin 0.65s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes pp-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ── Actions ── */
 .personalization-preview-modal__actions {
   display: flex;
   flex-wrap: wrap;
@@ -463,39 +293,12 @@ body.pp-modal-open {
   justify-content: flex-end;
 }
 
-/* ── F1: Mobile bottom sheet ── */
 @media screen and (max-width: 749px) {
   .personalization-preview-modal__content {
-    position: fixed !important;
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 92vh !important;
-    margin: 0 !important;
-    border-radius: 1.8rem 1.8rem 0 0 !important;
-    border-top-width: 0 !important;
-    transform: translateY(100%) !important;
-    opacity: 1 !important;
-    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1) !important;
-    padding-bottom: env(safe-area-inset-bottom, 1.6rem);
-  }
-
-  /* drag handle */
-  .personalization-preview-modal__content::before {
-    content: '';
-    display: block;
-    width: 4rem;
-    height: 0.45rem;
-    background: rgba(var(--color-foreground), 0.18);
-    border-radius: 9px;
-    margin: 1rem auto 0;
-  }
-
-  .personalization-preview-modal[open] .personalization-preview-modal__content {
-    transform: translateY(0) !important;
+    margin-top: 1.5rem;
+    width: calc(100% - 2rem);
+    max-height: calc(100% - 3rem);
+    padding: 2rem 1.5rem 1.8rem;
   }
 
   .personalization-preview-modal__style-options {
@@ -512,23 +315,5 @@ body.pp-modal-open {
 
   .personalization-preview-modal__actions .button {
     width: 100%;
-  }
-}
-
-/* ── G3: Forced colors / high contrast ── */
-@media (forced-colors: active) {
-  .personalization-preview-modal__toggle,
-  .pp-clear-btn {
-    border: 1px solid ButtonText;
-    color: ButtonText;
-  }
-
-  .personalization-preview-modal__style-option input:checked + span {
-    border: 2px solid Highlight;
-  }
-
-  .pp-spinner {
-    border-color: ButtonText;
-    border-top-color: Highlight;
   }
 }
