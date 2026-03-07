@@ -23,35 +23,93 @@
 
       <div class="personalization-preview-modal__fields">
         <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationPrimaryText">Primary text</label>
-          <input
-            id="PersonalizationPrimaryText"
-            class="personalization-preview-modal__input"
-            type="text"
-            autocomplete="off"
-            data-personalization-input="primary"
-          >
-          <p class="personalization-preview-modal__count" data-personalization-count="primary"></p>
+          <p class="form__label">Choose clip style</p>
+          <div class="personalization-preview-modal__style-options">
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 1"
+                data-personalization-input="style"
+                checked
+              >
+              <span>Style 1</span>
+            </label>
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 2"
+                data-personalization-input="style"
+              >
+              <span>Style 2</span>
+            </label>
+            <label class="personalization-preview-modal__style-option">
+              <input
+                type="radio"
+                name="PersonalizationStyle"
+                value="Style 3"
+                data-personalization-input="style"
+              >
+              <span>Style 3</span>
+            </label>
+          </div>
         </div>
 
         <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationSecondaryText">Secondary text (optional)</label>
+          <label class="form__label" for="PersonalizationNameOne">Name 1</label>
           <input
-            id="PersonalizationSecondaryText"
+            id="PersonalizationNameOne"
             class="personalization-preview-modal__input"
             type="text"
             autocomplete="off"
-            data-personalization-input="secondary"
+            data-personalization-input="name1"
           >
-          <p class="personalization-preview-modal__count" data-personalization-count="secondary"></p>
+          <p class="personalization-preview-modal__count" data-personalization-count="name1"></p>
+        </div>
+
+        <div class="personalization-preview-modal__field">
+          <label class="form__label" for="PersonalizationNameTwo">Name 2</label>
+          <input
+            id="PersonalizationNameTwo"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            data-personalization-input="name2"
+          >
+          <p class="personalization-preview-modal__count" data-personalization-count="name2"></p>
+        </div>
+
+        <div class="personalization-preview-modal__field">
+          <label class="form__label" for="PersonalizationDateText">Date</label>
+          <input
+            id="PersonalizationDateText"
+            class="personalization-preview-modal__input"
+            type="text"
+            autocomplete="off"
+            placeholder="MM/DD/YYYY"
+            data-personalization-input="date"
+          >
         </div>
       </div>
 
-      <div class="personalization-preview-modal__preview" aria-live="polite">
-        <p class="personalization-preview-modal__preview-label">Live preview</p>
-        <div class="personalization-preview-modal__preview-surface">
-          <span data-personalization-preview="primary">Primary text</span>
-          <span data-personalization-preview="secondary">Secondary text</span>
+      <div class="personalization-preview-modal__preview" aria-live="polite" hidden data-personalization-picked-panel>
+        <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
+        <div class="personalization-preview-modal__preview-grid">
+          <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
+            <div class="personalization-preview-modal__clip-plate">
+              <span data-personalization-preview="name1">Name 1</span>
+              <span data-personalization-preview="name2">Name 2</span>
+              <span data-personalization-preview="date">Date</span>
+            </div>
+          </div>
+
+          <div class="personalization-preview-modal__generated-preview">
+            <p class="personalization-preview-modal__generated-label">Gemini result</p>
+            <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
+              Click Generate to create your QuickClip preview.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -59,6 +117,8 @@
 
       <div class="personalization-preview-modal__actions">
         <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
+        <button type="button" class="button button--secondary" data-personalization-pick>Pick Now</button>
+        <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
         <button type="button" class="button" data-personalization-save>Save personalization</button>
       </div>
     </div>

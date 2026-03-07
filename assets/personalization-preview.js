@@ -1,31 +1,54 @@
 (function () {
   const MODAL_ID = 'PersonalizationPreviewModal';
-  const DEFAULT_PRIMARY_MAX = 30;
-  const DEFAULT_SECONDARY_MAX = 30;
+  const DEFAULT_STYLE = 'Style 1';
+  const STYLE_VALUES = ['Style 1', 'Style 2', 'Style 3'];
+  const DEFAULT_NAME1_MAX = 30;
+  const DEFAULT_NAME2_MAX = 30;
+  const DEFAULT_DATE_MAX = 32;
+  const DEFAULT_GENERATED_MESSAGE = 'Click Generate to create your QuickClip preview.';
+  const GENERATING_MESSAGE = 'Generating QuickClip preview...';
+  const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
+  const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
 
   const modal = document.getElementById(MODAL_ID);
   if (!modal) return;
 
-  const primaryInput = modal.querySelector('[data-personalization-input="primary"]');
-  const secondaryInput = modal.querySelector('[data-personalization-input="secondary"]');
-  const primaryCount = modal.querySelector('[data-personalization-count="primary"]');
-  const secondaryCount = modal.querySelector('[data-personalization-count="secondary"]');
-  const previewPrimary = modal.querySelector('[data-personalization-preview="primary"]');
-  const previewSecondary = modal.querySelector('[data-personalization-preview="secondary"]');
+  const styleInputs = Array.from(modal.querySelectorAll('[data-personalization-input="style"]'));
+  const name1Input = modal.querySelector('[data-personalization-input="name1"]');
+  const name2Input = modal.querySelector('[data-personalization-input="name2"]');
+  const dateInput = modal.querySelector('[data-personalization-input="date"]');
+  const name1Count = modal.querySelector('[data-personalization-count="name1"]');
+  const name2Count = modal.querySelector('[data-personalization-count="name2"]');
+  const previewName1 = modal.querySelector('[data-personalization-preview="name1"]');
+  const previewName2 = modal.querySelector('[data-personalization-preview="name2"]');
+  const previewDate = modal.querySelector('[data-personalization-preview="date"]');
+  const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
+  const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
+  const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
+  const pickButton = modal.querySelector('[data-personalization-pick]');
+  const generateButton = modal.querySelector('[data-personalization-generate]');
   const saveButton = modal.querySelector('[data-personalization-save]');
   const cancelButton = modal.querySelector('[data-personalization-cancel]');
 
   if (
-    !primaryInput ||
-    !secondaryInput ||
-    !primaryCount ||
-    !secondaryCount ||
-    !previewPrimary ||
-    !previewSecondary ||
+    styleInputs.length === 0 ||
+    !name1Input ||
+    !name2Input ||
+    !dateInput ||
+    !name1Count ||
+    !name2Count ||
+    !previewName1 ||
+    !previewName2 ||
+    !previewDate ||
+    !clipSurface ||
+    !pickedPanel ||
+    !generatedOutput ||
     !productName ||
     !errorElement ||
+    !pickButton ||
+    !generateButton ||
     !saveButton ||
     !cancelButton
   ) {
@@ -35,8 +58,9 @@
   const stateByScope = new Map();
 
   let activeScope = '';
-  let activePrimaryMax = DEFAULT_PRIMARY_MAX;
-  let activeSecondaryMax = DEFAULT_SECONDARY_MAX;
+  let activeName1Max = DEFAULT_NAME1_MAX;
+  let activeName2Max = DEFAULT_NAME2_MAX;
+  let isGenerating = false;
 
   function parseMaxLength(value, fallback) {
     const parsed = Number.parseInt(value, 10);
@@ -44,9 +68,42 @@
     return parsed;
   }
 
+  function normalizeStyle(value) {
+    if (!value) return DEFAULT_STYLE;
+    if (STYLE_VALUES.includes(value)) return value;
+    return DEFAULT_STYLE;
+  }
+
   function selectorEscape(value) {
     if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
     return value.replace(/["\\]/g, '\\$&');
+  }
+
+  function getApiUrl() {
+    const globalConfig = window.QuickClipsPersonalization;
+    if (globalConfig && typeof globalConfig.apiUrl === 'string' && globalConfig.apiUrl.trim()) {
+      return globalConfig.apiUrl.trim();
+    }
+
+    const modalConfig = modal.dataset.personalizationApiUrl;
+    if (typeof modalConfig === 'string' && modalConfig.trim()) {
+      return modalConfig.trim();
+    }
+
+    return DEFAULT_API_PATH;
+  }
+
+  function createDefaultState() {
+    return {
+      style: DEFAULT_STYLE,
+      name1: '',
+      name2: '',
+      date: '',
+      geminiSummary: '',
+      previewOpened: false,
+      maxName1: DEFAULT_NAME1_MAX,
+      maxName2: DEFAULT_NAME2_MAX,
+    };
   }
 
   function getScopeState(scope) {
@@ -54,13 +111,19 @@
     return stateByScope.get(scope) || null;
   }
 
-  function setScopeState(scope, state) {
+  function setScopeState(scope, nextState) {
     if (!scope) return;
+    const currentState = getScopeState(scope) || createDefaultState();
+
     stateByScope.set(scope, {
-      primary: state.primary || '',
-      secondary: state.secondary || '',
-      maxPrimary: parseMaxLength(state.maxPrimary, DEFAULT_PRIMARY_MAX),
-      maxSecondary: parseMaxLength(state.maxSecondary, DEFAULT_SECONDARY_MAX),
+      style: normalizeStyle(nextState.style || currentState.style),
+      name1: String(nextState.name1 ?? currentState.name1 ?? '').trim(),
+      name2: String(nextState.name2 ?? currentState.name2 ?? '').trim(),
+      date: String(nextState.date ?? currentState.date ?? '').trim(),
+      geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
+      previewOpened: Boolean(nextState.previewOpened ?? currentState.previewOpened),
+      maxName1: parseMaxLength(nextState.maxName1 ?? currentState.maxName1, DEFAULT_NAME1_MAX),
+      maxName2: parseMaxLength(nextState.maxName2 ?? currentState.maxName2, DEFAULT_NAME2_MAX),
     });
   }
 
@@ -75,41 +138,120 @@
     errorElement.textContent = message;
   }
 
-  function getValidationError() {
-    const primaryValue = primaryInput.value.trim();
-    const secondaryValue = secondaryInput.value.trim();
+  function getSelectedStyle() {
+    const checkedInput = styleInputs.find((input) => input.checked);
+    return normalizeStyle(checkedInput ? checkedInput.value : DEFAULT_STYLE);
+  }
 
-    if (primaryValue.length > activePrimaryMax) {
-      return `Primary text must be ${activePrimaryMax} characters or fewer.`;
+  function setSelectedStyle(styleValue) {
+    const normalizedStyle = normalizeStyle(styleValue);
+    styleInputs.forEach((input) => {
+      input.checked = input.value === normalizedStyle;
+    });
+  }
+
+  function getClipStyleClass(styleValue) {
+    switch (styleValue) {
+      case 'Style 2':
+        return 'is-style-2';
+      case 'Style 3':
+        return 'is-style-3';
+      default:
+        return 'is-style-1';
+    }
+  }
+
+  function getGeneratedSummary() {
+    const currentOutput = generatedOutput.textContent ? generatedOutput.textContent.trim() : '';
+    if (!currentOutput || currentOutput === DEFAULT_GENERATED_MESSAGE || currentOutput === GENERATING_MESSAGE) {
+      return '';
+    }
+    return currentOutput;
+  }
+
+  function getValidationError(options = {}) {
+    const requireAll = Boolean(options.requireAll);
+    const name1Value = name1Input.value.trim();
+    const name2Value = name2Input.value.trim();
+    const dateValue = dateInput.value.trim();
+
+    if (name1Value.length > activeName1Max) {
+      return `Name 1 must be ${activeName1Max} characters or fewer.`;
     }
 
-    if (secondaryValue.length > activeSecondaryMax) {
-      return `Secondary text must be ${activeSecondaryMax} characters or fewer.`;
+    if (name2Value.length > activeName2Max) {
+      return `Name 2 must be ${activeName2Max} characters or fewer.`;
+    }
+
+    if (dateValue.length > DEFAULT_DATE_MAX) {
+      return `Date must be ${DEFAULT_DATE_MAX} characters or fewer.`;
+    }
+
+    if (requireAll) {
+      if (!name1Value) return 'Name 1 is required before generating a preview.';
+      if (!name2Value) return 'Name 2 is required before generating a preview.';
+      if (!dateValue) return 'Date is required before generating a preview.';
     }
 
     return '';
   }
 
+  function setPickedPanelVisible(visible) {
+    pickedPanel.toggleAttribute('hidden', !visible);
+  }
+
+  function renderClipStyle() {
+    const styleClass = getClipStyleClass(getSelectedStyle());
+    clipSurface.classList.remove(...CLIP_STYLE_CLASSES);
+    clipSurface.classList.add(styleClass);
+  }
+
+  function renderPreviewText() {
+    previewName1.textContent = name1Input.value.trim() || 'Name 1';
+    previewName2.textContent = name2Input.value.trim() || 'Name 2';
+    previewDate.textContent = dateInput.value.trim() || 'Date';
+  }
+
   function renderEditorState() {
-    primaryCount.textContent = `${primaryInput.value.length}/${activePrimaryMax}`;
-    secondaryCount.textContent = `${secondaryInput.value.length}/${activeSecondaryMax}`;
+    name1Count.textContent = `${name1Input.value.length}/${activeName1Max}`;
+    name2Count.textContent = `${name2Input.value.length}/${activeName2Max}`;
 
-    previewPrimary.textContent = primaryInput.value.trim() || 'Primary text';
-    previewSecondary.textContent = secondaryInput.value.trim() || 'Secondary text';
+    renderClipStyle();
+    renderPreviewText();
 
-    const error = getValidationError();
-    setError(error);
-    saveButton.disabled = Boolean(error);
+    const hasError = Boolean(getValidationError());
+    if (!isGenerating) {
+      setError(hasError ? getValidationError() : '');
+    }
+
+    pickButton.disabled = isGenerating || hasError;
+    generateButton.disabled = isGenerating || hasError;
+    saveButton.disabled = isGenerating || hasError;
   }
 
   function applyStateToContext(context, state) {
     const primaryProperty = context.querySelector('[data-personalization-property="primary"]');
     const secondaryProperty = context.querySelector('[data-personalization-property="secondary"]');
+    const styleProperty = context.querySelector('[data-personalization-property="style"]');
+    const name1Property = context.querySelector('[data-personalization-property="name1"]');
+    const name2Property = context.querySelector('[data-personalization-property="name2"]');
+    const dateProperty = context.querySelector('[data-personalization-property="date"]');
+    const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
 
-    if (primaryProperty) primaryProperty.value = state.primary || '';
-    if (secondaryProperty) secondaryProperty.value = state.secondary || '';
+    if (primaryProperty) primaryProperty.value = state.name1 || '';
+    if (secondaryProperty) secondaryProperty.value = state.name2 || '';
+    if (styleProperty) styleProperty.value = state.style || DEFAULT_STYLE;
+    if (name1Property) name1Property.value = state.name1 || '';
+    if (name2Property) name2Property.value = state.name2 || '';
+    if (dateProperty) dateProperty.value = state.date || '';
+    if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
+  }
+
+  function isConfiguredState(state) {
+    if (!state) return false;
+    return Boolean(state.name1 || state.name2 || state.date || state.geminiSummary);
   }
 
   function updateTriggerLabels(scope) {
@@ -126,7 +268,7 @@
       if (!labelNode) return;
 
       const defaultLabel = trigger.dataset.personalizationDefaultLabel || 'Customize Now';
-      if (state && (state.primary || state.secondary)) {
+      if (isConfiguredState(state)) {
         labelNode.textContent = 'Edit Customization';
         trigger.classList.add('is-configured');
       } else {
@@ -139,12 +281,7 @@
   function syncScope(scope) {
     if (!scope) return;
 
-    const state = getScopeState(scope) || {
-      primary: '',
-      secondary: '',
-      maxPrimary: DEFAULT_PRIMARY_MAX,
-      maxSecondary: DEFAULT_SECONDARY_MAX,
-    };
+    const state = getScopeState(scope) || createDefaultState();
 
     const escapedScope = selectorEscape(scope);
     const contexts = document.querySelectorAll(
@@ -180,16 +317,24 @@
     const form = context.closest('form');
     inheritScopeForFormTriggers(form, scope);
 
-    const primaryProperty = context.querySelector('[data-personalization-property="primary"]');
-    const secondaryProperty = context.querySelector('[data-personalization-property="secondary"]');
     const existingState = getScopeState(scope);
 
     if (!existingState) {
       setScopeState(scope, {
-        primary: primaryProperty ? primaryProperty.value : '',
-        secondary: secondaryProperty ? secondaryProperty.value : '',
-        maxPrimary: DEFAULT_PRIMARY_MAX,
-        maxSecondary: DEFAULT_SECONDARY_MAX,
+        style:
+          (context.querySelector('[data-personalization-property="style"]') || {}).value || DEFAULT_STYLE,
+        name1:
+          (context.querySelector('[data-personalization-property="name1"]') || {}).value ||
+          (context.querySelector('[data-personalization-property="primary"]') || {}).value ||
+          '',
+        name2:
+          (context.querySelector('[data-personalization-property="name2"]') || {}).value ||
+          (context.querySelector('[data-personalization-property="secondary"]') || {}).value ||
+          '',
+        date: (context.querySelector('[data-personalization-property="date"]') || {}).value || '',
+        geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
+        maxName1: DEFAULT_NAME1_MAX,
+        maxName2: DEFAULT_NAME2_MAX,
       });
     }
 
@@ -206,25 +351,31 @@
     activeScope = trigger.dataset.personalizationScope || '';
     if (!activeScope) return;
 
-    const existingState = getScopeState(activeScope);
-    activePrimaryMax = parseMaxLength(
+    const existingState = getScopeState(activeScope) || createDefaultState();
+    activeName1Max = parseMaxLength(
       trigger.dataset.personalizationPrimaryMax,
-      existingState ? existingState.maxPrimary : DEFAULT_PRIMARY_MAX
+      existingState.maxName1 || DEFAULT_NAME1_MAX
     );
-    activeSecondaryMax = parseMaxLength(
+    activeName2Max = parseMaxLength(
       trigger.dataset.personalizationSecondaryMax,
-      existingState ? existingState.maxSecondary : DEFAULT_SECONDARY_MAX
+      existingState.maxName2 || DEFAULT_NAME2_MAX
     );
 
-    primaryInput.maxLength = activePrimaryMax;
-    secondaryInput.maxLength = activeSecondaryMax;
+    name1Input.maxLength = activeName1Max;
+    name2Input.maxLength = activeName2Max;
+    dateInput.maxLength = DEFAULT_DATE_MAX;
 
     const productTitle = trigger.dataset.personalizationProductTitle || '';
     productName.textContent = productTitle;
     productName.toggleAttribute('hidden', !productTitle);
 
-    primaryInput.value = existingState ? existingState.primary : '';
-    secondaryInput.value = existingState ? existingState.secondary : '';
+    setSelectedStyle(existingState.style || DEFAULT_STYLE);
+    name1Input.value = existingState.name1 || '';
+    name2Input.value = existingState.name2 || '';
+    dateInput.value = existingState.date || '';
+    generatedOutput.textContent = existingState.geminiSummary || DEFAULT_GENERATED_MESSAGE;
+    setPickedPanelVisible(Boolean(existingState.previewOpened));
+    isGenerating = false;
     renderEditorState();
 
     if (typeof modal.show === 'function') {
@@ -242,32 +393,136 @@
     openEditor(trigger);
   });
 
-  primaryInput.addEventListener('input', renderEditorState);
-  secondaryInput.addEventListener('input', renderEditorState);
+  styleInputs.forEach((input) => {
+    input.addEventListener('change', renderEditorState);
+  });
+  name1Input.addEventListener('input', renderEditorState);
+  name2Input.addEventListener('input', renderEditorState);
+  dateInput.addEventListener('input', renderEditorState);
 
-  saveButton.addEventListener('click', () => {
-    if (!activeScope) return;
+  function commitActiveState(closeModal) {
+    if (!activeScope) return false;
 
     const error = getValidationError();
     if (error) {
       setError(error);
-      return;
+      return false;
     }
 
     setScopeState(activeScope, {
-      primary: primaryInput.value.trim(),
-      secondary: secondaryInput.value.trim(),
-      maxPrimary: activePrimaryMax,
-      maxSecondary: activeSecondaryMax,
+      style: getSelectedStyle(),
+      name1: name1Input.value.trim(),
+      name2: name2Input.value.trim(),
+      date: dateInput.value.trim(),
+      geminiSummary: getGeneratedSummary(),
+      previewOpened: !pickedPanel.hasAttribute('hidden'),
+      maxName1: activeName1Max,
+      maxName2: activeName2Max,
     });
 
     syncScope(activeScope);
 
-    if (typeof modal.hide === 'function') {
-      modal.hide();
-    } else {
-      modal.removeAttribute('open');
+    if (closeModal) {
+      if (typeof modal.hide === 'function') {
+        modal.hide();
+      } else {
+        modal.removeAttribute('open');
+      }
     }
+
+    return true;
+  }
+
+  function buildGeminiSummary(preview) {
+    const parts = [];
+    if (preview.headline) parts.push(preview.headline);
+    if (preview.subline) parts.push(preview.subline);
+    if (preview.dateLine) parts.push(preview.dateLine);
+    if (preview.styleNotes) parts.push(preview.styleNotes);
+    return parts.join(' | ').trim();
+  }
+
+  async function generatePreview() {
+    if (!activeScope || isGenerating) return;
+
+    const blockingError = getValidationError({ requireAll: true });
+    if (blockingError) {
+      setError(blockingError);
+      return;
+    }
+
+    const previousSummary = getGeneratedSummary();
+    setPickedPanelVisible(true);
+    isGenerating = true;
+    setError('');
+    generatedOutput.textContent = GENERATING_MESSAGE;
+    renderEditorState();
+
+    const payload = {
+      style: getSelectedStyle(),
+      name1: name1Input.value.trim(),
+      name2: name2Input.value.trim(),
+      date: dateInput.value.trim(),
+    };
+
+    try {
+      const response = await fetch(getApiUrl(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      const json = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof json.error === 'string' && json.error ? json.error : `Request failed with status ${response.status}.`;
+        throw new Error(errorMessage);
+      }
+
+      const preview = json.preview || {};
+      const summary = buildGeminiSummary(preview) || 'Preview generated successfully.';
+      generatedOutput.textContent = summary;
+
+      setScopeState(activeScope, {
+        style: payload.style,
+        name1: payload.name1,
+        name2: payload.name2,
+        date: payload.date,
+        geminiSummary: summary,
+        previewOpened: true,
+        maxName1: activeName1Max,
+        maxName2: activeName2Max,
+      });
+      syncScope(activeScope);
+    } catch (error) {
+      generatedOutput.textContent = previousSummary || DEFAULT_GENERATED_MESSAGE;
+      setError(error instanceof Error ? error.message : 'Could not generate preview.');
+    } finally {
+      isGenerating = false;
+      renderEditorState();
+    }
+  }
+
+  pickButton.addEventListener('click', () => {
+    const blockingError = getValidationError({ requireAll: true });
+    if (blockingError) {
+      setError(blockingError);
+      return;
+    }
+
+    setPickedPanelVisible(true);
+    commitActiveState(false);
+    renderEditorState();
+  });
+
+  generateButton.addEventListener('click', () => {
+    generatePreview();
+  });
+
+  saveButton.addEventListener('click', () => {
+    commitActiveState(true);
   });
 
   cancelButton.addEventListener('click', () => {
