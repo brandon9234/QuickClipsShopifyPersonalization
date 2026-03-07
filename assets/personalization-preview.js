@@ -5,7 +5,7 @@
   const DEFAULT_NAME1_MAX = 30;
   const DEFAULT_NAME2_MAX = 30;
   const DEFAULT_DATE_MAX = 32;
-  const DEFAULT_GENERATED_MESSAGE = 'Click Generate to create your QuickClip preview.';
+  const DEFAULT_GENERATED_MESSAGE = 'Fill out the fields and click Generate to create your QuickClip preview.';
   const GENERATING_MESSAGE = 'Generating QuickClip preview...';
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
@@ -27,7 +27,6 @@
   const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
-  const pickButton = modal.querySelector('[data-personalization-pick]');
   const generateButton = modal.querySelector('[data-personalization-generate]');
   const saveButton = modal.querySelector('[data-personalization-save]');
   const cancelButton = modal.querySelector('[data-personalization-cancel]');
@@ -47,7 +46,6 @@
     !generatedOutput ||
     !productName ||
     !errorElement ||
-    !pickButton ||
     !generateButton ||
     !saveButton ||
     !cancelButton
@@ -100,7 +98,7 @@
       name2: '',
       date: '',
       geminiSummary: '',
-      previewOpened: false,
+      previewOpened: true,
       maxName1: DEFAULT_NAME1_MAX,
       maxName2: DEFAULT_NAME2_MAX,
     };
@@ -216,6 +214,7 @@
     name1Count.textContent = `${name1Input.value.length}/${activeName1Max}`;
     name2Count.textContent = `${name2Input.value.length}/${activeName2Max}`;
 
+    setPickedPanelVisible(true);
     renderClipStyle();
     renderPreviewText();
 
@@ -224,7 +223,6 @@
       setError(hasError ? getValidationError() : '');
     }
 
-    pickButton.disabled = isGenerating || hasError;
     generateButton.disabled = isGenerating || hasError;
     saveButton.disabled = isGenerating || hasError;
   }
@@ -282,7 +280,6 @@
     if (!scope) return;
 
     const state = getScopeState(scope) || createDefaultState();
-
     const escapedScope = selectorEscape(scope);
     const contexts = document.querySelectorAll(
       `[data-personalization-context][data-personalization-scope="${escapedScope}"]`
@@ -318,7 +315,6 @@
     inheritScopeForFormTriggers(form, scope);
 
     const existingState = getScopeState(scope);
-
     if (!existingState) {
       setScopeState(scope, {
         style:
@@ -374,7 +370,7 @@
     name2Input.value = existingState.name2 || '';
     dateInput.value = existingState.date || '';
     generatedOutput.textContent = existingState.geminiSummary || DEFAULT_GENERATED_MESSAGE;
-    setPickedPanelVisible(Boolean(existingState.previewOpened));
+    setPickedPanelVisible(true);
     isGenerating = false;
     renderEditorState();
 
@@ -382,6 +378,14 @@
       modal.show(trigger);
     } else {
       modal.setAttribute('open', '');
+    }
+  }
+
+  function closeEditor() {
+    if (typeof modal.hide === 'function') {
+      modal.hide();
+    } else {
+      modal.removeAttribute('open');
     }
   }
 
@@ -415,7 +419,7 @@
       name2: name2Input.value.trim(),
       date: dateInput.value.trim(),
       geminiSummary: getGeneratedSummary(),
-      previewOpened: !pickedPanel.hasAttribute('hidden'),
+      previewOpened: true,
       maxName1: activeName1Max,
       maxName2: activeName2Max,
     });
@@ -423,11 +427,7 @@
     syncScope(activeScope);
 
     if (closeModal) {
-      if (typeof modal.hide === 'function') {
-        modal.hide();
-      } else {
-        modal.removeAttribute('open');
-      }
+      closeEditor();
     }
 
     return true;
@@ -435,11 +435,11 @@
 
   function buildGeminiSummary(preview) {
     const parts = [];
-    if (preview.headline) parts.push(preview.headline);
-    if (preview.subline) parts.push(preview.subline);
-    if (preview.dateLine) parts.push(preview.dateLine);
-    if (preview.styleNotes) parts.push(preview.styleNotes);
-    return parts.join(' | ').trim();
+    if (preview.headline) parts.push(`Headline: ${preview.headline}`);
+    if (preview.subline) parts.push(`Subline: ${preview.subline}`);
+    if (preview.dateLine) parts.push(`Date: ${preview.dateLine}`);
+    if (preview.styleNotes) parts.push(`Style notes: ${preview.styleNotes}`);
+    return parts.join('\n').trim();
   }
 
   async function generatePreview() {
@@ -505,18 +505,6 @@
     }
   }
 
-  pickButton.addEventListener('click', () => {
-    const blockingError = getValidationError({ requireAll: true });
-    if (blockingError) {
-      setError(blockingError);
-      return;
-    }
-
-    setPickedPanelVisible(true);
-    commitActiveState(false);
-    renderEditorState();
-  });
-
   generateButton.addEventListener('click', () => {
     generatePreview();
   });
@@ -526,11 +514,7 @@
   });
 
   cancelButton.addEventListener('click', () => {
-    if (typeof modal.hide === 'function') {
-      modal.hide();
-    } else {
-      modal.removeAttribute('open');
-    }
+    closeEditor();
   });
 
   document.addEventListener(

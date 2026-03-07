@@ -39,7 +39,7 @@
   transform: translateX(-50%);
   margin-top: var(--modal-height-offset);
   width: calc(100% - 3rem);
-  max-width: 64rem;
+  max-width: 72rem;
   background-color: rgb(var(--color-background));
   max-height: calc(100% - var(--modal-height-offset) * 2);
   overflow-y: auto;
@@ -71,6 +71,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.8rem;
+}
+
+.personalization-preview-modal__header h2 {
+  margin: 0;
 }
 
 .personalization-preview-modal__header p {
@@ -110,6 +114,12 @@
   color: rgba(var(--color-foreground), 0.75);
 }
 
+.personalization-preview-modal__helper {
+  margin: 0.2rem 0 0;
+  font-size: 1.2rem;
+  color: rgba(var(--color-foreground), 0.7);
+}
+
 .personalization-preview-modal__style-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -127,19 +137,36 @@
   pointer-events: none;
 }
 
-.personalization-preview-modal__style-option span {
+.personalization-preview-modal__style-option-display {
   display: block;
-  text-align: center;
   border: 0.1rem solid rgba(var(--color-foreground), 0.2);
   border-radius: var(--inputs-radius-outset);
-  padding: 0.9rem 1rem;
+  overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  background-color: rgba(var(--color-background), 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.personalization-preview-modal__style-option input:checked + span {
+.personalization-preview-modal__style-option-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-bottom: 0.1rem solid rgba(var(--color-foreground), 0.1);
+}
+
+.personalization-preview-modal__style-option-label {
+  display: block;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 0.7rem 0.5rem;
+  color: rgb(var(--color-foreground));
+}
+
+.personalization-preview-modal__style-option input:checked + .personalization-preview-modal__style-option-display {
   border-color: rgb(var(--color-button));
-  background-color: rgba(var(--color-button), 0.08);
+  box-shadow: 0 0 0 0.2rem rgba(var(--color-button), 0.14);
 }
 
 .personalization-preview-modal__preview {
@@ -152,6 +179,7 @@
 .personalization-preview-modal__preview-label {
   margin: 0 0 0.9rem;
   font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .personalization-preview-modal__preview-grid {
@@ -250,6 +278,7 @@
   font-size: 1.4rem;
   line-height: 1.45;
   color: rgba(var(--color-foreground), 0.86);
+  white-space: pre-line;
 }
 
 .personalization-preview-modal__error {

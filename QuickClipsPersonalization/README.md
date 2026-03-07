@@ -40,3 +40,13 @@ If `window.QuickClipsPersonalization.apiUrl` is not set, the theme defaults to:
 - `/apps/quickclips-personalization/preview`
 
 Use that default path when routing through a Shopify app proxy in production.
+
+## Style button images
+
+Upload these three style thumbnails to your theme assets folder:
+
+- `assets/quickclip-style-1.png`
+- `assets/quickclip-style-2.png`
+- `assets/quickclip-style-3.png`
+
+The personalization modal uses those exact file names for the style image buttons.

@@ -18,7 +18,7 @@
     <div class="personalization-preview-modal__body">
       <div class="personalization-preview-modal__header">
         <h2 class="h3">Customize Your Product</h2>
-        <p class="personalization-preview-modal__product" data-personalization-product-name></p>
+        <p class="personalization-preview-modal__product" data-personalization-product-name hidden></p>
       </div>
 
       <div class="personalization-preview-modal__fields">
@@ -33,7 +33,15 @@
                 data-personalization-input="style"
                 checked
               >
-              <span>Style 1</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-1.png' | asset_url }}"
+                  alt="Style 1 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 1</span>
+              </span>
             </label>
             <label class="personalization-preview-modal__style-option">
               <input
@@ -42,7 +50,15 @@
                 value="Style 2"
                 data-personalization-input="style"
               >
-              <span>Style 2</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-2.png' | asset_url }}"
+                  alt="Style 2 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 2</span>
+              </span>
             </label>
             <label class="personalization-preview-modal__style-option">
               <input
@@ -51,9 +67,20 @@
                 value="Style 3"
                 data-personalization-input="style"
               >
-              <span>Style 3</span>
+              <span class="personalization-preview-modal__style-option-display">
+                <img
+                  src="{{ 'quickclip-style-3.png' | asset_url }}"
+                  alt="Style 3 preview"
+                  class="personalization-preview-modal__style-option-image"
+                  loading="lazy"
+                >
+                <span class="personalization-preview-modal__style-option-label">Style 3</span>
+              </span>
             </label>
           </div>
+          <p class="personalization-preview-modal__helper">
+            Upload style images in theme assets as: quickclip-style-1.png, quickclip-style-2.png, quickclip-style-3.png
+          </p>
         </div>
 
         <div class="personalization-preview-modal__field">
@@ -93,7 +120,7 @@
         </div>
       </div>
 
-      <div class="personalization-preview-modal__preview" aria-live="polite" hidden data-personalization-picked-panel>
+      <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
         <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
         <div class="personalization-preview-modal__preview-grid">
           <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
@@ -107,7 +134,7 @@
           <div class="personalization-preview-modal__generated-preview">
             <p class="personalization-preview-modal__generated-label">Gemini result</p>
             <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
-              Click Generate to create your QuickClip preview.
+              Fill out the fields and click Generate to create your QuickClip preview.
             </p>
           </div>
         </div>
@@ -117,7 +144,6 @@
 
       <div class="personalization-preview-modal__actions">
         <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
-        <button type="button" class="button button--secondary" data-personalization-pick>Pick Now</button>
         <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
         <button type="button" class="button" data-personalization-save>Save personalization</button>
       </div>
