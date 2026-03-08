@@ -6,12 +6,14 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$nodeExe = Join-Path $repoRoot '.tools\node-v20.19.5-win-x64\node.exe'
+$primaryNodeExe = Join-Path $repoRoot '.tools\node-v20.19.5-win-x64\node.exe'
+$fallbackNodeExe = Join-Path $repoRoot '.tools-local-backup\node-v20.19.5-win-x64\node.exe'
+$nodeExe = if (Test-Path $primaryNodeExe) { $primaryNodeExe } elseif (Test-Path $fallbackNodeExe) { $fallbackNodeExe } else { $null }
 $serverPath = Join-Path $repoRoot 'QuickClipsPersonalization\gemini-preview-server.mjs'
 $resolvedEnvPath = if ([System.IO.Path]::IsPathRooted($EnvPath)) { $EnvPath } else { Join-Path $repoRoot $EnvPath }
 
-if (-not (Test-Path $nodeExe)) {
-  throw "Node runtime not found at $nodeExe"
+if (-not $nodeExe -or -not (Test-Path $nodeExe)) {
+  throw "Node runtime not found. Checked: $primaryNodeExe and $fallbackNodeExe"
 }
 
 if (-not (Test-Path $serverPath)) {

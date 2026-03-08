@@ -109,6 +109,36 @@
   gap: 0.6rem;
 }
 
+.personalization-preview-modal__field-group {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.personalization-preview-modal__mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.personalization-preview-modal__mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.18);
+  border-radius: var(--inputs-radius-outset);
+  padding: 0.9rem 1rem;
+  background: rgba(var(--color-background), 1);
+  cursor: pointer;
+}
+
+.personalization-preview-modal__mode-option input {
+  margin: 0;
+}
+
+.personalization-preview-modal__mode-option span {
+  font-size: 1.3rem;
+}
+
 .personalization-preview-modal__input {
   width: 100%;
   border: 0.1rem solid rgba(var(--color-foreground), var(--inputs-border-opacity));
@@ -123,6 +153,16 @@
 .personalization-preview-modal__input:focus {
   outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
   outline-offset: 0.1rem;
+}
+
+.personalization-preview-modal__range {
+  width: 100%;
+  margin: 0;
+}
+
+.personalization-preview-modal__range-value {
+  font-size: 1.2rem;
+  color: rgba(var(--color-foreground), 0.7);
 }
 
 .personalization-preview-modal__count {
@@ -217,6 +257,7 @@
   justify-content: center;
   padding: 1.4rem;
   position: relative;
+  isolation: isolate;
   overflow: hidden;
 }
 
@@ -228,6 +269,7 @@
   height: 0.7rem;
   border-radius: 999px;
   background: rgba(var(--color-foreground), 0.2);
+  z-index: 5;
 }
 
 .personalization-preview-modal__style-preview-image {
@@ -240,6 +282,79 @@
   opacity: 0.95;
   pointer-events: none;
   transform: none;
+  z-index: 1;
+}
+
+.personalization-preview-modal__deterministic-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.personalization-preview-modal__deterministic-textbox {
+  width: var(--deterministic-width, 74%);
+  max-width: 39rem;
+  min-height: 9rem;
+  padding: 0.8rem 1.2rem 0.9rem;
+  transform: rotate(var(--deterministic-rotation, -56deg));
+  border: 0.1rem dashed rgba(var(--color-foreground), 0.28);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0.4rem 1.2rem rgba(18, 18, 18, 0.08);
+  text-align: center;
+}
+
+.personalization-preview-modal__deterministic-line {
+  margin: 0;
+  line-height: 1.02;
+  color: #4b341f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.personalization-preview-modal__deterministic-line--name {
+  min-height: 2.4rem;
+}
+
+.personalization-preview-modal__deterministic-line--date {
+  min-height: 2.2rem;
+  margin-top: 0.2rem;
+}
+
+.personalization-preview-modal__blank-clip::after {
+  content: '';
+  position: absolute;
+  inset: -10% auto -10% -55%;
+  width: 48%;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 16%,
+      rgba(255, 255, 255, 0.65) 30%,
+      rgba(255, 129, 129, 0.42) 40%,
+      rgba(255, 214, 107, 0.42) 48%,
+      rgba(159, 248, 160, 0.42) 56%,
+      rgba(120, 214, 255, 0.42) 64%,
+      rgba(211, 166, 255, 0.42) 72%,
+      rgba(255, 255, 255, 0.7) 82%,
+      transparent 92%
+    );
+  opacity: 0;
+  transform: translateX(0) skewX(-12deg);
+  mix-blend-mode: screen;
+  filter: saturate(1.2);
+  z-index: 4;
+}
+
+.personalization-preview-modal__blank-clip.is-generating::after {
+  opacity: 0.9;
+  animation: personalization-preview-sheen 1.45s ease-in-out infinite;
 }
 
 .personalization-preview-modal__error {
@@ -252,6 +367,72 @@
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: flex-start;
+}
+
+[data-personalization-generate] {
+  min-width: 14rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.personalization-preview-modal__button-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.2rem solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+[data-personalization-generate].is-loading .personalization-preview-modal__button-spinner {
+  opacity: 1;
+  transform: scale(1);
+  animation: personalization-generate-spin 0.8s linear infinite;
+}
+
+.personalization-preview-modal__button-label::after {
+  content: '';
+  width: 0;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+[data-personalization-generate].is-loading .personalization-preview-modal__button-label::after {
+  content: '...';
+  width: 1.5em;
+  animation: personalization-generate-dots 1s steps(4, end) infinite;
+}
+
+@keyframes personalization-generate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes personalization-generate-dots {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 1.5em;
+  }
+}
+
+@keyframes personalization-preview-sheen {
+  from {
+    transform: translateX(0) skewX(-12deg);
+  }
+
+  to {
+    transform: translateX(340%) skewX(-12deg);
+  }
 }
 
 @media screen and (max-width: 989px) {
@@ -273,6 +454,10 @@
   }
 
   .personalization-preview-modal__style-options {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-preview-modal__mode-options {
     grid-template-columns: 1fr;
   }
 

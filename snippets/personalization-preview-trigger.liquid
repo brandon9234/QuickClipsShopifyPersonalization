@@ -10,6 +10,8 @@
   - button_label: {String} Optional button label.
   - primary_max: {Number} Primary text max length.
   - secondary_max: {Number} Secondary text max length.
+  - date_max: {Number} Date text max length.
+  - deterministic_text_max: {Number} Deterministic text max length.
   - force_show: {Boolean} If true, always render trigger.
 {% endcomment %}
 
@@ -24,6 +26,8 @@
 
   assign primary_limit = primary_max | default: 30
   assign secondary_limit = secondary_max | default: 30
+  assign date_limit = date_max | default: 10
+  assign deterministic_text_limit = deterministic_text_max | default: 40
   assign trigger_label = button_label | default: 'Customize Now'
   assign tags_csv = target_product.tags | join: ',' | downcase
   assign template_suffix = target_product.template_suffix | downcase
@@ -62,6 +66,8 @@
     data-personalization-form-id="{{ product_form_id }}"
     data-personalization-primary-max="{{ primary_limit }}"
     data-personalization-secondary-max="{{ secondary_limit }}"
+    data-personalization-date-max="{{ date_limit }}"
+    data-personalization-deterministic-text-max="{{ deterministic_text_limit }}"
   >
     <span data-personalization-trigger-label>{{ trigger_label }}</span>
   </button>

@@ -24,13 +24,27 @@
       <div class="personalization-preview-modal__workspace">
         <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
           <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
-          <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
+          <div
+            class="personalization-preview-modal__blank-clip is-style-1"
+            data-personalization-clip-surface
+            data-personalization-stage-image-url="{{ 'HorizontalOGQuickClip.jpg' | asset_url }}"
+          >
             <img
               class="personalization-preview-modal__style-preview-image"
               data-personalization-style-preview-image
               alt="Selected style preview"
               hidden
             >
+            <div
+              class="personalization-preview-modal__deterministic-overlay"
+              data-personalization-deterministic-overlay
+              hidden
+            >
+              <div class="personalization-preview-modal__deterministic-textbox">
+                <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--name" data-personalization-deterministic-last-name></p>
+                <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--date" data-personalization-deterministic-date></p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -93,20 +107,43 @@
                 </label>
               </div>
               <p class="personalization-preview-modal__helper">
-                Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg
+                Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg.
+                Editing canvas image: HorizontalOGQuickClip.jpg
               </p>
             </div>
 
             <div class="personalization-preview-modal__field">
-              <label class="form__label" for="PersonalizationLastName">Last name</label>
-              <input
-                id="PersonalizationLastName"
-                class="personalization-preview-modal__input"
-                type="text"
-                autocomplete="off"
-                data-personalization-input="lastName"
-              >
-              <p class="personalization-preview-modal__count" data-personalization-count="lastName"></p>
+              <p class="personalization-preview-modal__helper">
+                Style font presets are applied automatically based on the selected style.
+              </p>
+            </div>
+
+            <div class="personalization-preview-modal__field-group">
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationLastName">Last name</label>
+                <input
+                  id="PersonalizationLastName"
+                  class="personalization-preview-modal__input"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Ex: The Johnsons"
+                  data-personalization-input="lastName"
+                >
+                <p class="personalization-preview-modal__count" data-personalization-count="lastName"></p>
+              </div>
+
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationDate">Date</label>
+                <input
+                  id="PersonalizationDate"
+                  class="personalization-preview-modal__input"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="MM/DD/YYYY"
+                  data-personalization-input="date"
+                >
+                <p class="personalization-preview-modal__count" data-personalization-count="date"></p>
+              </div>
             </div>
           </div>
 
@@ -114,7 +151,10 @@
 
           <div class="personalization-preview-modal__actions">
             <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
-            <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
+            <button type="button" class="button button--secondary" data-personalization-generate>
+              <span class="personalization-preview-modal__button-spinner" aria-hidden="true"></span>
+              <span class="personalization-preview-modal__button-label" data-personalization-generate-label>Generate</span>
+            </button>
             <button type="button" class="button" data-personalization-save>Save personalization</button>
           </div>
         </div>

@@ -4,7 +4,9 @@ const PORT = Number.parseInt(process.env.PORT || '8788', 10);
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const RAW_MODEL = String(process.env.GEMINI_IMAGE_MODEL || process.env.GEMINI_MODEL || '').trim();
-const IMAGE_MODEL = /image|banana/i.test(RAW_MODEL) ? RAW_MODEL : 'gemini-3.1-flash-image-preview';
+const DEFAULT_IMAGE_MODEL = 'gemini-2.5-flash-image';
+const ALLOWED_IMAGE_MODELS = new Set(['gemini-2.5-flash-image', 'nano-banana-pro-preview']);
+const IMAGE_MODEL = ALLOWED_IMAGE_MODELS.has(RAW_MODEL) ? RAW_MODEL : DEFAULT_IMAGE_MODEL;
 const STYLE_VALUES = new Set(['Style 1', 'Style 2', 'Style 3']);
 const MAX_REQUEST_BODY_LENGTH = Number.parseInt(process.env.MAX_REQUEST_BODY_LENGTH || '12000000', 10);
 const MAX_STYLE_IMAGE_BASE64_LENGTH = Number.parseInt(process.env.MAX_STYLE_IMAGE_BASE64_LENGTH || '10000000', 10);
@@ -55,7 +57,9 @@ function parseRequestBody(request) {
 function validatePayload(body) {
   const style = sanitize(body.style, 20);
   const lastName = sanitize(body.lastName || body.name1, 40);
+  const date = sanitize(body.date, 20);
   let styleImage = null;
+  let contextImage = null;
 
   if (body.styleImage && typeof body.styleImage === 'object') {
     const mimeType = sanitize(body.styleImage.mimeType, 64).toLowerCase();
@@ -72,11 +76,29 @@ function validatePayload(body) {
     }
   }
 
+  if (body.contextImage && typeof body.contextImage === 'object') {
+    const mimeType = sanitize(body.contextImage.mimeType, 64).toLowerCase();
+    const imageData = String(body.contextImage.data || '').trim().replace(/\s+/g, '');
+    const url = sanitize(body.contextImage.url, 500);
+
+    if (
+      mimeType.startsWith('image/') &&
+      imageData &&
+      imageData.length <= MAX_STYLE_IMAGE_BASE64_LENGTH &&
+      /^[A-Za-z0-9+/=]+$/.test(imageData)
+    ) {
+      contextImage = { mimeType, data: imageData, url };
+    }
+  }
+
   if (!STYLE_VALUES.has(style)) {
     return { error: 'Style must be Style 1, Style 2, or Style 3.' };
   }
   if (!lastName) {
     return { error: 'Last name is required.' };
+  }
+  if (date && !/^[0-9/.-]+$/.test(date)) {
+    return { error: 'Date may only include numbers plus / . or - characters.' };
   }
   if (!styleImage) {
     return { error: 'Style image is required for preview generation.' };
@@ -86,7 +108,9 @@ function validatePayload(body) {
     payload: {
       style,
       lastName,
+      date,
       styleImage,
+      contextImage,
     },
   };
 }
@@ -106,29 +130,69 @@ async function callGeminiImageEdit(payload) {
     throw new Error('GEMINI_API_KEY is not set on the preview server.');
   }
 
-  const prompt = [
+  const engravedLastName = sanitize(payload.lastName, 44);
+  const engravedDate = sanitize(payload.date, 20);
+  const editMode = ['context-apply', 'date-only', 'surname-only'].includes(payload.editMode)
+    ? payload.editMode
+    : 'surname-only';
+  const promptLines = [
     'Edit this exact QuickClip product image.',
-    'Keep camera angle, lighting, background, colors, and object layout unchanged.',
-    'Only replace the engraved last-name text on the clip.',
-    'Existing engraving may read "The Johnsons" or another surname.',
-    `Set the engraved last name to exactly: "${payload.lastName}".`,
-    'Do not add guide lines, overlays, extra text, dates, logos, watermarks, or new objects.',
-    'Return only the edited image.',
-  ].join('\n');
+    'Keep camera angle, lighting, background, colors, wood grain, and object layout unchanged.',
+    'Do not add guide lines, overlays, logos, watermarks, or new objects.',
+  ];
+
+  if (editMode === 'context-apply') {
+    promptLines.push(
+      'Image 1 is the original clip photo. Image 2 is a deterministic staging preview with the desired text layout.',
+      'Use Image 2 as context for text placement and style, but output only the edited version of Image 1.'
+    );
+    promptLines.push(
+      `Surname line MUST be exactly: "${engravedLastName}".`,
+      engravedDate
+        ? `Date line MUST be exactly: "${engravedDate}" (preserve punctuation exactly as provided).`
+        : 'Do not add or change any date text.'
+    );
+  } else if (editMode === 'date-only') {
+    promptLines.push(
+      'Change only the engraved date line on the clip face.',
+      `Date line MUST be exactly: "${engravedDate}" (preserve punctuation exactly as provided).`,
+      'Do not change the surname line.'
+    );
+  } else {
+    promptLines.push(
+      'Change only the engraved surname line on the clip face.',
+      'Existing surname text may currently read "The Johnsons".',
+      `Surname line MUST be exactly: "${engravedLastName}".`,
+      'Do not change the date line.'
+    );
+  }
+
+  promptLines.push('Return only the edited image.');
+  const prompt = promptLines.join('\n');
+  const requestParts = [
+    { text: prompt },
+    {
+      inlineData: {
+        mimeType: payload.styleImage.mimeType,
+        data: payload.styleImage.data,
+      },
+    },
+  ];
+
+  if (editMode === 'context-apply' && payload.contextImage) {
+    requestParts.push({
+      inlineData: {
+        mimeType: payload.contextImage.mimeType,
+        data: payload.contextImage.data,
+      },
+    });
+  }
 
   const requestBody = {
     contents: [
       {
         role: 'user',
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: payload.styleImage.mimeType,
-              data: payload.styleImage.data,
-            },
-          },
-        ],
+        parts: requestParts,
       },
     ],
     generationConfig: {
@@ -193,7 +257,31 @@ const server = http.createServer(async (request, response) => {
     }
 
     try {
-      const generatedImage = await callGeminiImageEdit(payload);
+      let generatedImage;
+      if (payload.contextImage) {
+        generatedImage = await callGeminiImageEdit({
+          ...payload,
+          editMode: 'context-apply',
+        });
+      } else {
+        generatedImage = await callGeminiImageEdit({
+          ...payload,
+          editMode: 'surname-only',
+        });
+
+        if (payload.date) {
+          generatedImage = await callGeminiImageEdit({
+            ...payload,
+            styleImage: {
+              mimeType: generatedImage.mimeType,
+              data: generatedImage.data,
+              url: payload.styleImage.url,
+            },
+            editMode: 'date-only',
+          });
+        }
+      }
+
       const generatedImageDataUrl = `data:${generatedImage.mimeType};base64,${generatedImage.data}`;
       sendJson(response, 200, {
         ok: true,

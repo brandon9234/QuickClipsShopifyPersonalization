@@ -1,10 +1,43 @@
-(function () {
+﻿(function () {
   const MODAL_ID = 'PersonalizationPreviewModal';
   const DEFAULT_STYLE = 'Style 1';
   const STYLE_VALUES = ['Style 1', 'Style 2', 'Style 3'];
   const DEFAULT_LAST_NAME_MAX = 30;
+  const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
+  const STYLE_FONT_PRESETS = {
+    'Style 1': {
+      nameFamily: '"Brush Script MT", "Segoe Script", cursive',
+      dateFamily: '"Trebuchet MS", "Segoe UI", Arial, sans-serif',
+      nameSize: 62,
+      dateSize: 40,
+      boxWidth: 70,
+      rotation: 0,
+      color: '#4b341f',
+      dateWeight: '600',
+    },
+    'Style 2': {
+      nameFamily: 'Georgia, "Times New Roman", serif',
+      dateFamily: '"Trebuchet MS", "Segoe UI", Arial, sans-serif',
+      nameSize: 58,
+      dateSize: 38,
+      boxWidth: 68,
+      rotation: 0,
+      color: '#4b341f',
+      dateWeight: '600',
+    },
+    'Style 3': {
+      nameFamily: '"Trebuchet MS", "Segoe UI", Arial, sans-serif',
+      dateFamily: '"Trebuchet MS", "Segoe UI", Arial, sans-serif',
+      nameSize: 54,
+      dateSize: 36,
+      boxWidth: 66,
+      rotation: 0,
+      color: '#4b341f',
+      dateWeight: '600',
+    },
+  };
 
   const modal = document.getElementById(MODAL_ID);
   if (!modal) return;
@@ -12,12 +45,19 @@
   const styleInputs = Array.from(modal.querySelectorAll('[data-personalization-input="style"]'));
   const lastNameInput = modal.querySelector('[data-personalization-input="lastName"]');
   const lastNameCount = modal.querySelector('[data-personalization-count="lastName"]');
+  const dateInput = modal.querySelector('[data-personalization-input="date"]');
+  const dateCount = modal.querySelector('[data-personalization-count="date"]');
   const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
+  const stageImageUrl = String(clipSurface?.dataset.personalizationStageImageUrl || '').trim();
   const stylePreviewImage = modal.querySelector('[data-personalization-style-preview-image]');
+  const deterministicOverlay = modal.querySelector('[data-personalization-deterministic-overlay]');
+  const deterministicLastName = modal.querySelector('[data-personalization-deterministic-last-name]');
+  const deterministicDate = modal.querySelector('[data-personalization-deterministic-date]');
   const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
   const generateButton = modal.querySelector('[data-personalization-generate]');
+  const generateButtonLabel = modal.querySelector('[data-personalization-generate-label]');
   const saveButton = modal.querySelector('[data-personalization-save]');
   const cancelButton = modal.querySelector('[data-personalization-cancel]');
 
@@ -25,8 +65,13 @@
     styleInputs.length === 0 ||
     !lastNameInput ||
     !lastNameCount ||
+    !dateInput ||
+    !dateCount ||
     !clipSurface ||
     !stylePreviewImage ||
+    !deterministicOverlay ||
+    !deterministicLastName ||
+    !deterministicDate ||
     !pickedPanel ||
     !productName ||
     !errorElement ||
@@ -42,9 +87,13 @@
 
   let activeScope = '';
   let activeLastNameMax = DEFAULT_LAST_NAME_MAX;
+  let activeDateMax = DEFAULT_DATE_MAX;
   let isGenerating = false;
   let generationErrorMessage = '';
   let generatedImageData = '';
+  const defaultGenerateButtonText = generateButtonLabel
+    ? String(generateButtonLabel.textContent || '').trim() || 'Generate'
+    : String(generateButton.textContent || '').trim() || 'Generate';
 
   function parseMaxLength(value, fallback) {
     const parsed = Number.parseInt(value, 10);
@@ -52,10 +101,21 @@
     return parsed;
   }
 
+  function parseBoundedNumber(value, fallback, min, max) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+  }
+
   function normalizeStyle(value) {
     if (!value) return DEFAULT_STYLE;
     if (STYLE_VALUES.includes(value)) return value;
     return DEFAULT_STYLE;
+  }
+
+  function getStylePreset(styleValue) {
+    const normalizedStyle = normalizeStyle(styleValue);
+    return STYLE_FONT_PRESETS[normalizedStyle] || STYLE_FONT_PRESETS[DEFAULT_STYLE];
   }
 
   function selectorEscape(value) {
@@ -154,10 +214,12 @@
     return {
       style: DEFAULT_STYLE,
       lastName: '',
+      date: '',
       geminiSummary: '',
       generatedImage: '',
       previewOpened: true,
       maxLastName: DEFAULT_LAST_NAME_MAX,
+      maxDate: DEFAULT_DATE_MAX,
     };
   }
 
@@ -173,10 +235,12 @@
     stateByScope.set(scope, {
       style: normalizeStyle(nextState.style || currentState.style),
       lastName: String(nextState.lastName ?? currentState.lastName ?? '').trim(),
+      date: String(nextState.date ?? currentState.date ?? '').trim(),
       geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
       generatedImage: String(nextState.generatedImage ?? currentState.generatedImage ?? '').trim(),
       previewOpened: Boolean(nextState.previewOpened ?? currentState.previewOpened),
       maxLastName: parseMaxLength(nextState.maxLastName ?? currentState.maxLastName, DEFAULT_LAST_NAME_MAX),
+      maxDate: parseMaxLength(nextState.maxDate ?? currentState.maxDate, DEFAULT_DATE_MAX),
     });
   }
 
@@ -193,6 +257,19 @@
 
   function setGenerationError(message) {
     generationErrorMessage = String(message || '').trim();
+  }
+
+  function setGenerateButtonLoading(loading) {
+    const isLoading = Boolean(loading);
+    generateButton.classList.toggle('is-loading', isLoading);
+    generateButton.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+
+    if (generateButtonLabel) {
+      generateButtonLabel.textContent = isLoading ? 'Generating' : defaultGenerateButtonText;
+      return;
+    }
+
+    generateButton.textContent = isLoading ? 'Generating...' : defaultGenerateButtonText;
   }
 
   function getSelectedStyle() {
@@ -219,6 +296,10 @@
   }
 
   function getStyleImageUrl(styleValue) {
+    if (stageImageUrl) {
+      return stageImageUrl;
+    }
+
     const normalizedStyle = normalizeStyle(styleValue);
     const matchingInput = styleInputs.find((input) => normalizeStyle(input.value) === normalizedStyle);
     if (!matchingInput) return '';
@@ -292,6 +373,15 @@
     });
   }
 
+  function loadImage(source) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Could not load style image for context generation.'));
+      image.src = source;
+    });
+  }
+
   async function getStyleImagePayload(styleValue) {
     const normalizedStyle = normalizeStyle(styleValue);
     if (styleImagePayloadCache.has(normalizedStyle)) {
@@ -323,6 +413,87 @@
     }
   }
 
+  function drawFittedText(ctx, text, options) {
+    const trimmedText = String(text || '').trim();
+    if (!trimmedText) return;
+
+    let fontSize = options.fontSize;
+    while (fontSize > options.minSize) {
+      ctx.font = `${options.fontWeight || '600'} ${fontSize}px ${options.fontFamily}`;
+      if (ctx.measureText(trimmedText).width <= options.maxWidth) break;
+      fontSize -= 1;
+    }
+
+    ctx.font = `${options.fontWeight || '600'} ${fontSize}px ${options.fontFamily}`;
+    ctx.fillText(trimmedText, options.x, options.y);
+  }
+
+  async function buildDeterministicContextImagePayload(styleValue, styleImagePayload, lastNameValue, dateValue) {
+    if (!styleImagePayload || !styleImagePayload.dataUrl) return null;
+
+    const stylePreset = getStylePreset(styleValue);
+    const image = await loadImage(styleImagePayload.dataUrl);
+
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    if (!width || !height) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    const centerX = width * 0.5;
+    const centerY = height * 0.52;
+    const rotation = (stylePreset.rotation * Math.PI) / 180;
+    const maxTextWidth = width * 0.45;
+    const lineGap = Math.max(28, Math.round(height * 0.065));
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = stylePreset.color;
+
+    drawFittedText(ctx, lastNameValue, {
+      x: 0,
+      y: -lineGap / 2,
+      maxWidth: maxTextWidth,
+      minSize: 22,
+      fontSize: Math.max(28, Math.round((width / 1000) * stylePreset.nameSize)),
+      fontFamily: stylePreset.nameFamily,
+      fontWeight: '600',
+    });
+
+    drawFittedText(ctx, dateValue, {
+      x: 0,
+      y: lineGap / 2,
+      maxWidth: maxTextWidth,
+      minSize: 18,
+      fontSize: Math.max(22, Math.round((width / 1000) * stylePreset.dateSize)),
+      fontFamily: stylePreset.dateFamily,
+      fontWeight: stylePreset.dateWeight || '600',
+    });
+
+    ctx.restore();
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const data = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
+    if (!data) return null;
+
+    return {
+      mimeType: 'image/png',
+      data,
+      url: 'context://deterministic-stage',
+      dataUrl,
+    };
+  }
+
   function getGeneratedSummary() {
     return '';
   }
@@ -330,13 +501,18 @@
   function getValidationError(options = {}) {
     const requireAll = Boolean(options.requireAll);
     const lastNameValue = lastNameInput.value.trim();
+    const dateValue = dateInput.value.trim();
 
     if (lastNameValue.length > activeLastNameMax) {
       return `Last name must be ${activeLastNameMax} characters or fewer.`;
     }
+    if (dateValue.length > activeDateMax) {
+      return `Date must be ${activeDateMax} characters or fewer.`;
+    }
 
     if (requireAll) {
       if (!lastNameValue) return 'Last name is required before generating a preview.';
+      if (!dateValue) return 'Date is required before generating a preview.';
     }
 
     return '';
@@ -344,6 +520,37 @@
 
   function setPickedPanelVisible(visible) {
     pickedPanel.toggleAttribute('hidden', !visible);
+  }
+
+  function renderDeterministicOverlay() {
+    const existingGeneratedImage = getGeneratedImageData();
+    if (existingGeneratedImage) {
+      deterministicOverlay.setAttribute('hidden', '');
+      return;
+    }
+
+    const selectedStyle = getSelectedStyle();
+    const stylePreset = getStylePreset(selectedStyle);
+    const surfaceWidth = Math.max(320, clipSurface.clientWidth || 0);
+    const scale = Math.min(1, Math.max(0.55, surfaceWidth / 620));
+    const nameSize = parseBoundedNumber(Math.round(stylePreset.nameSize * scale), stylePreset.nameSize, 24, 92);
+    const dateSize = parseBoundedNumber(Math.round(stylePreset.dateSize * scale), stylePreset.dateSize, 18, 72);
+
+    deterministicOverlay.removeAttribute('hidden');
+    deterministicOverlay.style.setProperty('--deterministic-rotation', `${stylePreset.rotation}deg`);
+    deterministicOverlay.style.setProperty('--deterministic-width', `${stylePreset.boxWidth}%`);
+
+    deterministicLastName.textContent = lastNameInput.value.trim() || ' ';
+    deterministicDate.textContent = dateInput.value.trim() || ' ';
+
+    deterministicLastName.style.setProperty('font-family', stylePreset.nameFamily);
+    deterministicLastName.style.setProperty('font-size', `${nameSize}px`);
+    deterministicLastName.style.setProperty('color', stylePreset.color);
+
+    deterministicDate.style.setProperty('font-family', stylePreset.dateFamily);
+    deterministicDate.style.setProperty('font-size', `${dateSize}px`);
+    deterministicDate.style.setProperty('font-weight', stylePreset.dateWeight || '600');
+    deterministicDate.style.setProperty('color', stylePreset.color);
   }
 
   function renderClipStyle() {
@@ -357,15 +564,19 @@
       clipSurface.style.setProperty('--quickclip-style-image', 'none');
       stylePreviewImage.src = existingGeneratedImage;
       stylePreviewImage.removeAttribute('hidden');
+      renderDeterministicOverlay();
       return;
     }
 
     setWorkspaceStyleImage(selectedStyle);
+    renderDeterministicOverlay();
   }
 
   function renderEditorState() {
     lastNameCount.textContent = `${lastNameInput.value.length}/${activeLastNameMax}`;
+    dateCount.textContent = `${dateInput.value.length}/${activeDateMax}`;
 
+    clipSurface.classList.toggle('is-generating', isGenerating);
     setPickedPanelVisible(true);
     renderClipStyle();
 
@@ -381,6 +592,7 @@
       }
     }
 
+    setGenerateButtonLoading(isGenerating);
     generateButton.disabled = isGenerating || hasError;
     saveButton.disabled = isGenerating || hasError;
   }
@@ -392,22 +604,35 @@
     const name1Property = context.querySelector('[data-personalization-property="name1"]');
     const name2Property = context.querySelector('[data-personalization-property="name2"]');
     const dateProperty = context.querySelector('[data-personalization-property="date"]');
+    const modeProperty = context.querySelector('[data-personalization-property="mode"]');
+    const deterministicTextProperty = context.querySelector('[data-personalization-property="deterministic_text"]');
+    const deterministicFontProperty = context.querySelector('[data-personalization-property="deterministic_font"]');
+    const deterministicSizeProperty = context.querySelector('[data-personalization-property="deterministic_size"]');
+    const deterministicBoxWidthProperty = context.querySelector('[data-personalization-property="deterministic_box_width"]');
     const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
+    const stylePreset = getStylePreset(state.style || DEFAULT_STYLE);
 
     if (primaryProperty) primaryProperty.value = state.lastName || '';
     if (secondaryProperty) secondaryProperty.value = '';
     if (styleProperty) styleProperty.value = state.style || DEFAULT_STYLE;
     if (name1Property) name1Property.value = state.lastName || '';
     if (name2Property) name2Property.value = '';
-    if (dateProperty) dateProperty.value = '';
+    if (dateProperty) dateProperty.value = state.date || '';
+    if (modeProperty) modeProperty.value = 'deterministic';
+    if (deterministicTextProperty) {
+      deterministicTextProperty.value = `${state.lastName || ''}${state.date ? ` | ${state.date}` : ''}`.trim();
+    }
+    if (deterministicFontProperty) deterministicFontProperty.value = state.style || DEFAULT_STYLE;
+    if (deterministicSizeProperty) deterministicSizeProperty.value = String(stylePreset.nameSize);
+    if (deterministicBoxWidthProperty) deterministicBoxWidthProperty.value = String(stylePreset.boxWidth);
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
   }
 
   function isConfiguredState(state) {
     if (!state) return false;
-    return Boolean(state.lastName || state.geminiSummary);
+    return Boolean(state.lastName || state.date || state.geminiSummary || state.generatedImage);
   }
 
   function updateTriggerLabels(scope) {
@@ -481,9 +706,11 @@
           (context.querySelector('[data-personalization-property="name1"]') || {}).value ||
           (context.querySelector('[data-personalization-property="primary"]') || {}).value ||
           '',
+        date: (context.querySelector('[data-personalization-property="date"]') || {}).value || '',
         geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
         generatedImage: '',
         maxLastName: DEFAULT_LAST_NAME_MAX,
+        maxDate: DEFAULT_DATE_MAX,
       });
     }
 
@@ -505,8 +732,10 @@
       trigger.dataset.personalizationPrimaryMax,
       existingState.maxLastName || DEFAULT_LAST_NAME_MAX
     );
+    activeDateMax = parseMaxLength(trigger.dataset.personalizationDateMax, existingState.maxDate || DEFAULT_DATE_MAX);
 
     lastNameInput.maxLength = activeLastNameMax;
+    dateInput.maxLength = activeDateMax;
 
     const productTitle = trigger.dataset.personalizationProductTitle || '';
     productName.textContent = productTitle;
@@ -514,6 +743,7 @@
 
     setSelectedStyle(existingState.style || DEFAULT_STYLE);
     lastNameInput.value = existingState.lastName || '';
+    dateInput.value = existingState.date || '';
     setGeneratedImage(existingState.generatedImage || '');
     setPickedPanelVisible(true);
     setGenerationError('');
@@ -551,7 +781,10 @@
     });
   });
   lastNameInput.addEventListener('input', () => {
-    setGeneratedImage('');
+    setGenerationError('');
+    renderEditorState();
+  });
+  dateInput.addEventListener('input', () => {
     setGenerationError('');
     renderEditorState();
   });
@@ -568,10 +801,12 @@
     setScopeState(activeScope, {
       style: getSelectedStyle(),
       lastName: lastNameInput.value.trim(),
+      date: dateInput.value.trim(),
       geminiSummary: getGeneratedSummary(),
       generatedImage: getGeneratedImageData(),
       previewOpened: true,
       maxLastName: activeLastNameMax,
+      maxDate: activeDateMax,
     });
 
     syncScope(activeScope);
@@ -603,17 +838,36 @@
     const payload = {
       style: selectedStyle,
       lastName: lastNameInput.value.trim(),
+      date: dateInput.value.trim(),
     };
 
     try {
       const styleImagePayload = await getStyleImagePayload(selectedStyle);
-      if (styleImagePayload) {
-        payload.styleImage = {
-          mimeType: styleImagePayload.mimeType,
-          data: styleImagePayload.data,
-          url: styleImagePayload.url,
-        };
+      if (!styleImagePayload) {
+        throw new Error('Style image is required for preview generation.');
       }
+
+      const contextImagePayload = await buildDeterministicContextImagePayload(
+        selectedStyle,
+        styleImagePayload,
+        payload.lastName,
+        payload.date
+      );
+
+      if (!contextImagePayload) {
+        throw new Error('Could not build deterministic context image.');
+      }
+
+      payload.styleImage = {
+        mimeType: styleImagePayload.mimeType,
+        data: styleImagePayload.data,
+        url: styleImagePayload.url,
+      };
+      payload.contextImage = {
+        mimeType: contextImagePayload.mimeType,
+        data: contextImagePayload.data,
+        url: contextImagePayload.url,
+      };
 
       const { json } = await requestPreview(payload);
       const generatedImageData = resolveGeneratedImageDataUrl(json);
@@ -627,10 +881,12 @@
       setScopeState(activeScope, {
         style: payload.style,
         lastName: payload.lastName,
+        date: payload.date,
         geminiSummary: '',
         generatedImage: generatedImageData,
         previewOpened: true,
         maxLastName: activeLastNameMax,
+        maxDate: activeDateMax,
       });
       syncScope(activeScope);
     } catch (error) {
@@ -721,3 +977,4 @@
   hydrateContexts(document);
   observer.observe(document.body, { childList: true, subtree: true });
 })();
+
