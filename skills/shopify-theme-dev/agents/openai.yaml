@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shopify Theme Dev"
+  short_description: "QuickClips Shopify theme dev workflow"
+  default_prompt: "Use $shopify-theme-dev to pull the live theme, run local preview, and push safely to an unpublished theme."
