@@ -193,10 +193,17 @@
 }
 
 .personalization-preview-modal__blank-clip {
+  --quickclip-style-image: none;
   min-height: 21.6rem;
   border: 0.1rem dashed rgba(var(--color-foreground), 0.22);
   border-radius: var(--text-boxes-radius);
-  background: linear-gradient(180deg, rgba(var(--color-background), 1), rgba(var(--color-background-contrast), 0.14));
+  background-color: rgba(var(--color-background), 1);
+  background-image:
+    linear-gradient(180deg, rgba(var(--color-background), 0.72), rgba(var(--color-background-contrast), 0.26)),
+    var(--quickclip-style-image);
+  background-size: auto, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,6 +282,15 @@
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
+}
+
+.personalization-preview-modal__generated-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--text-boxes-radius);
+  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  background-color: rgba(var(--color-background-contrast), 0.08);
 }
 
 .personalization-preview-modal__generated-output {

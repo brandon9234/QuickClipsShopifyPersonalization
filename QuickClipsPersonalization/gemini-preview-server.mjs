@@ -1,10 +1,11 @@
 import http from 'node:http';
 
 const PORT = Number.parseInt(process.env.PORT || '8788', 10);
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash';
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const STYLE_VALUES = new Set(['Style 1', 'Style 2', 'Style 3']);
+const MAX_STYLE_IMAGE_BASE64_LENGTH = 1_500_000;
 
 function applyCorsHeaders(response) {
   response.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
@@ -54,6 +55,26 @@ function validatePayload(body) {
   const name1 = sanitize(body.name1, 40);
   const name2 = sanitize(body.name2, 40);
   const date = sanitize(body.date, 32);
+  let styleImage = null;
+
+  if (body.styleImage && typeof body.styleImage === 'object') {
+    const mimeType = sanitize(body.styleImage.mimeType, 64).toLowerCase();
+    const imageData = String(body.styleImage.data || '').trim().replace(/\s+/g, '');
+    const url = sanitize(body.styleImage.url, 500);
+
+    if (
+      mimeType.startsWith('image/') &&
+      imageData &&
+      imageData.length <= MAX_STYLE_IMAGE_BASE64_LENGTH &&
+      /^[A-Za-z0-9+/=]+$/.test(imageData)
+    ) {
+      styleImage = {
+        mimeType,
+        data: imageData,
+        url,
+      };
+    }
+  }
 
   if (!STYLE_VALUES.has(style)) {
     return { error: 'Style must be Style 1, Style 2, or Style 3.' };
@@ -74,6 +95,7 @@ function validatePayload(body) {
       name1,
       name2,
       date,
+      styleImage,
     },
   };
 }
@@ -126,6 +148,7 @@ async function callGemini(payload) {
   const prompt = [
     'You generate personalized QuickClip preview copy from storefront form fields.',
     'Use the selected style and the exact text-box values below to craft preview copy.',
+    'If a reference style image is attached, treat it as visual context for layout/tone.',
     'Return strict JSON only with keys: headline, subline, dateLine, styleNotes.',
     'headline: primary engraving line based on Name 1 (max 60 chars).',
     'subline: secondary engraving line based on Name 2 (max 90 chars).',
@@ -135,7 +158,19 @@ async function callGemini(payload) {
     `Name 1: ${payload.name1}`,
     `Name 2: ${payload.name2}`,
     `Date: ${payload.date}`,
+    payload.styleImage?.url ? `Reference image URL: ${payload.styleImage.url}` : '',
+    'Do not include markdown fences. Output JSON only.',
   ].join('\n');
+
+  const requestParts = [{ text: prompt }];
+  if (payload.styleImage?.data && payload.styleImage?.mimeType) {
+    requestParts.push({
+      inlineData: {
+        mimeType: payload.styleImage.mimeType,
+        data: payload.styleImage.data,
+      },
+    });
+  }
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
@@ -148,7 +183,7 @@ async function callGemini(payload) {
         contents: [
           {
             role: 'user',
-            parts: [{ text: prompt }],
+            parts: requestParts,
           },
         ],
         generationConfig: {

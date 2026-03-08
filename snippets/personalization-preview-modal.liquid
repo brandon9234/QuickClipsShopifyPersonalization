@@ -35,7 +35,7 @@
               >
               <span class="personalization-preview-modal__style-option-display">
                 <img
-                  src="{{ 'quickclip-style-1.png' | asset_url }}"
+                  src="{{ 'quickclip-style-1.jpg' | asset_url }}"
                   alt="Style 1 preview"
                   class="personalization-preview-modal__style-option-image"
                   loading="lazy"
@@ -52,7 +52,7 @@
               >
               <span class="personalization-preview-modal__style-option-display">
                 <img
-                  src="{{ 'quickclip-style-2.png' | asset_url }}"
+                  src="{{ 'quickclip-style-2.jpg' | asset_url }}"
                   alt="Style 2 preview"
                   class="personalization-preview-modal__style-option-image"
                   loading="lazy"
@@ -69,7 +69,7 @@
               >
               <span class="personalization-preview-modal__style-option-display">
                 <img
-                  src="{{ 'quickclip-style-3.png' | asset_url }}"
+                  src="{{ 'quickclip-style-3.jpg' | asset_url }}"
                   alt="Style 3 preview"
                   class="personalization-preview-modal__style-option-image"
                   loading="lazy"
@@ -79,7 +79,7 @@
             </label>
           </div>
           <p class="personalization-preview-modal__helper">
-            Upload style images in theme assets as: quickclip-style-1.png, quickclip-style-2.png, quickclip-style-3.png
+            Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg
           </p>
         </div>
 
@@ -133,6 +133,12 @@
 
           <div class="personalization-preview-modal__generated-preview">
             <p class="personalization-preview-modal__generated-label">Gemini result</p>
+            <img
+              class="personalization-preview-modal__generated-image"
+              data-personalization-generated-image
+              alt="Generated QuickClip preview"
+              hidden
+            >
             <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
               Fill out the fields and click Generate to create your QuickClip preview.
             </p>

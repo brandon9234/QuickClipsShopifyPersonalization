@@ -24,6 +24,7 @@
   const previewDate = modal.querySelector('[data-personalization-preview="date"]');
   const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
   const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
+  const generatedImage = modal.querySelector('[data-personalization-generated-image]');
   const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
@@ -43,6 +44,7 @@
     !previewDate ||
     !clipSurface ||
     !pickedPanel ||
+    !generatedImage ||
     !generatedOutput ||
     !productName ||
     !errorElement ||
@@ -54,6 +56,7 @@
   }
 
   const stateByScope = new Map();
+  const styleImagePayloadCache = new Map();
 
   let activeScope = '';
   let activeName1Max = DEFAULT_NAME1_MAX;
@@ -98,6 +101,7 @@
       name2: '',
       date: '',
       geminiSummary: '',
+      generatedImage: '',
       previewOpened: true,
       maxName1: DEFAULT_NAME1_MAX,
       maxName2: DEFAULT_NAME2_MAX,
@@ -119,6 +123,7 @@
       name2: String(nextState.name2 ?? currentState.name2 ?? '').trim(),
       date: String(nextState.date ?? currentState.date ?? '').trim(),
       geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
+      generatedImage: String(nextState.generatedImage ?? currentState.generatedImage ?? '').trim(),
       previewOpened: Boolean(nextState.previewOpened ?? currentState.previewOpened),
       maxName1: parseMaxLength(nextState.maxName1 ?? currentState.maxName1, DEFAULT_NAME1_MAX),
       maxName2: parseMaxLength(nextState.maxName2 ?? currentState.maxName2, DEFAULT_NAME2_MAX),
@@ -156,6 +161,211 @@
         return 'is-style-3';
       default:
         return 'is-style-1';
+    }
+  }
+
+  function getStyleImageUrl(styleValue) {
+    const normalizedStyle = normalizeStyle(styleValue);
+    const matchingInput = styleInputs.find((input) => normalizeStyle(input.value) === normalizedStyle);
+    if (!matchingInput) return '';
+
+    const option = matchingInput.closest('.personalization-preview-modal__style-option');
+    if (!option) return '';
+
+    const image = option.querySelector('.personalization-preview-modal__style-option-image');
+    if (!image) return '';
+
+    return image.currentSrc || image.getAttribute('src') || '';
+  }
+
+  function setWorkspaceStyleImage(styleValue) {
+    const styleImageUrl = getStyleImageUrl(styleValue);
+    if (!styleImageUrl) {
+      clipSurface.style.setProperty('--quickclip-style-image', 'none');
+      return;
+    }
+
+    clipSurface.style.setProperty('--quickclip-style-image', `url("${styleImageUrl.replace(/"/g, '\\"')}")`);
+  }
+
+  function setGeneratedImage(dataUrl) {
+    if (!dataUrl) {
+      generatedImage.setAttribute('hidden', '');
+      generatedImage.removeAttribute('src');
+      return;
+    }
+
+    generatedImage.src = dataUrl;
+    generatedImage.removeAttribute('hidden');
+  }
+
+  function getGeneratedImageData() {
+    return generatedImage.getAttribute('src') || '';
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+        reject(new Error('Image conversion failed.'));
+      };
+      reader.onerror = () => reject(new Error('Image conversion failed.'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function getStyleImagePayload(styleValue) {
+    const normalizedStyle = normalizeStyle(styleValue);
+    if (styleImagePayloadCache.has(normalizedStyle)) {
+      return styleImagePayloadCache.get(normalizedStyle) || null;
+    }
+
+    const styleImageUrl = getStyleImageUrl(normalizedStyle);
+    if (!styleImageUrl) return null;
+
+    try {
+      const response = await fetch(styleImageUrl, { cache: 'force-cache' });
+      if (!response.ok) return null;
+
+      const blob = await response.blob();
+      const dataUrl = await blobToDataUrl(blob);
+      const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
+      if (!base64Data) return null;
+
+      const payload = {
+        mimeType: blob.type || 'image/jpeg',
+        data: base64Data,
+        url: styleImageUrl,
+        dataUrl,
+      };
+      styleImagePayloadCache.set(normalizedStyle, payload);
+      return payload;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function loadImageElement(source) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Could not load style image.'));
+      image.src = source;
+    });
+  }
+
+  function drawRoundedRectPath(context, x, y, width, height, radius) {
+    const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+    context.beginPath();
+    context.moveTo(x + safeRadius, y);
+    context.lineTo(x + width - safeRadius, y);
+    context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+    context.lineTo(x + width, y + height - safeRadius);
+    context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+    context.lineTo(x + safeRadius, y + height);
+    context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+    context.lineTo(x, y + safeRadius);
+    context.quadraticCurveTo(x, y, x + safeRadius, y);
+    context.closePath();
+  }
+
+  function drawCoverImage(context, image, width, height) {
+    const scale = Math.max(width / image.width, height / image.height);
+    const drawWidth = image.width * scale;
+    const drawHeight = image.height * scale;
+    const x = (width - drawWidth) / 2;
+    const y = (height - drawHeight) / 2;
+    context.drawImage(image, x, y, drawWidth, drawHeight);
+  }
+
+  function truncateText(text, maxLength) {
+    const normalized = String(text || '').trim();
+    if (normalized.length <= maxLength) return normalized;
+    return `${normalized.slice(0, maxLength - 1)}…`;
+  }
+
+  async function renderGeneratedQuickClipImage(styleValue, preview) {
+    try {
+      const normalizedStyle = normalizeStyle(styleValue);
+      const styleImage = await getStyleImagePayload(normalizedStyle);
+      const styleSource = styleImage ? styleImage.dataUrl : getStyleImageUrl(normalizedStyle);
+      if (!styleSource) return '';
+
+      const image = await loadImageElement(styleSource);
+      const canvas = document.createElement('canvas');
+      const width = 1200;
+      const height = 900;
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext('2d');
+      if (!context) return '';
+
+      drawCoverImage(context, image, width, height);
+
+      context.fillStyle = 'rgba(245, 245, 245, 0.26)';
+      context.fillRect(0, 0, width, height);
+
+      const plateX = width * 0.14;
+      const plateY = height * 0.23;
+      const plateWidth = width * 0.72;
+      const plateHeight = height * 0.54;
+
+      if (normalizedStyle === 'Style 3') {
+        const plateGradient = context.createLinearGradient(plateX, plateY, plateX + plateWidth, plateY + plateHeight);
+        plateGradient.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
+        plateGradient.addColorStop(1, 'rgba(243, 243, 243, 0.88)');
+        drawRoundedRectPath(context, plateX, plateY, plateWidth, plateHeight, 120);
+        context.fillStyle = plateGradient;
+        context.fill();
+        context.strokeStyle = 'rgba(55, 55, 55, 0.42)';
+        context.lineWidth = 4;
+        context.stroke();
+      } else {
+        drawRoundedRectPath(
+          context,
+          plateX,
+          plateY,
+          plateWidth,
+          plateHeight,
+          normalizedStyle === 'Style 2' ? 18 : 28
+        );
+        context.fillStyle = 'rgba(255, 255, 255, 0.94)';
+        context.fill();
+        context.strokeStyle = 'rgba(55, 55, 55, 0.44)';
+        context.lineWidth = 4;
+        if (normalizedStyle === 'Style 2') {
+          context.setLineDash([18, 12]);
+        }
+        context.stroke();
+        context.setLineDash([]);
+      }
+
+      const headline = truncateText(preview.headline || name1Input.value, 60) || 'Name 1';
+      const subline = truncateText(preview.subline || name2Input.value, 90) || 'Name 2';
+      const dateLine = truncateText(preview.dateLine || dateInput.value, 60) || 'Date';
+
+      context.textAlign = 'center';
+      context.fillStyle = '#243647';
+      context.font = normalizedStyle === 'Style 3' ? '600 68px Georgia, serif' : '600 66px Arial, sans-serif';
+      context.fillText(headline, width / 2, plateY + plateHeight * 0.42);
+
+      context.fillStyle = '#30485f';
+      context.font = normalizedStyle === 'Style 3' ? '500 48px Georgia, serif' : '500 44px Arial, sans-serif';
+      context.fillText(subline, width / 2, plateY + plateHeight * 0.62);
+
+      context.fillStyle = '#55616e';
+      context.font = '400 36px Arial, sans-serif';
+      context.fillText(dateLine, width / 2, plateY + plateHeight * 0.79);
+
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } catch (error) {
+      return '';
     }
   }
 
@@ -199,9 +409,11 @@
   }
 
   function renderClipStyle() {
-    const styleClass = getClipStyleClass(getSelectedStyle());
+    const selectedStyle = getSelectedStyle();
+    const styleClass = getClipStyleClass(selectedStyle);
     clipSurface.classList.remove(...CLIP_STYLE_CLASSES);
     clipSurface.classList.add(styleClass);
+    setWorkspaceStyleImage(selectedStyle);
   }
 
   function renderPreviewText() {
@@ -329,6 +541,7 @@
           '',
         date: (context.querySelector('[data-personalization-property="date"]') || {}).value || '',
         geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
+        generatedImage: '',
         maxName1: DEFAULT_NAME1_MAX,
         maxName2: DEFAULT_NAME2_MAX,
       });
@@ -369,6 +582,7 @@
     name1Input.value = existingState.name1 || '';
     name2Input.value = existingState.name2 || '';
     dateInput.value = existingState.date || '';
+    setGeneratedImage(existingState.generatedImage || '');
     generatedOutput.textContent = existingState.geminiSummary || DEFAULT_GENERATED_MESSAGE;
     setPickedPanelVisible(true);
     isGenerating = false;
@@ -419,6 +633,7 @@
       name2: name2Input.value.trim(),
       date: dateInput.value.trim(),
       geminiSummary: getGeneratedSummary(),
+      generatedImage: getGeneratedImageData(),
       previewOpened: true,
       maxName1: activeName1Max,
       maxName2: activeName2Max,
@@ -452,20 +667,31 @@
     }
 
     const previousSummary = getGeneratedSummary();
+    const previousGeneratedImage = getGeneratedImageData();
     setPickedPanelVisible(true);
     isGenerating = true;
     setError('');
     generatedOutput.textContent = GENERATING_MESSAGE;
     renderEditorState();
 
+    const selectedStyle = getSelectedStyle();
     const payload = {
-      style: getSelectedStyle(),
+      style: selectedStyle,
       name1: name1Input.value.trim(),
       name2: name2Input.value.trim(),
       date: dateInput.value.trim(),
     };
 
     try {
+      const styleImagePayload = await getStyleImagePayload(selectedStyle);
+      if (styleImagePayload) {
+        payload.styleImage = {
+          mimeType: styleImagePayload.mimeType,
+          data: styleImagePayload.data,
+          url: styleImagePayload.url,
+        };
+      }
+
       const response = await fetch(getApiUrl(), {
         method: 'POST',
         headers: {
@@ -483,6 +709,9 @@
 
       const preview = json.preview || {};
       const summary = buildGeminiSummary(preview) || 'Preview generated successfully.';
+      const generatedImageData = (await renderGeneratedQuickClipImage(payload.style, preview)) || previousGeneratedImage;
+
+      setGeneratedImage(generatedImageData);
       generatedOutput.textContent = summary;
 
       setScopeState(activeScope, {
@@ -491,12 +720,14 @@
         name2: payload.name2,
         date: payload.date,
         geminiSummary: summary,
+        generatedImage: generatedImageData,
         previewOpened: true,
         maxName1: activeName1Max,
         maxName2: activeName2Max,
       });
       syncScope(activeScope);
     } catch (error) {
+      setGeneratedImage(previousGeneratedImage);
       generatedOutput.textContent = previousSummary || DEFAULT_GENERATED_MESSAGE;
       setError(error instanceof Error ? error.message : 'Could not generate preview.');
     } finally {
