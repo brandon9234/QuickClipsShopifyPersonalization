@@ -1,0 +1,5 @@
+interface:
+  display_name: "QuickClips Theme"
+  short_description: "Maintain QuickClips Shopify theme safely"
+  default_prompt: "Use $quickclips-shopify-theme to implement and validate a Shopify theme change in this repository."
+

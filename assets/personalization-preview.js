@@ -2,11 +2,7 @@
   const MODAL_ID = 'PersonalizationPreviewModal';
   const DEFAULT_STYLE = 'Style 1';
   const STYLE_VALUES = ['Style 1', 'Style 2', 'Style 3'];
-  const DEFAULT_NAME1_MAX = 30;
-  const DEFAULT_NAME2_MAX = 30;
-  const DEFAULT_DATE_MAX = 32;
-  const DEFAULT_GENERATED_MESSAGE = 'Fill out the fields and click Generate to create your QuickClip preview.';
-  const GENERATING_MESSAGE = 'Generating QuickClip preview...';
+  const DEFAULT_LAST_NAME_MAX = 30;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
 
@@ -14,19 +10,11 @@
   if (!modal) return;
 
   const styleInputs = Array.from(modal.querySelectorAll('[data-personalization-input="style"]'));
-  const name1Input = modal.querySelector('[data-personalization-input="name1"]');
-  const name2Input = modal.querySelector('[data-personalization-input="name2"]');
-  const dateInput = modal.querySelector('[data-personalization-input="date"]');
-  const name1Count = modal.querySelector('[data-personalization-count="name1"]');
-  const name2Count = modal.querySelector('[data-personalization-count="name2"]');
-  const previewName1 = modal.querySelector('[data-personalization-preview="name1"]');
-  const previewName2 = modal.querySelector('[data-personalization-preview="name2"]');
-  const previewDate = modal.querySelector('[data-personalization-preview="date"]');
+  const lastNameInput = modal.querySelector('[data-personalization-input="lastName"]');
+  const lastNameCount = modal.querySelector('[data-personalization-count="lastName"]');
   const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
   const stylePreviewImage = modal.querySelector('[data-personalization-style-preview-image]');
   const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
-  const generatedImage = modal.querySelector('[data-personalization-generated-image]');
-  const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
   const generateButton = modal.querySelector('[data-personalization-generate]');
@@ -35,19 +23,11 @@
 
   if (
     styleInputs.length === 0 ||
-    !name1Input ||
-    !name2Input ||
-    !dateInput ||
-    !name1Count ||
-    !name2Count ||
-    !previewName1 ||
-    !previewName2 ||
-    !previewDate ||
+    !lastNameInput ||
+    !lastNameCount ||
     !clipSurface ||
     !stylePreviewImage ||
     !pickedPanel ||
-    !generatedImage ||
-    !generatedOutput ||
     !productName ||
     !errorElement ||
     !generateButton ||
@@ -61,9 +41,10 @@
   const styleImagePayloadCache = new Map();
 
   let activeScope = '';
-  let activeName1Max = DEFAULT_NAME1_MAX;
-  let activeName2Max = DEFAULT_NAME2_MAX;
+  let activeLastNameMax = DEFAULT_LAST_NAME_MAX;
   let isGenerating = false;
+  let generationErrorMessage = '';
+  let generatedImageData = '';
 
   function parseMaxLength(value, fallback) {
     const parsed = Number.parseInt(value, 10);
@@ -82,31 +63,101 @@
     return value.replace(/["\\]/g, '\\$&');
   }
 
-  function getApiUrl() {
+  function getApiUrls() {
+    const urls = [];
+    function addUrl(value) {
+      if (typeof value !== 'string') return;
+      const trimmed = value.trim();
+      if (!trimmed) return;
+      if (!urls.includes(trimmed)) {
+        urls.push(trimmed);
+      }
+    }
+
     const globalConfig = window.QuickClipsPersonalization;
     if (globalConfig && typeof globalConfig.apiUrl === 'string' && globalConfig.apiUrl.trim()) {
-      return globalConfig.apiUrl.trim();
+      addUrl(globalConfig.apiUrl);
+    }
+
+    if (globalConfig && Array.isArray(globalConfig.apiUrls)) {
+      globalConfig.apiUrls.forEach(addUrl);
     }
 
     const modalConfig = modal.dataset.personalizationApiUrl;
     if (typeof modalConfig === 'string' && modalConfig.trim()) {
-      return modalConfig.trim();
+      addUrl(modalConfig);
     }
 
-    return DEFAULT_API_PATH;
+    const hasExplicitUrls = urls.length > 0;
+    const pageProtocol = String(window.location.protocol || '').toLowerCase();
+    const pageHost = String(window.location.hostname || '').toLowerCase();
+    const isLocalHost = pageHost === 'localhost' || pageHost === '127.0.0.1' || pageHost === '::1';
+    const allowHttpLocalhost = isLocalHost || pageProtocol === 'http:' || pageProtocol === 'file:';
+
+    if (allowHttpLocalhost) {
+      addUrl('http://localhost:8788/api/personalization-preview');
+      addUrl('http://localhost:8788/preview');
+      addUrl('http://localhost:8788/apps/quickclips-personalization/preview');
+      if (!hasExplicitUrls) {
+        return urls;
+      }
+    }
+
+    if (hasExplicitUrls) {
+      return urls;
+    }
+
+    addUrl('/preview');
+    addUrl('/api/personalization-preview');
+    addUrl(DEFAULT_API_PATH);
+
+    return urls;
+  }
+
+  async function requestPreview(payload) {
+    const urls = getApiUrls();
+    const failures = [];
+
+    for (const apiUrl of urls) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        const json = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const errorMessage =
+            typeof json.error === 'string' && json.error ? json.error : `Request failed with status ${response.status}.`;
+          failures.push(`${apiUrl}: ${errorMessage}`);
+          continue;
+        }
+
+        return { apiUrl, json };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Request failed.';
+        failures.push(`${apiUrl}: ${errorMessage}`);
+      }
+    }
+
+    if (!failures.length) {
+      throw new Error('No API endpoint configured for Gemini preview.');
+    }
+
+    throw new Error(failures.join(' | '));
   }
 
   function createDefaultState() {
     return {
       style: DEFAULT_STYLE,
-      name1: '',
-      name2: '',
-      date: '',
+      lastName: '',
       geminiSummary: '',
       generatedImage: '',
       previewOpened: true,
-      maxName1: DEFAULT_NAME1_MAX,
-      maxName2: DEFAULT_NAME2_MAX,
+      maxLastName: DEFAULT_LAST_NAME_MAX,
     };
   }
 
@@ -121,14 +172,11 @@
 
     stateByScope.set(scope, {
       style: normalizeStyle(nextState.style || currentState.style),
-      name1: String(nextState.name1 ?? currentState.name1 ?? '').trim(),
-      name2: String(nextState.name2 ?? currentState.name2 ?? '').trim(),
-      date: String(nextState.date ?? currentState.date ?? '').trim(),
+      lastName: String(nextState.lastName ?? currentState.lastName ?? '').trim(),
       geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
       generatedImage: String(nextState.generatedImage ?? currentState.generatedImage ?? '').trim(),
       previewOpened: Boolean(nextState.previewOpened ?? currentState.previewOpened),
-      maxName1: parseMaxLength(nextState.maxName1 ?? currentState.maxName1, DEFAULT_NAME1_MAX),
-      maxName2: parseMaxLength(nextState.maxName2 ?? currentState.maxName2, DEFAULT_NAME2_MAX),
+      maxLastName: parseMaxLength(nextState.maxLastName ?? currentState.maxLastName, DEFAULT_LAST_NAME_MAX),
     });
   }
 
@@ -141,6 +189,10 @@
 
     errorElement.removeAttribute('hidden');
     errorElement.textContent = message;
+  }
+
+  function setGenerationError(message) {
+    generationErrorMessage = String(message || '').trim();
   }
 
   function getSelectedStyle() {
@@ -195,18 +247,34 @@
   }
 
   function setGeneratedImage(dataUrl) {
-    if (!dataUrl) {
-      generatedImage.setAttribute('hidden', '');
-      generatedImage.removeAttribute('src');
-      return;
-    }
-
-    generatedImage.src = dataUrl;
-    generatedImage.removeAttribute('hidden');
+    generatedImageData = String(dataUrl || '').trim();
   }
 
   function getGeneratedImageData() {
-    return generatedImage.getAttribute('src') || '';
+    return generatedImageData;
+  }
+
+  function resolveGeneratedImageDataUrl(responseJson) {
+    const directDataUrl =
+      responseJson && typeof responseJson.generatedImageDataUrl === 'string'
+        ? responseJson.generatedImageDataUrl.trim()
+        : '';
+    if (directDataUrl.startsWith('data:image/')) {
+      return directDataUrl;
+    }
+
+    const generatedImage =
+      responseJson && responseJson.generatedImage && typeof responseJson.generatedImage === 'object'
+        ? responseJson.generatedImage
+        : null;
+    if (!generatedImage) return '';
+
+    const mimeType =
+      typeof generatedImage.mimeType === 'string' ? generatedImage.mimeType.trim().toLowerCase() : '';
+    const data = typeof generatedImage.data === 'string' ? generatedImage.data.trim().replace(/\s+/g, '') : '';
+    if (!mimeType.startsWith('image/') || !data) return '';
+
+    return `data:${mimeType};base64,${data}`;
   }
 
   function blobToDataUrl(blob) {
@@ -255,165 +323,20 @@
     }
   }
 
-  function loadImageElement(source) {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('Could not load style image.'));
-      image.src = source;
-    });
-  }
-
-  function drawRoundedRectPath(context, x, y, width, height, radius) {
-    const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
-    context.beginPath();
-    context.moveTo(x + safeRadius, y);
-    context.lineTo(x + width - safeRadius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
-    context.lineTo(x + width, y + height - safeRadius);
-    context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
-    context.lineTo(x + safeRadius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
-    context.lineTo(x, y + safeRadius);
-    context.quadraticCurveTo(x, y, x + safeRadius, y);
-    context.closePath();
-  }
-
-  function drawCoverImage(context, image, width, height) {
-    const scale = Math.max(width / image.width, height / image.height);
-    const drawWidth = image.width * scale;
-    const drawHeight = image.height * scale;
-    const x = (width - drawWidth) / 2;
-    const y = (height - drawHeight) / 2;
-    context.drawImage(image, x, y, drawWidth, drawHeight);
-  }
-
-  function truncateText(text, maxLength) {
-    const normalized = String(text || '').trim();
-    if (normalized.length <= maxLength) return normalized;
-    return `${normalized.slice(0, maxLength - 3)}...`;
-  }
-
-  function buildLocalPreview(payload) {
-    return {
-      headline: truncateText(payload.name1, 60),
-      subline: truncateText(payload.name2, 90),
-      dateLine: truncateText(payload.date, 60),
-      styleNotes: `${payload.style} layout preview generated locally.`,
-    };
-  }
-
-  async function renderGeneratedQuickClipImage(styleValue, preview) {
-    try {
-      const normalizedStyle = normalizeStyle(styleValue);
-      const styleImage = await getStyleImagePayload(normalizedStyle);
-      const styleSource = styleImage ? styleImage.dataUrl : getStyleImageUrl(normalizedStyle);
-      if (!styleSource) return '';
-
-      const image = await loadImageElement(styleSource);
-      const canvas = document.createElement('canvas');
-      const width = 1200;
-      const height = 900;
-      canvas.width = width;
-      canvas.height = height;
-
-      const context = canvas.getContext('2d');
-      if (!context) return '';
-
-      drawCoverImage(context, image, width, height);
-
-      context.fillStyle = 'rgba(245, 245, 245, 0.26)';
-      context.fillRect(0, 0, width, height);
-
-      const plateX = width * 0.14;
-      const plateY = height * 0.23;
-      const plateWidth = width * 0.72;
-      const plateHeight = height * 0.54;
-
-      if (normalizedStyle === 'Style 3') {
-        const plateGradient = context.createLinearGradient(plateX, plateY, plateX + plateWidth, plateY + plateHeight);
-        plateGradient.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
-        plateGradient.addColorStop(1, 'rgba(243, 243, 243, 0.88)');
-        drawRoundedRectPath(context, plateX, plateY, plateWidth, plateHeight, 120);
-        context.fillStyle = plateGradient;
-        context.fill();
-        context.strokeStyle = 'rgba(55, 55, 55, 0.42)';
-        context.lineWidth = 4;
-        context.stroke();
-      } else {
-        drawRoundedRectPath(
-          context,
-          plateX,
-          plateY,
-          plateWidth,
-          plateHeight,
-          normalizedStyle === 'Style 2' ? 18 : 28
-        );
-        context.fillStyle = 'rgba(255, 255, 255, 0.94)';
-        context.fill();
-        context.strokeStyle = 'rgba(55, 55, 55, 0.44)';
-        context.lineWidth = 4;
-        if (normalizedStyle === 'Style 2') {
-          context.setLineDash([18, 12]);
-        }
-        context.stroke();
-        context.setLineDash([]);
-      }
-
-      const headline = truncateText(preview.headline || name1Input.value, 60) || 'Name 1';
-      const subline = truncateText(preview.subline || name2Input.value, 90) || 'Name 2';
-      const dateLine = truncateText(preview.dateLine || dateInput.value, 60) || 'Date';
-
-      context.textAlign = 'center';
-      context.fillStyle = '#243647';
-      context.font = normalizedStyle === 'Style 3' ? '600 68px Georgia, serif' : '600 66px Arial, sans-serif';
-      context.fillText(headline, width / 2, plateY + plateHeight * 0.42);
-
-      context.fillStyle = '#30485f';
-      context.font = normalizedStyle === 'Style 3' ? '500 48px Georgia, serif' : '500 44px Arial, sans-serif';
-      context.fillText(subline, width / 2, plateY + plateHeight * 0.62);
-
-      context.fillStyle = '#55616e';
-      context.font = '400 36px Arial, sans-serif';
-      context.fillText(dateLine, width / 2, plateY + plateHeight * 0.79);
-
-      return canvas.toDataURL('image/jpeg', 0.9);
-    } catch (error) {
-      return '';
-    }
-  }
-
   function getGeneratedSummary() {
-    const currentOutput = generatedOutput.textContent ? generatedOutput.textContent.trim() : '';
-    if (!currentOutput || currentOutput === DEFAULT_GENERATED_MESSAGE || currentOutput === GENERATING_MESSAGE) {
-      return '';
-    }
-    return currentOutput;
+    return '';
   }
 
   function getValidationError(options = {}) {
     const requireAll = Boolean(options.requireAll);
-    const name1Value = name1Input.value.trim();
-    const name2Value = name2Input.value.trim();
-    const dateValue = dateInput.value.trim();
+    const lastNameValue = lastNameInput.value.trim();
 
-    if (name1Value.length > activeName1Max) {
-      return `Name 1 must be ${activeName1Max} characters or fewer.`;
-    }
-
-    if (name2Value.length > activeName2Max) {
-      return `Name 2 must be ${activeName2Max} characters or fewer.`;
-    }
-
-    if (dateValue.length > DEFAULT_DATE_MAX) {
-      return `Date must be ${DEFAULT_DATE_MAX} characters or fewer.`;
+    if (lastNameValue.length > activeLastNameMax) {
+      return `Last name must be ${activeLastNameMax} characters or fewer.`;
     }
 
     if (requireAll) {
-      if (!name1Value) return 'Name 1 is required before generating a preview.';
-      if (!name2Value) return 'Name 2 is required before generating a preview.';
-      if (!dateValue) return 'Date is required before generating a preview.';
+      if (!lastNameValue) return 'Last name is required before generating a preview.';
     }
 
     return '';
@@ -428,26 +351,34 @@
     const styleClass = getClipStyleClass(selectedStyle);
     clipSurface.classList.remove(...CLIP_STYLE_CLASSES);
     clipSurface.classList.add(styleClass);
+
+    const existingGeneratedImage = getGeneratedImageData();
+    if (existingGeneratedImage) {
+      clipSurface.style.setProperty('--quickclip-style-image', 'none');
+      stylePreviewImage.src = existingGeneratedImage;
+      stylePreviewImage.removeAttribute('hidden');
+      return;
+    }
+
     setWorkspaceStyleImage(selectedStyle);
   }
 
-  function renderPreviewText() {
-    previewName1.textContent = name1Input.value.trim() || 'Name 1';
-    previewName2.textContent = name2Input.value.trim() || 'Name 2';
-    previewDate.textContent = dateInput.value.trim() || 'Date';
-  }
-
   function renderEditorState() {
-    name1Count.textContent = `${name1Input.value.length}/${activeName1Max}`;
-    name2Count.textContent = `${name2Input.value.length}/${activeName2Max}`;
+    lastNameCount.textContent = `${lastNameInput.value.length}/${activeLastNameMax}`;
 
     setPickedPanelVisible(true);
     renderClipStyle();
-    renderPreviewText();
 
-    const hasError = Boolean(getValidationError());
+    const validationError = getValidationError();
+    const hasError = Boolean(validationError);
     if (!isGenerating) {
-      setError(hasError ? getValidationError() : '');
+      if (validationError) {
+        setError(validationError);
+      } else if (generationErrorMessage) {
+        setError(generationErrorMessage);
+      } else {
+        setError('');
+      }
     }
 
     generateButton.disabled = isGenerating || hasError;
@@ -464,19 +395,19 @@
     const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
 
-    if (primaryProperty) primaryProperty.value = state.name1 || '';
-    if (secondaryProperty) secondaryProperty.value = state.name2 || '';
+    if (primaryProperty) primaryProperty.value = state.lastName || '';
+    if (secondaryProperty) secondaryProperty.value = '';
     if (styleProperty) styleProperty.value = state.style || DEFAULT_STYLE;
-    if (name1Property) name1Property.value = state.name1 || '';
-    if (name2Property) name2Property.value = state.name2 || '';
-    if (dateProperty) dateProperty.value = state.date || '';
+    if (name1Property) name1Property.value = state.lastName || '';
+    if (name2Property) name2Property.value = '';
+    if (dateProperty) dateProperty.value = '';
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
   }
 
   function isConfiguredState(state) {
     if (!state) return false;
-    return Boolean(state.name1 || state.name2 || state.date || state.geminiSummary);
+    return Boolean(state.lastName || state.geminiSummary);
   }
 
   function updateTriggerLabels(scope) {
@@ -546,19 +477,13 @@
       setScopeState(scope, {
         style:
           (context.querySelector('[data-personalization-property="style"]') || {}).value || DEFAULT_STYLE,
-        name1:
+        lastName:
           (context.querySelector('[data-personalization-property="name1"]') || {}).value ||
           (context.querySelector('[data-personalization-property="primary"]') || {}).value ||
           '',
-        name2:
-          (context.querySelector('[data-personalization-property="name2"]') || {}).value ||
-          (context.querySelector('[data-personalization-property="secondary"]') || {}).value ||
-          '',
-        date: (context.querySelector('[data-personalization-property="date"]') || {}).value || '',
         geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
         generatedImage: '',
-        maxName1: DEFAULT_NAME1_MAX,
-        maxName2: DEFAULT_NAME2_MAX,
+        maxLastName: DEFAULT_LAST_NAME_MAX,
       });
     }
 
@@ -576,30 +501,22 @@
     if (!activeScope) return;
 
     const existingState = getScopeState(activeScope) || createDefaultState();
-    activeName1Max = parseMaxLength(
+    activeLastNameMax = parseMaxLength(
       trigger.dataset.personalizationPrimaryMax,
-      existingState.maxName1 || DEFAULT_NAME1_MAX
-    );
-    activeName2Max = parseMaxLength(
-      trigger.dataset.personalizationSecondaryMax,
-      existingState.maxName2 || DEFAULT_NAME2_MAX
+      existingState.maxLastName || DEFAULT_LAST_NAME_MAX
     );
 
-    name1Input.maxLength = activeName1Max;
-    name2Input.maxLength = activeName2Max;
-    dateInput.maxLength = DEFAULT_DATE_MAX;
+    lastNameInput.maxLength = activeLastNameMax;
 
     const productTitle = trigger.dataset.personalizationProductTitle || '';
     productName.textContent = productTitle;
     productName.toggleAttribute('hidden', !productTitle);
 
     setSelectedStyle(existingState.style || DEFAULT_STYLE);
-    name1Input.value = existingState.name1 || '';
-    name2Input.value = existingState.name2 || '';
-    dateInput.value = existingState.date || '';
+    lastNameInput.value = existingState.lastName || '';
     setGeneratedImage(existingState.generatedImage || '');
-    generatedOutput.textContent = existingState.geminiSummary || DEFAULT_GENERATED_MESSAGE;
     setPickedPanelVisible(true);
+    setGenerationError('');
     isGenerating = false;
     renderEditorState();
 
@@ -627,11 +544,17 @@
   });
 
   styleInputs.forEach((input) => {
-    input.addEventListener('change', renderEditorState);
+    input.addEventListener('change', () => {
+      setGeneratedImage('');
+      setGenerationError('');
+      renderEditorState();
+    });
   });
-  name1Input.addEventListener('input', renderEditorState);
-  name2Input.addEventListener('input', renderEditorState);
-  dateInput.addEventListener('input', renderEditorState);
+  lastNameInput.addEventListener('input', () => {
+    setGeneratedImage('');
+    setGenerationError('');
+    renderEditorState();
+  });
 
   function commitActiveState(closeModal) {
     if (!activeScope) return false;
@@ -644,14 +567,11 @@
 
     setScopeState(activeScope, {
       style: getSelectedStyle(),
-      name1: name1Input.value.trim(),
-      name2: name2Input.value.trim(),
-      date: dateInput.value.trim(),
+      lastName: lastNameInput.value.trim(),
       geminiSummary: getGeneratedSummary(),
       generatedImage: getGeneratedImageData(),
       previewOpened: true,
-      maxName1: activeName1Max,
-      maxName2: activeName2Max,
+      maxLastName: activeLastNameMax,
     });
 
     syncScope(activeScope);
@@ -663,15 +583,6 @@
     return true;
   }
 
-  function buildGeminiSummary(preview) {
-    const parts = [];
-    if (preview.headline) parts.push(`Headline: ${preview.headline}`);
-    if (preview.subline) parts.push(`Subline: ${preview.subline}`);
-    if (preview.dateLine) parts.push(`Date: ${preview.dateLine}`);
-    if (preview.styleNotes) parts.push(`Style notes: ${preview.styleNotes}`);
-    return parts.join('\n').trim();
-  }
-
   async function generatePreview() {
     if (!activeScope || isGenerating) return;
 
@@ -681,20 +592,17 @@
       return;
     }
 
-    const previousSummary = getGeneratedSummary();
     const previousGeneratedImage = getGeneratedImageData();
     setPickedPanelVisible(true);
     isGenerating = true;
+    setGenerationError('');
     setError('');
-    generatedOutput.textContent = GENERATING_MESSAGE;
     renderEditorState();
 
     const selectedStyle = getSelectedStyle();
     const payload = {
       style: selectedStyle,
-      name1: name1Input.value.trim(),
-      name2: name2Input.value.trim(),
-      date: dateInput.value.trim(),
+      lastName: lastNameInput.value.trim(),
     };
 
     try {
@@ -707,73 +615,56 @@
         };
       }
 
-      const response = await fetch(getApiUrl(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      const json = await response.json().catch(() => ({}));
-
-      let preview = json.preview || {};
-      let summary = buildGeminiSummary(preview);
-
-      if (!response.ok || !summary) {
-        const fallbackPreview = buildLocalPreview(payload);
-        preview = fallbackPreview;
-        summary = buildGeminiSummary(fallbackPreview) || 'Preview generated locally.';
-
-        const errorMessage =
-          typeof json.error === 'string' && json.error ? json.error : `Request failed with status ${response.status}.`;
-        setError(`Gemini preview unavailable. Showing local preview instead. (${errorMessage})`);
-      } else {
-        setError('');
+      const { json } = await requestPreview(payload);
+      const generatedImageData = resolveGeneratedImageDataUrl(json);
+      if (!generatedImageData) {
+        throw new Error('Gemini did not return an edited preview image.');
       }
 
-      const generatedImageData = (await renderGeneratedQuickClipImage(payload.style, preview)) || previousGeneratedImage;
-
       setGeneratedImage(generatedImageData);
-      generatedOutput.textContent = summary;
+      setGenerationError('');
 
       setScopeState(activeScope, {
         style: payload.style,
-        name1: payload.name1,
-        name2: payload.name2,
-        date: payload.date,
-        geminiSummary: summary,
+        lastName: payload.lastName,
+        geminiSummary: '',
         generatedImage: generatedImageData,
         previewOpened: true,
-        maxName1: activeName1Max,
-        maxName2: activeName2Max,
+        maxLastName: activeLastNameMax,
       });
       syncScope(activeScope);
     } catch (error) {
-      const fallbackPreview = buildLocalPreview(payload);
-      const fallbackSummary = buildGeminiSummary(fallbackPreview) || 'Preview generated locally.';
-      const generatedImageData = (await renderGeneratedQuickClipImage(payload.style, fallbackPreview)) || previousGeneratedImage;
-
-      setGeneratedImage(generatedImageData);
-      generatedOutput.textContent = fallbackSummary || previousSummary || DEFAULT_GENERATED_MESSAGE;
-
-      setScopeState(activeScope, {
-        style: payload.style,
-        name1: payload.name1,
-        name2: payload.name2,
-        date: payload.date,
-        geminiSummary: fallbackSummary,
-        generatedImage: generatedImageData,
-        previewOpened: true,
-        maxName1: activeName1Max,
-        maxName2: activeName2Max,
-      });
-      syncScope(activeScope);
-
-      setError(
-        `Gemini preview unavailable. Showing local preview instead. (${
-          error instanceof Error ? error.message : 'Could not generate preview.'
-        })`
-      );
+      setGeneratedImage(previousGeneratedImage);
+      const errorMessage = error instanceof Error ? error.message : 'Could not generate preview.';
+      const normalizedErrorMessage = errorMessage.toLowerCase();
+      const singleFailure = !normalizedErrorMessage.includes(' | ');
+      const appProxyNotFound =
+        singleFailure &&
+        normalizedErrorMessage.includes('/apps/quickclips-personalization/preview') &&
+        normalizedErrorMessage.includes('status 404');
+      if (normalizedErrorMessage.includes('failed to fetch')) {
+        setGenerationError(
+          'Could not reach the Gemini preview service. Verify the API URL and that the preview server is running.'
+        );
+      } else if (appProxyNotFound) {
+        setGenerationError(
+          'Shopify app proxy route /apps/quickclips-personalization/preview returned 404. Configure the proxy target or set window.QuickClipsPersonalization.apiUrl to your preview server.'
+        );
+      } else if (normalizedErrorMessage.includes('status 404')) {
+        const isShopifyHostedPreview = /\.myshopify\.com$/i.test(window.location.hostname || '');
+        if (isShopifyHostedPreview) {
+          setGenerationError(
+            'Preview API route was not found on this Shopify-hosted preview. Open the local theme preview URL (for example http://127.0.0.1:9292), keep scripts/start-gemini-preview-server.ps1 running, or configure the Shopify app proxy.'
+          );
+        } else {
+          setGenerationError(
+            'Preview API route was not found. Start the local server with scripts/start-gemini-preview-server.ps1 or configure window.QuickClipsPersonalization.apiUrl.'
+          );
+        }
+      } else {
+        setGenerationError(errorMessage);
+      }
+      setError(generationErrorMessage);
     } finally {
       isGenerating = false;
       renderEditorState();

@@ -21,108 +21,9 @@
         <p class="personalization-preview-modal__product" data-personalization-product-name hidden></p>
       </div>
 
-      <div class="personalization-preview-modal__fields">
-        <div class="personalization-preview-modal__field">
-          <p class="form__label">Choose clip style</p>
-          <div class="personalization-preview-modal__style-options">
-            <label class="personalization-preview-modal__style-option">
-              <input
-                type="radio"
-                name="PersonalizationStyle"
-                value="Style 1"
-                data-personalization-input="style"
-                checked
-              >
-              <span class="personalization-preview-modal__style-option-display">
-                <img
-                  src="{{ 'quickclip-style-1.jpg' | asset_url }}"
-                  alt="Style 1 preview"
-                  class="personalization-preview-modal__style-option-image"
-                  loading="lazy"
-                >
-                <span class="personalization-preview-modal__style-option-label">Style 1</span>
-              </span>
-            </label>
-            <label class="personalization-preview-modal__style-option">
-              <input
-                type="radio"
-                name="PersonalizationStyle"
-                value="Style 2"
-                data-personalization-input="style"
-              >
-              <span class="personalization-preview-modal__style-option-display">
-                <img
-                  src="{{ 'quickclip-style-2.jpg' | asset_url }}"
-                  alt="Style 2 preview"
-                  class="personalization-preview-modal__style-option-image"
-                  loading="lazy"
-                >
-                <span class="personalization-preview-modal__style-option-label">Style 2</span>
-              </span>
-            </label>
-            <label class="personalization-preview-modal__style-option">
-              <input
-                type="radio"
-                name="PersonalizationStyle"
-                value="Style 3"
-                data-personalization-input="style"
-              >
-              <span class="personalization-preview-modal__style-option-display">
-                <img
-                  src="{{ 'quickclip-style-3.jpg' | asset_url }}"
-                  alt="Style 3 preview"
-                  class="personalization-preview-modal__style-option-image"
-                  loading="lazy"
-                >
-                <span class="personalization-preview-modal__style-option-label">Style 3</span>
-              </span>
-            </label>
-          </div>
-          <p class="personalization-preview-modal__helper">
-            Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg
-          </p>
-        </div>
-
-        <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationNameOne">Name 1</label>
-          <input
-            id="PersonalizationNameOne"
-            class="personalization-preview-modal__input"
-            type="text"
-            autocomplete="off"
-            data-personalization-input="name1"
-          >
-          <p class="personalization-preview-modal__count" data-personalization-count="name1"></p>
-        </div>
-
-        <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationNameTwo">Name 2</label>
-          <input
-            id="PersonalizationNameTwo"
-            class="personalization-preview-modal__input"
-            type="text"
-            autocomplete="off"
-            data-personalization-input="name2"
-          >
-          <p class="personalization-preview-modal__count" data-personalization-count="name2"></p>
-        </div>
-
-        <div class="personalization-preview-modal__field">
-          <label class="form__label" for="PersonalizationDateText">Date</label>
-          <input
-            id="PersonalizationDateText"
-            class="personalization-preview-modal__input"
-            type="text"
-            autocomplete="off"
-            placeholder="MM/DD/YYYY"
-            data-personalization-input="date"
-          >
-        </div>
-      </div>
-
-      <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
-        <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
-        <div class="personalization-preview-modal__preview-grid">
+      <div class="personalization-preview-modal__workspace">
+        <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
+          <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
           <div class="personalization-preview-modal__blank-clip is-style-1" data-personalization-clip-surface>
             <img
               class="personalization-preview-modal__style-preview-image"
@@ -130,34 +31,93 @@
               alt="Selected style preview"
               hidden
             >
-            <div class="personalization-preview-modal__clip-plate">
-              <span data-personalization-preview="name1">Name 1</span>
-              <span data-personalization-preview="name2">Name 2</span>
-              <span data-personalization-preview="date">Date</span>
+          </div>
+        </div>
+
+        <div class="personalization-preview-modal__editor">
+          <div class="personalization-preview-modal__fields">
+            <div class="personalization-preview-modal__field">
+              <p class="form__label">Choose clip style</p>
+              <div class="personalization-preview-modal__style-options">
+                <label class="personalization-preview-modal__style-option">
+                  <input
+                    type="radio"
+                    name="PersonalizationStyle"
+                    value="Style 1"
+                    data-personalization-input="style"
+                    checked
+                  >
+                  <span class="personalization-preview-modal__style-option-display">
+                    <img
+                      src="{{ 'quickclip-style-1.jpg' | asset_url }}"
+                      alt="Style 1 preview"
+                      class="personalization-preview-modal__style-option-image"
+                      loading="lazy"
+                    >
+                    <span class="personalization-preview-modal__style-option-label">Style 1</span>
+                  </span>
+                </label>
+                <label class="personalization-preview-modal__style-option">
+                  <input
+                    type="radio"
+                    name="PersonalizationStyle"
+                    value="Style 2"
+                    data-personalization-input="style"
+                  >
+                  <span class="personalization-preview-modal__style-option-display">
+                    <img
+                      src="{{ 'quickclip-style-2.jpg' | asset_url }}"
+                      alt="Style 2 preview"
+                      class="personalization-preview-modal__style-option-image"
+                      loading="lazy"
+                    >
+                    <span class="personalization-preview-modal__style-option-label">Style 2</span>
+                  </span>
+                </label>
+                <label class="personalization-preview-modal__style-option">
+                  <input
+                    type="radio"
+                    name="PersonalizationStyle"
+                    value="Style 3"
+                    data-personalization-input="style"
+                  >
+                  <span class="personalization-preview-modal__style-option-display">
+                    <img
+                      src="{{ 'quickclip-style-3.jpg' | asset_url }}"
+                      alt="Style 3 preview"
+                      class="personalization-preview-modal__style-option-image"
+                      loading="lazy"
+                    >
+                    <span class="personalization-preview-modal__style-option-label">Style 3</span>
+                  </span>
+                </label>
+              </div>
+              <p class="personalization-preview-modal__helper">
+                Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg
+              </p>
+            </div>
+
+            <div class="personalization-preview-modal__field">
+              <label class="form__label" for="PersonalizationLastName">Last name</label>
+              <input
+                id="PersonalizationLastName"
+                class="personalization-preview-modal__input"
+                type="text"
+                autocomplete="off"
+                data-personalization-input="lastName"
+              >
+              <p class="personalization-preview-modal__count" data-personalization-count="lastName"></p>
             </div>
           </div>
 
-          <div class="personalization-preview-modal__generated-preview">
-            <p class="personalization-preview-modal__generated-label">Gemini result</p>
-            <img
-              class="personalization-preview-modal__generated-image"
-              data-personalization-generated-image
-              alt="Generated QuickClip preview"
-              hidden
-            >
-            <p class="personalization-preview-modal__generated-output" data-personalization-generated-output>
-              Fill out the fields and click Generate to create your QuickClip preview.
-            </p>
+          <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
+
+          <div class="personalization-preview-modal__actions">
+            <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
+            <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
+            <button type="button" class="button" data-personalization-save>Save personalization</button>
           </div>
         </div>
-      </div>
-
-      <p class="personalization-preview-modal__error" role="alert" hidden data-personalization-error></p>
-
-      <div class="personalization-preview-modal__actions">
-        <button type="button" class="button button--secondary" data-personalization-cancel>Cancel</button>
-        <button type="button" class="button button--secondary" data-personalization-generate>Generate</button>
-        <button type="button" class="button" data-personalization-save>Save personalization</button>
       </div>
     </div>
   </div>

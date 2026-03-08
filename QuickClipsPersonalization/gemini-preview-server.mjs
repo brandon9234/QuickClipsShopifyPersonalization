@@ -1,11 +1,14 @@
 import http from 'node:http';
 
 const PORT = Number.parseInt(process.env.PORT || '8788', 10);
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash';
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const RAW_MODEL = String(process.env.GEMINI_IMAGE_MODEL || process.env.GEMINI_MODEL || '').trim();
+const IMAGE_MODEL = /image|banana/i.test(RAW_MODEL) ? RAW_MODEL : 'gemini-3.1-flash-image-preview';
 const STYLE_VALUES = new Set(['Style 1', 'Style 2', 'Style 3']);
-const MAX_STYLE_IMAGE_BASE64_LENGTH = 1_500_000;
+const MAX_REQUEST_BODY_LENGTH = Number.parseInt(process.env.MAX_REQUEST_BODY_LENGTH || '12000000', 10);
+const MAX_STYLE_IMAGE_BASE64_LENGTH = Number.parseInt(process.env.MAX_STYLE_IMAGE_BASE64_LENGTH || '10000000', 10);
+const PREVIEW_PATHS = new Set(['/api/personalization-preview', '/preview', '/apps/quickclips-personalization/preview']);
 
 function applyCorsHeaders(response) {
   response.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
@@ -32,15 +35,14 @@ function parseRequestBody(request) {
 
     request.on('data', (chunk) => {
       raw += chunk;
-      if (raw.length > 20000) {
+      if (raw.length > MAX_REQUEST_BODY_LENGTH) {
         reject(new Error('Payload is too large.'));
       }
     });
 
     request.on('end', () => {
       try {
-        const body = raw ? JSON.parse(raw) : {};
-        resolve(body);
+        resolve(raw ? JSON.parse(raw) : {});
       } catch (error) {
         reject(new Error('Request body must be valid JSON.'));
       }
@@ -52,9 +54,7 @@ function parseRequestBody(request) {
 
 function validatePayload(body) {
   const style = sanitize(body.style, 20);
-  const name1 = sanitize(body.name1, 40);
-  const name2 = sanitize(body.name2, 40);
-  const date = sanitize(body.date, 32);
+  const lastName = sanitize(body.lastName || body.name1, 40);
   let styleImage = null;
 
   if (body.styleImage && typeof body.styleImage === 'object') {
@@ -68,151 +68,98 @@ function validatePayload(body) {
       imageData.length <= MAX_STYLE_IMAGE_BASE64_LENGTH &&
       /^[A-Za-z0-9+/=]+$/.test(imageData)
     ) {
-      styleImage = {
-        mimeType,
-        data: imageData,
-        url,
-      };
+      styleImage = { mimeType, data: imageData, url };
     }
   }
 
   if (!STYLE_VALUES.has(style)) {
     return { error: 'Style must be Style 1, Style 2, or Style 3.' };
   }
-  if (!name1) {
-    return { error: 'Name 1 is required.' };
+  if (!lastName) {
+    return { error: 'Last name is required.' };
   }
-  if (!name2) {
-    return { error: 'Name 2 is required.' };
-  }
-  if (!date) {
-    return { error: 'Date is required.' };
+  if (!styleImage) {
+    return { error: 'Style image is required for preview generation.' };
   }
 
   return {
     payload: {
       style,
-      name1,
-      name2,
-      date,
+      lastName,
       styleImage,
     },
   };
 }
 
-function extractJsonBlock(text) {
-  if (!text) return null;
-
-  try {
-    return JSON.parse(text);
-  } catch (error) {
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start === -1 || end === -1 || end <= start) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(text.slice(start, end + 1));
-    } catch (nestedError) {
-      return null;
-    }
-  }
-}
-
-function buildFallbackPreview(payload) {
+function extractGeneratedImage(responseJson) {
+  const parts = (responseJson?.candidates || []).flatMap((candidate) => candidate?.content?.parts || []);
+  const inlinePart = parts.find((part) => part?.inlineData?.data);
+  if (!inlinePart) return null;
   return {
-    headline: `${payload.name1} & ${payload.name2}`,
-    subline: `${payload.style} engraving layout`,
-    dateLine: payload.date,
-    styleNotes: 'Balanced spacing with a centered date lockup.',
+    mimeType: inlinePart.inlineData.mimeType || 'image/png',
+    data: inlinePart.inlineData.data,
   };
 }
 
-function normalizePreview(rawPreview, payload) {
-  const fallback = buildFallbackPreview(payload);
-
-  return {
-    headline: sanitize(rawPreview.headline, 60) || fallback.headline,
-    subline: sanitize(rawPreview.subline, 90) || fallback.subline,
-    dateLine: sanitize(rawPreview.dateLine, 60) || fallback.dateLine,
-    styleNotes: sanitize(rawPreview.styleNotes, 160) || fallback.styleNotes,
-  };
-}
-
-async function callGemini(payload) {
+async function callGeminiImageEdit(payload) {
   if (!API_KEY) {
     throw new Error('GEMINI_API_KEY is not set on the preview server.');
   }
 
   const prompt = [
-    'You generate personalized QuickClip preview copy from storefront form fields.',
-    'Use the selected style and the exact text-box values below to craft preview copy.',
-    'If a reference style image is attached, treat it as visual context for layout/tone.',
-    'Return strict JSON only with keys: headline, subline, dateLine, styleNotes.',
-    'headline: primary engraving line based on Name 1 (max 60 chars).',
-    'subline: secondary engraving line based on Name 2 (max 90 chars).',
-    'dateLine: date line using the Date value exactly as provided (max 60 chars).',
-    'styleNotes: short style-specific arrangement guidance for selected style (max 160 chars).',
-    `Style: ${payload.style}`,
-    `Name 1: ${payload.name1}`,
-    `Name 2: ${payload.name2}`,
-    `Date: ${payload.date}`,
-    payload.styleImage?.url ? `Reference image URL: ${payload.styleImage.url}` : '',
-    'Do not include markdown fences. Output JSON only.',
+    'Edit this exact QuickClip product image.',
+    'Keep camera angle, lighting, background, colors, and object layout unchanged.',
+    'Only replace the engraved last-name text on the clip.',
+    'Existing engraving may read "The Johnsons" or another surname.',
+    `Set the engraved last name to exactly: "${payload.lastName}".`,
+    'Do not add guide lines, overlays, extra text, dates, logos, watermarks, or new objects.',
+    'Return only the edited image.',
   ].join('\n');
 
-  const requestParts = [{ text: prompt }];
-  if (payload.styleImage?.data && payload.styleImage?.mimeType) {
-    requestParts.push({
-      inlineData: {
-        mimeType: payload.styleImage.mimeType,
-        data: payload.styleImage.data,
+  const requestBody = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: payload.styleImage.mimeType,
+              data: payload.styleImage.data,
+            },
+          },
+        ],
       },
-    });
-  }
+    ],
+    generationConfig: {
+      responseModalities: ['IMAGE'],
+      temperature: 0.1,
+    },
+  };
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${API_KEY}`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: requestParts,
-          },
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          responseMimeType: 'application/json',
-        },
-      }),
+      body: JSON.stringify(requestBody),
     }
   );
 
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const apiError =
-      json?.error?.message || `Gemini request failed with status ${response.status}.`;
+    const apiError = json?.error?.message || `Gemini request failed with status ${response.status}.`;
     throw new Error(apiError);
   }
 
-  const text = (json?.candidates || [])
-    .flatMap((candidate) => candidate?.content?.parts || [])
-    .map((part) => part?.text || '')
-    .join('\n')
-    .trim();
-
-  const parsed = extractJsonBlock(text);
-  if (!parsed || typeof parsed !== 'object') {
-    throw new Error('Gemini response did not include valid JSON preview data.');
+  const generatedImage = extractGeneratedImage(json);
+  if (!generatedImage) {
+    throw new Error('Gemini did not return an edited image.');
   }
 
-  return normalizePreview(parsed, payload);
+  return generatedImage;
 }
 
 const server = http.createServer(async (request, response) => {
@@ -226,11 +173,11 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (request.method === 'GET' && requestUrl.pathname === '/health') {
-    sendJson(response, 200, { ok: true, service: 'quickclips-gemini-preview' });
+    sendJson(response, 200, { ok: true, service: 'quickclips-gemini-preview', model: IMAGE_MODEL });
     return;
   }
 
-  if (request.method === 'POST' && requestUrl.pathname === '/api/personalization-preview') {
+  if (request.method === 'POST' && PREVIEW_PATHS.has(requestUrl.pathname)) {
     let body;
     try {
       body = await parseRequestBody(request);
@@ -246,12 +193,14 @@ const server = http.createServer(async (request, response) => {
     }
 
     try {
-      const preview = await callGemini(payload);
+      const generatedImage = await callGeminiImageEdit(payload);
+      const generatedImageDataUrl = `data:${generatedImage.mimeType};base64,${generatedImage.data}`;
       sendJson(response, 200, {
         ok: true,
-        source: 'gemini',
-        model: MODEL,
-        preview,
+        source: 'gemini-image-edit',
+        model: IMAGE_MODEL,
+        generatedImage,
+        generatedImageDataUrl,
       });
     } catch (apiError) {
       sendJson(response, 502, {
