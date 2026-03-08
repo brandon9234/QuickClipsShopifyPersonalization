@@ -23,6 +23,7 @@
   const previewName2 = modal.querySelector('[data-personalization-preview="name2"]');
   const previewDate = modal.querySelector('[data-personalization-preview="date"]');
   const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
+  const stylePreviewImage = modal.querySelector('[data-personalization-style-preview-image]');
   const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
   const generatedImage = modal.querySelector('[data-personalization-generated-image]');
   const generatedOutput = modal.querySelector('[data-personalization-generated-output]');
@@ -43,6 +44,7 @@
     !previewName2 ||
     !previewDate ||
     !clipSurface ||
+    !stylePreviewImage ||
     !pickedPanel ||
     !generatedImage ||
     !generatedOutput ||
@@ -182,10 +184,14 @@
     const styleImageUrl = getStyleImageUrl(styleValue);
     if (!styleImageUrl) {
       clipSurface.style.setProperty('--quickclip-style-image', 'none');
+      stylePreviewImage.setAttribute('hidden', '');
+      stylePreviewImage.removeAttribute('src');
       return;
     }
 
     clipSurface.style.setProperty('--quickclip-style-image', `url("${styleImageUrl.replace(/"/g, '\\"')}")`);
+    stylePreviewImage.src = styleImageUrl;
+    stylePreviewImage.removeAttribute('hidden');
   }
 
   function setGeneratedImage(dataUrl) {
@@ -286,7 +292,16 @@
   function truncateText(text, maxLength) {
     const normalized = String(text || '').trim();
     if (normalized.length <= maxLength) return normalized;
-    return `${normalized.slice(0, maxLength - 1)}…`;
+    return `${normalized.slice(0, maxLength - 3)}...`;
+  }
+
+  function buildLocalPreview(payload) {
+    return {
+      headline: truncateText(payload.name1, 60),
+      subline: truncateText(payload.name2, 90),
+      dateLine: truncateText(payload.date, 60),
+      styleNotes: `${payload.style} layout preview generated locally.`,
+    };
   }
 
   async function renderGeneratedQuickClipImage(styleValue, preview) {
@@ -701,14 +716,21 @@
       });
       const json = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
+      let preview = json.preview || {};
+      let summary = buildGeminiSummary(preview);
+
+      if (!response.ok || !summary) {
+        const fallbackPreview = buildLocalPreview(payload);
+        preview = fallbackPreview;
+        summary = buildGeminiSummary(fallbackPreview) || 'Preview generated locally.';
+
         const errorMessage =
           typeof json.error === 'string' && json.error ? json.error : `Request failed with status ${response.status}.`;
-        throw new Error(errorMessage);
+        setError(`Gemini preview unavailable. Showing local preview instead. (${errorMessage})`);
+      } else {
+        setError('');
       }
 
-      const preview = json.preview || {};
-      const summary = buildGeminiSummary(preview) || 'Preview generated successfully.';
       const generatedImageData = (await renderGeneratedQuickClipImage(payload.style, preview)) || previousGeneratedImage;
 
       setGeneratedImage(generatedImageData);
@@ -727,9 +749,31 @@
       });
       syncScope(activeScope);
     } catch (error) {
-      setGeneratedImage(previousGeneratedImage);
-      generatedOutput.textContent = previousSummary || DEFAULT_GENERATED_MESSAGE;
-      setError(error instanceof Error ? error.message : 'Could not generate preview.');
+      const fallbackPreview = buildLocalPreview(payload);
+      const fallbackSummary = buildGeminiSummary(fallbackPreview) || 'Preview generated locally.';
+      const generatedImageData = (await renderGeneratedQuickClipImage(payload.style, fallbackPreview)) || previousGeneratedImage;
+
+      setGeneratedImage(generatedImageData);
+      generatedOutput.textContent = fallbackSummary || previousSummary || DEFAULT_GENERATED_MESSAGE;
+
+      setScopeState(activeScope, {
+        style: payload.style,
+        name1: payload.name1,
+        name2: payload.name2,
+        date: payload.date,
+        geminiSummary: fallbackSummary,
+        generatedImage: generatedImageData,
+        previewOpened: true,
+        maxName1: activeName1Max,
+        maxName2: activeName2Max,
+      });
+      syncScope(activeScope);
+
+      setError(
+        `Gemini preview unavailable. Showing local preview instead. (${
+          error instanceof Error ? error.message : 'Could not generate preview.'
+        })`
+      );
     } finally {
       isGenerating = false;
       renderEditorState();
