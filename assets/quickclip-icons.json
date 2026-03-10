@@ -1,27 +1,137 @@
 [
   {
-    "value": "tulip",
-    "label": "Tulip",
-    "asset": "quickclip-icon-tulip.svg"
+    "value": "style-outlines",
+    "label": "Style Outlines",
+    "asset": "StyleOutlines.png"
   },
   {
-    "value": "lily",
-    "label": "Lily",
-    "asset": "quickclip-icon-lily.svg"
+    "value": "cartoon-flower",
+    "label": "Cartoon Flower",
+    "asset": "Cartoon Flower.png"
   },
   {
-    "value": "rose",
-    "label": "Rose",
-    "asset": "quickclip-icon-rose.svg"
+    "value": "flower-with-stem",
+    "label": "Flower With Stem",
+    "asset": "Flower With Stem.png"
   },
   {
-    "value": "daisy",
-    "label": "Daisy",
-    "asset": "quickclip-icon-daisy.svg"
+    "value": "flower-with-stem-leaves",
+    "label": "Flower With Stem + Leaves",
+    "asset": "flower-with-stem-leaves.png"
   },
   {
-    "value": "lavender",
-    "label": "Lavender",
-    "asset": "quickclip-icon-lavender.svg"
+    "value": "flower-with-stem-leaves-2",
+    "label": "Flower With Stem + Leaves 2",
+    "asset": "flower-with-stem-leaves-2.png"
+  },
+  {
+    "value": "rounded-petals-with-leaves",
+    "label": "Rounded Petals with Leaves",
+    "asset": "Rounded Petals with Leaves.png"
+  },
+  {
+    "value": "pointed-petals-with-leaves",
+    "label": "Pointed Petals with Leaves",
+    "asset": "Pointed Petals with Leaves.png"
+  },
+  {
+    "value": "cartoon-flower-2",
+    "label": "Cartoon Flower 2",
+    "asset": "Cartoon Flower 2.png"
+  },
+  {
+    "value": "pointed-petal-flower",
+    "label": "Pointed Petal Flower",
+    "asset": "Pointed Petal Flower.png"
+  },
+  {
+    "value": "rounded-petal-flower",
+    "label": "Rounded Petal Flower",
+    "asset": "Rounded Petal Flower.png"
+  },
+  {
+    "value": "berries",
+    "label": "Berries",
+    "asset": "Berries.png"
+  },
+  {
+    "value": "jagged-leaf",
+    "label": "Jagged Leaf",
+    "asset": "Jagged Leaf.png"
+  },
+  {
+    "value": "stem-with-leaves",
+    "label": "Stem with Leaves",
+    "asset": "Stem with Leaves.png"
+  },
+  {
+    "value": "leaf",
+    "label": "Leaf",
+    "asset": "Leaf.png"
+  },
+  {
+    "value": "leaves",
+    "label": "Leaves",
+    "asset": "Leaves.png"
+  },
+  {
+    "value": "leaves-2",
+    "label": "Leaves 2",
+    "asset": "Leaves 2.png"
+  },
+  {
+    "value": "bouquet",
+    "label": "Bouquet",
+    "asset": "Bouquet.png"
+  },
+  {
+    "value": "cake",
+    "label": "Cake",
+    "asset": "Cake.png"
+  },
+  {
+    "value": "calendar",
+    "label": "Calendar",
+    "asset": "Calendar.png"
+  },
+  {
+    "value": "ring",
+    "label": "Ring",
+    "asset": "Ring.png"
+  },
+  {
+    "value": "rings",
+    "label": "Rings",
+    "asset": "Rings.png"
+  },
+  {
+    "value": "glasses-clink",
+    "label": "Glasses Clink",
+    "asset": "Glasses Clink.png"
+  },
+  {
+    "value": "music-hearts",
+    "label": "Music Hearts",
+    "asset": "Music Hearts.png"
+  },
+  {
+    "value": "heart-lock",
+    "label": "Heart Lock",
+    "asset": "Heart Lock.png"
+  },
+  {
+    "value": "church",
+    "label": "Church",
+    "asset": "Church.png"
+  },
+  {
+    "value": "hearts",
+    "label": "Hearts",
+    "asset": "Hearts.png"
+  },
+  {
+    "value": "heart",
+    "label": "Heart",
+    "asset": "Heart.png"
   }
 ]

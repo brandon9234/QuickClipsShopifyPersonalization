@@ -1,12 +1,44 @@
 (function () {
   const MODAL_ID = 'PersonalizationPreviewModal';
-  const DEFAULT_STYLE = 'Style 1';
-  const STYLE_VALUES = ['Style 1', 'Style 2', 'Style 3'];
+  const STYLE_DEFINITIONS = Object.freeze([
+    { value: 'Handwritten 1', legacyValue: 'Style 1' },
+    { value: 'Handwritten 2', legacyValue: 'Style 2' },
+    { value: 'Handwritten 3', legacyValue: 'Style 3' },
+    { value: 'Cursive 1', legacyValue: 'Style 4' },
+    { value: 'Cursive 2', legacyValue: 'Style 5' },
+    { value: 'Cursive 3', legacyValue: 'Style 6' },
+    { value: 'Professional 1', legacyValue: 'Style 7' },
+    { value: 'Professional 2', legacyValue: 'Style 8' },
+    { value: 'Professional 3', legacyValue: 'Style 9' },
+    { value: 'Bold 1', legacyValue: 'Style 10' },
+    { value: 'Bold 2', legacyValue: 'Style 11' },
+    { value: 'Bold 3', legacyValue: 'Style 12' },
+    { value: 'Minimal 1', legacyValue: 'Style 13' },
+    { value: 'Minimal 2', legacyValue: 'Style 14' },
+    { value: 'Playful 1', legacyValue: 'Style 15' },
+    { value: 'Playful 2', legacyValue: 'Style 16' },
+    { value: 'Playful 3', legacyValue: 'Style 17' },
+    { value: 'Elegant 1', legacyValue: 'Style 18' },
+    { value: 'Elegant 2', legacyValue: 'Style 19' },
+    { value: 'Classic 1', legacyValue: 'Style 20' },
+    { value: 'Classic 2', legacyValue: 'Style 21' },
+    { value: 'Classic 3', legacyValue: 'Style 22' },
+    { value: 'Modern 1', legacyValue: 'Style 23' },
+    { value: 'Modern 2', legacyValue: 'Style 24' },
+  ]);
+  const STYLE_VALUES = STYLE_DEFINITIONS.map((definition) => definition.value);
+  const DEFAULT_STYLE = STYLE_VALUES[0];
+  const STYLE_LEGACY_ALIASES = Object.freeze(
+    STYLE_DEFINITIONS.reduce((aliases, definition) => {
+      aliases[definition.legacyValue] = definition.value;
+      return aliases;
+    }, {})
+  );
   const DEFAULT_LAST_NAME_MAX = 30;
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
-  const CLIP_STYLE_CLASSES = ['is-style-1', 'is-style-2', 'is-style-3'];
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-09-order-stage-preview-1';
+  const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-10-style-names';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -33,11 +65,33 @@
   const STAGE_PREVIEW_FILE_NAME_PREFIX = 'quickclips-stage-preview';
   const CUSTOM_ENGRAVING_KEYWORDS = Object.freeze(['custom engraving']);
   const DEFAULT_FLOWER_ICON_OPTIONS = Object.freeze([
-    { value: 'tulip', label: 'Tulip', asset: 'quickclip-icon-tulip.svg' },
-    { value: 'lily', label: 'Lily', asset: 'quickclip-icon-lily.svg' },
-    { value: 'rose', label: 'Rose', asset: 'quickclip-icon-rose.svg' },
-    { value: 'daisy', label: 'Daisy', asset: 'quickclip-icon-daisy.svg' },
-    { value: 'lavender', label: 'Lavender', asset: 'quickclip-icon-lavender.svg' },
+    { value: 'style-outlines', label: 'Style Outlines', asset: 'StyleOutlines.png' },
+    { value: 'cartoon-flower', label: 'Cartoon Flower', asset: 'Cartoon Flower.png' },
+    { value: 'flower-with-stem', label: 'Flower With Stem', asset: 'Flower With Stem.png' },
+    { value: 'flower-with-stem-leaves', label: 'Flower With Stem + Leaves', asset: 'flower-with-stem-leaves.png' },
+    { value: 'flower-with-stem-leaves-2', label: 'Flower With Stem + Leaves 2', asset: 'flower-with-stem-leaves-2.png' },
+    { value: 'rounded-petals-with-leaves', label: 'Rounded Petals with Leaves', asset: 'Rounded Petals with Leaves.png' },
+    { value: 'pointed-petals-with-leaves', label: 'Pointed Petals with Leaves', asset: 'Pointed Petals with Leaves.png' },
+    { value: 'cartoon-flower-2', label: 'Cartoon Flower 2', asset: 'Cartoon Flower 2.png' },
+    { value: 'pointed-petal-flower', label: 'Pointed Petal Flower', asset: 'Pointed Petal Flower.png' },
+    { value: 'rounded-petal-flower', label: 'Rounded Petal Flower', asset: 'Rounded Petal Flower.png' },
+    { value: 'berries', label: 'Berries', asset: 'Berries.png' },
+    { value: 'jagged-leaf', label: 'Jagged Leaf', asset: 'Jagged Leaf.png' },
+    { value: 'stem-with-leaves', label: 'Stem with Leaves', asset: 'Stem with Leaves.png' },
+    { value: 'leaf', label: 'Leaf', asset: 'Leaf.png' },
+    { value: 'leaves', label: 'Leaves', asset: 'Leaves.png' },
+    { value: 'leaves-2', label: 'Leaves 2', asset: 'Leaves 2.png' },
+    { value: 'bouquet', label: 'Bouquet', asset: 'Bouquet.png' },
+    { value: 'cake', label: 'Cake', asset: 'Cake.png' },
+    { value: 'calendar', label: 'Calendar', asset: 'Calendar.png' },
+    { value: 'ring', label: 'Ring', asset: 'Ring.png' },
+    { value: 'rings', label: 'Rings', asset: 'Rings.png' },
+    { value: 'glasses-clink', label: 'Glasses Clink', asset: 'Glasses Clink.png' },
+    { value: 'music-hearts', label: 'Music Hearts', asset: 'Music Hearts.png' },
+    { value: 'heart-lock', label: 'Heart Lock', asset: 'Heart Lock.png' },
+    { value: 'church', label: 'Church', asset: 'Church.png' },
+    { value: 'hearts', label: 'Hearts', asset: 'Hearts.png' },
+    { value: 'heart', label: 'Heart', asset: 'Heart.png' },
   ]);
   const DEFAULT_SAFE_AREA_BOUNDS = Object.freeze({
     x: 5.435,
@@ -45,69 +99,106 @@
     w: 88.696,
     h: 42.571,
   });
+  const MINI_STAGE_IMAGE_KEYWORD = 'horizontalminiquickclipzoomed';
   const SAFE_AREA_SCAN_PADDING = 6;
   const SAFE_AREA_BRIGHTNESS_THRESHOLD = 80;
   const ENGRAVING_AREA_ERROR = "You can't engrave here.";
   const DEFAULT_TEXT_LAYOUT = Object.freeze(buildDefaultTextLayout(DEFAULT_SAFE_AREA_BOUNDS));
+  const FONT_FAMILIES = Object.freeze({
+    playpenSansHebrew: '"Playpen Sans Hebrew", "Segoe UI", sans-serif',
+    homemadeApple: '"Homemade Apple", "Brush Script MT", cursive',
+    caveatBrush: '"Caveat Brush", "Brush Script MT", cursive',
+    karlie: '"Karlie", "Brush Script MT", cursive',
+    brittanySignature: '"Brittany Signature", "Brush Script MT", cursive',
+    sofia: '"Sofia", "Brush Script MT", cursive',
+    robotoFlex: '"Roboto Flex", Arial, sans-serif',
+    markaziText: '"Markazi Text", Georgia, serif',
+    martelDemiBold: '"Martel DemiBold", Georgia, serif',
+    martelHeavy: '"Martel Heavy", Georgia, serif',
+    titanOne: '"Titan One", Impact, sans-serif',
+    bowlbyOneSc: '"Bowlby One SC", Impact, sans-serif',
+    notable: '"Notable", Impact, sans-serif',
+    arial: 'Arial, Helvetica, sans-serif',
+    avenirNext: '"AvenirNext LT Pro Regular", Arial, sans-serif',
+    hachiMaruPop: '"Hachi Maru Pop", cursive',
+    centuryGothic: '"Century Gothic", Arial, sans-serif',
+    originalSurfer: '"Original Surfer", "Trebuchet MS", cursive',
+    kiwiMaru: '"Kiwi Maru", Georgia, serif',
+    sacramento: '"Sacramento", "Brush Script MT", cursive',
+    palatinoLinotype: '"Palatino Linotype", Palatino, "Book Antiqua", serif',
+    niconne: '"Niconne", "Brush Script MT", cursive',
+    libreBaskerville: '"Libre Baskerville", Baskerville, "Times New Roman", serif',
+    bahnschrift: '"Bahnschrift", "Arial Narrow", Arial, sans-serif',
+    calibri: '"Calibri", Arial, sans-serif',
+    limelight: '"Limelight", Georgia, serif',
+    kgSorryNotSorry: '"KG Sorry Not Sorry", "Comic Sans MS", cursive',
+    kgSorryNotSorryChub: '"KG Sorry Not Sorry Chub", "Comic Sans MS", cursive',
+    engraversGothicBt: '"EngraversGothic BT", "Palatino Linotype", serif',
+  });
   const FONT_OPTIONS = [
-    { label: 'Leaner-Normal (Style 1)', family: '"Leaner-Normal", "Leaner Normal", "Segoe Script", cursive' },
-    { label: 'Segoe UI (Style 1 Date)', family: '"Segoe UI", Arial, sans-serif' },
-    { label: 'KG Not Sorry (Style 2)', family: '"KG Not Sorry", "KG Sorry Not Sorry", "Comic Sans MS", cursive' },
-    { label: 'Leaner Thin (Style 2 Date)', family: '"Leaner Thin", "Leaner-Thin", "Segoe UI", Arial, sans-serif' },
-    { label: 'Kaufmann BT (Style 3)', family: '"Kaufmann BT", "Kaufmann", "Segoe Script", cursive' },
-    { label: 'KG Sorry Not Sorry Chub (Style 3 Date)', family: '"KG Sorry Not Sorry Chub", "KG Sorry Not Sorry", "Comic Sans MS", cursive' },
-    { label: 'Arial', family: 'Arial, Helvetica, sans-serif' },
-    { label: 'Georgia', family: 'Georgia, "Times New Roman", serif' },
-    { label: 'Times New Roman', family: '"Times New Roman", Times, serif' },
-    { label: 'Trebuchet MS', family: '"Trebuchet MS", "Segoe UI", Arial, sans-serif' },
-    { label: 'Verdana', family: 'Verdana, Geneva, sans-serif' },
-    { label: 'Tahoma', family: 'Tahoma, Geneva, sans-serif' },
-    { label: 'Courier New', family: '"Courier New", Courier, monospace' },
-    { label: 'Garamond', family: 'Garamond, Baskerville, serif' },
-    { label: 'Baskerville', family: 'Baskerville, "Times New Roman", serif' },
-    { label: 'Palatino Linotype', family: '"Palatino Linotype", Palatino, serif' },
-    { label: 'Brush Script MT', family: '"Brush Script MT", "Segoe Script", cursive' },
-    { label: 'Segoe Script', family: '"Segoe Script", "Brush Script MT", cursive' },
-    { label: 'Lucida Handwriting', family: '"Lucida Handwriting", "Segoe Script", cursive' },
-    { label: 'Comic Sans MS', family: '"Comic Sans MS", "Trebuchet MS", cursive' },
+    { label: 'Playpen Sans Hebrew', family: FONT_FAMILIES.playpenSansHebrew },
+    { label: 'Homemade Apple', family: FONT_FAMILIES.homemadeApple },
+    { label: 'Caveat Brush', family: FONT_FAMILIES.caveatBrush },
+    { label: 'Karlie', family: FONT_FAMILIES.karlie },
+    { label: 'Brittany Signature', family: FONT_FAMILIES.brittanySignature },
+    { label: 'Sofia', family: FONT_FAMILIES.sofia },
+    { label: 'Roboto Flex', family: FONT_FAMILIES.robotoFlex },
+    { label: 'Markazi Text', family: FONT_FAMILIES.markaziText },
+    { label: 'Martel DemiBold', family: FONT_FAMILIES.martelDemiBold },
+    { label: 'Martel Heavy', family: FONT_FAMILIES.martelHeavy },
+    { label: 'Titan One', family: FONT_FAMILIES.titanOne },
+    { label: 'Bowlby One SC', family: FONT_FAMILIES.bowlbyOneSc },
+    { label: 'Notable', family: FONT_FAMILIES.notable },
+    { label: 'Arial', family: FONT_FAMILIES.arial },
+    { label: 'AvenirNext LT Pro Regular', family: FONT_FAMILIES.avenirNext },
+    { label: 'Hachi Maru Pop', family: FONT_FAMILIES.hachiMaruPop },
+    { label: 'Century Gothic', family: FONT_FAMILIES.centuryGothic },
+    { label: 'Original Surfer', family: FONT_FAMILIES.originalSurfer },
+    { label: 'Kiwi Maru', family: FONT_FAMILIES.kiwiMaru },
+    { label: 'Sacramento', family: FONT_FAMILIES.sacramento },
+    { label: 'Palatino Linotype', family: FONT_FAMILIES.palatinoLinotype },
+    { label: 'Niconne', family: FONT_FAMILIES.niconne },
+    { label: 'Libre Baskerville', family: FONT_FAMILIES.libreBaskerville },
+    { label: 'Bahnschrift', family: FONT_FAMILIES.bahnschrift },
+    { label: 'Calibri', family: FONT_FAMILIES.calibri },
+    { label: 'Limelight', family: FONT_FAMILIES.limelight },
+    { label: 'KG Sorry Not Sorry', family: FONT_FAMILIES.kgSorryNotSorry },
+    { label: 'KG Sorry Not Sorry Chub', family: FONT_FAMILIES.kgSorryNotSorryChub },
+    { label: 'EngraversGothic BT', family: FONT_FAMILIES.engraversGothicBt },
   ];
+  const BASE_STYLE_PRESET = Object.freeze({
+    nameSize: 60,
+    dateSize: 38,
+    boxWidth: 68,
+    rotation: 0,
+    color: '#4b341f',
+    dateWeight: '600',
+  });
   const STYLE_FONT_PRESETS = {
-    'Style 1': {
-      nameFamily: '"Leaner-Normal", "Leaner Normal", "Segoe Script", cursive',
-      dateFamily: '"Segoe UI", Arial, sans-serif',
-      nameSize: 62,
-      dateSize: 40,
-      boxWidth: 70,
-      rotation: 0,
-      color: '#4b341f',
-      dateWeight: '600',
-    },
-    'Style 2': {
-      nameFamily: '"KG Not Sorry", "KG Sorry Not Sorry", "Comic Sans MS", cursive',
-      dateFamily: '"Leaner Thin", "Leaner-Thin", "Segoe UI", Arial, sans-serif',
-      nameSize: 58,
-      dateSize: 38,
-      boxWidth: 68,
-      rotation: 0,
-      color: '#4b341f',
-      dateWeight: '600',
-    },
-    'Style 3': {
-      nameFamily: '"Kaufmann BT", "Kaufmann", "Segoe Script", cursive',
-      dateFamily: '"KG Sorry Not Sorry Chub", "KG Sorry Not Sorry", "Comic Sans MS", cursive',
-      nameSize: 54,
-      dateSize: 36,
-      boxWidth: 66,
-      rotation: 0,
-      color: '#4b341f',
-      dateWeight: '600',
-      previewScale: 1.32,
-      previewInsetX: 10,
-      previewInsetY: 10,
-      canvasWidthRatio: 0.99,
-      canvasHeightRatio: 0.92,
-      safeAreaTolerance: 2.4,
-    },
+    'Handwritten 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.playpenSansHebrew, dateFamily: FONT_FAMILIES.playpenSansHebrew },
+    'Handwritten 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.homemadeApple, dateFamily: FONT_FAMILIES.engraversGothicBt },
+    'Handwritten 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.caveatBrush, dateFamily: FONT_FAMILIES.kgSorryNotSorryChub },
+    'Cursive 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.karlie, dateFamily: FONT_FAMILIES.calibri },
+    'Cursive 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.brittanySignature, dateFamily: FONT_FAMILIES.avenirNext },
+    'Cursive 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.sofia, dateFamily: FONT_FAMILIES.avenirNext },
+    'Professional 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.robotoFlex, dateFamily: FONT_FAMILIES.robotoFlex },
+    'Professional 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.markaziText, dateFamily: FONT_FAMILIES.markaziText },
+    'Professional 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.martelDemiBold, dateFamily: FONT_FAMILIES.martelHeavy, dateWeight: '700' },
+    'Bold 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.titanOne, dateFamily: FONT_FAMILIES.titanOne, previewScale: 1.08 },
+    'Bold 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.bowlbyOneSc, dateFamily: FONT_FAMILIES.avenirNext, previewScale: 1.04 },
+    'Bold 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.notable, dateFamily: FONT_FAMILIES.engraversGothicBt, previewScale: 1.02 },
+    'Minimal 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.arial, dateFamily: FONT_FAMILIES.arial },
+    'Minimal 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.avenirNext, dateFamily: FONT_FAMILIES.avenirNext },
+    'Playful 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.hachiMaruPop, dateFamily: FONT_FAMILIES.centuryGothic },
+    'Playful 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.originalSurfer, dateFamily: FONT_FAMILIES.originalSurfer, previewScale: 1.06 },
+    'Playful 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.kiwiMaru, dateFamily: FONT_FAMILIES.kiwiMaru },
+    'Elegant 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.sacramento, dateFamily: FONT_FAMILIES.palatinoLinotype, previewScale: 1.12 },
+    'Elegant 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.niconne, dateFamily: FONT_FAMILIES.libreBaskerville, previewScale: 1.08 },
+    'Classic 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.bahnschrift, dateFamily: FONT_FAMILIES.bahnschrift },
+    'Classic 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.libreBaskerville, dateFamily: FONT_FAMILIES.libreBaskerville },
+    'Classic 3': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.calibri, dateFamily: FONT_FAMILIES.calibri },
+    'Modern 1': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.limelight, dateFamily: FONT_FAMILIES.avenirNext },
+    'Modern 2': { ...BASE_STYLE_PRESET, nameFamily: FONT_FAMILIES.kgSorryNotSorry, dateFamily: FONT_FAMILIES.kgSorryNotSorryChub },
   };
 
   const modal = document.getElementById(MODAL_ID);
@@ -128,8 +219,8 @@
   const deterministicDateBox = modal.querySelector('[data-personalization-textbox="date"]');
   const resizeHandles = Array.from(modal.querySelectorAll('[data-personalization-resize]'));
   const clipSurface = modal.querySelector('[data-personalization-clip-surface]');
-  const stageImageUrl = String(clipSurface?.dataset.personalizationStageImageUrl || '').trim();
-  const safeAreaImageUrl = String(clipSurface?.dataset.personalizationSafeAreaUrl || '').trim();
+  const defaultStageImageUrl = String(clipSurface?.dataset.personalizationStageImageUrl || '').trim();
+  const defaultSafeAreaImageUrl = String(clipSurface?.dataset.personalizationSafeAreaUrl || '').trim();
   const stylePreviewImage = modal.querySelector('[data-personalization-style-preview-image]');
   const deterministicOverlay = modal.querySelector('[data-personalization-deterministic-overlay]');
   const deterministicLastName = modal.querySelector('[data-personalization-deterministic-last-name]');
@@ -137,8 +228,10 @@
   const deterministicIcon = modal.querySelector('[data-personalization-deterministic-icon]');
   const deterministicIconImage = modal.querySelector('[data-personalization-deterministic-icon-image]');
   const iconResizeHandle = modal.querySelector('[data-personalization-icon-resize]');
+  const removeIconButton = modal.querySelector('[data-personalization-remove-icon]');
   const safeAreaWarning = modal.querySelector('[data-personalization-safe-area-warning]');
   const safeAreaBoundary = modal.querySelector('[data-personalization-safe-area-boundary]');
+  const clipGuideBoundary = modal.querySelector('[data-personalization-clip-guide-boundary]');
   const pickedPanel = modal.querySelector('[data-personalization-picked-panel]');
   const productName = modal.querySelector('[data-personalization-product-name]');
   const errorElement = modal.querySelector('[data-personalization-error]');
@@ -165,8 +258,10 @@
     !deterministicIcon ||
     !deterministicIconImage ||
     !iconResizeHandle ||
+    !removeIconButton ||
     !safeAreaWarning ||
     !safeAreaBoundary ||
+    !clipGuideBoundary ||
     !pickedPanel ||
     !productName ||
     !errorElement ||
@@ -180,18 +275,23 @@
   const stateByScope = new Map();
   const styleImagePayloadCache = new Map();
   const iconImagePayloadCache = new Map();
+  const safeAreaBoundsByUrl = new Map();
   const variantKeywordIndexByElement = new WeakMap();
   const pendingEligibilityScopes = new Set();
 
   let activeScope = '';
   let activeLastNameMax = DEFAULT_LAST_NAME_MAX;
   let activeDateMax = DEFAULT_DATE_MAX;
+  let activeStageImageUrl = defaultStageImageUrl;
+  let activeSafeAreaImageUrl = defaultSafeAreaImageUrl;
   let isGenerating = false;
   let generationErrorMessage = '';
   let generatedImageData = '';
   let activeSafeAreaBounds = cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
   let safeAreaBoundsPromise = null;
+  let safeAreaBoundsPromiseUrl = '';
   let activeTextLayout = createDefaultTextLayout();
+  let renderedTextLayout = cloneTextLayout(activeTextLayout);
   let initialTextLayout = cloneTextLayout(activeTextLayout);
   let activeIconLayout = createDefaultIconLayout(activeTextLayout);
   let initialIconLayout = { ...activeIconLayout };
@@ -482,8 +582,10 @@
   }
 
   function normalizeStyle(value) {
-    if (!value) return DEFAULT_STYLE;
-    if (STYLE_VALUES.includes(value)) return value;
+    const normalizedValue = String(value || '').trim();
+    if (!normalizedValue) return DEFAULT_STYLE;
+    if (STYLE_VALUES.includes(normalizedValue)) return normalizedValue;
+    if (STYLE_LEGACY_ALIASES[normalizedValue]) return STYLE_LEGACY_ALIASES[normalizedValue];
     return DEFAULT_STYLE;
   }
 
@@ -678,6 +780,18 @@
     syncIconSelectionState();
   }
 
+  function syncRemoveIconButton() {
+    removeIconButton.toggleAttribute('hidden', !getSelectedFlowerIconValue());
+  }
+
+  function clearSelectedFlowerIcon() {
+    onIconPointerUp();
+    setFlowerIconValue('');
+    setIconSelected(false);
+    setGenerationError('');
+    renderEditorState();
+  }
+
   function renderFlowerIcon() {
     const flowerIconValue = getSelectedFlowerIconValue();
     const flowerIconUrl = getSelectedFlowerIconUrl(flowerIconValue);
@@ -685,12 +799,14 @@
       deterministicIcon.setAttribute('hidden', '');
       deterministicIconImage.removeAttribute('src');
       setIconSelected(false);
+      syncRemoveIconButton();
       return;
     }
 
     applyIconLayout(activeIconLayout);
     deterministicIconImage.src = flowerIconUrl;
     deterministicIcon.removeAttribute('hidden');
+    syncRemoveIconButton();
   }
 
   function setTextboxCenterSnapState(boxKey, isSnapped) {
@@ -1091,32 +1207,42 @@
   }
 
   function getClipStyleClass(styleValue) {
-    switch (styleValue) {
-      case 'Style 2':
-        return 'is-style-2';
-      case 'Style 3':
-        return 'is-style-3';
-      default:
-        return 'is-style-1';
-    }
+    return `is-${normalizeStyle(styleValue).toLowerCase().replace(/\s+/g, '-')}`;
   }
 
   function getStyleImageUrl(styleValue) {
-    if (stageImageUrl) {
-      return stageImageUrl;
+    return activeStageImageUrl || '';
+  }
+
+  function setActiveStageImageUrl(nextUrl) {
+    const normalizedUrl = String(nextUrl || '').trim() || defaultStageImageUrl || '';
+    activeStageImageUrl = normalizedUrl;
+    const isMiniStage = normalizedUrl.toLowerCase().includes(MINI_STAGE_IMAGE_KEYWORD);
+    clipSurface.classList.toggle('is-mini-stage', isMiniStage);
+    clipGuideBoundary.toggleAttribute('hidden', !isMiniStage);
+    if (normalizedUrl) {
+      clipSurface.dataset.personalizationStageImageUrl = normalizedUrl;
+      return;
     }
 
-    const normalizedStyle = normalizeStyle(styleValue);
-    const matchingInput = styleInputs.find((input) => normalizeStyle(input.value) === normalizedStyle);
-    if (!matchingInput) return '';
+    delete clipSurface.dataset.personalizationStageImageUrl;
+  }
 
-    const option = matchingInput.closest('.personalization-preview-modal__style-option');
-    if (!option) return '';
+  function setActiveSafeAreaImageUrl(nextUrl) {
+    const normalizedUrl = String(nextUrl || '').trim() || defaultSafeAreaImageUrl || '';
+    activeSafeAreaImageUrl = normalizedUrl;
+    safeAreaBoundsPromise = null;
+    safeAreaBoundsPromiseUrl = '';
+    const cachedBounds = safeAreaBoundsByUrl.get(normalizedUrl);
+    activeSafeAreaBounds = cloneSafeAreaBounds(cachedBounds || DEFAULT_SAFE_AREA_BOUNDS);
+    applySafeAreaBoundaryLayout();
+    applyClipGuideBoundaryLayout();
+    if (normalizedUrl) {
+      clipSurface.dataset.personalizationSafeAreaUrl = normalizedUrl;
+      return;
+    }
 
-    const image = option.querySelector('.personalization-preview-modal__style-option-image');
-    if (!image) return '';
-
-    return image.currentSrc || image.getAttribute('src') || '';
+    delete clipSurface.dataset.personalizationSafeAreaUrl;
   }
 
   function setWorkspaceStyleImage(styleValue) {
@@ -1225,8 +1351,12 @@
   }
 
   function extractSafeAreaBoundsFromImage(image) {
-    const width = image.naturalWidth || image.width;
-    const height = image.naturalHeight || image.height;
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const maxScanDimension = 700;
+    const scale = Math.min(1, maxScanDimension / Math.max(sourceWidth || 1, sourceHeight || 1));
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
     if (!width || !height) {
       return cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
     }
@@ -1241,6 +1371,10 @@
 
     ctx.drawImage(image, 0, 0, width, height);
     const { data } = ctx.getImageData(0, 0, width, height);
+    const darkMask = new Uint8Array(width * height);
+    const edgeMask = new Uint8Array(width * height);
+    const queueX = [];
+    const queueY = [];
     let minX = width;
     let minY = height;
     let maxX = -1;
@@ -1254,7 +1388,57 @@
 
         const brightness = (Number(data[index] || 0) + Number(data[index + 1] || 0) + Number(data[index + 2] || 0)) / 3;
         if (brightness > SAFE_AREA_BRIGHTNESS_THRESHOLD) continue;
+        darkMask[y * width + x] = 1;
+      }
+    }
 
+    function queueEdgePixel(x, y) {
+      const maskIndex = y * width + x;
+      if (!darkMask[maskIndex] || edgeMask[maskIndex]) return;
+      edgeMask[maskIndex] = 1;
+      queueX.push(x);
+      queueY.push(y);
+    }
+
+    for (let x = SAFE_AREA_SCAN_PADDING; x < width - SAFE_AREA_SCAN_PADDING; x += 1) {
+      queueEdgePixel(x, SAFE_AREA_SCAN_PADDING);
+      queueEdgePixel(x, height - SAFE_AREA_SCAN_PADDING - 1);
+    }
+    for (let y = SAFE_AREA_SCAN_PADDING; y < height - SAFE_AREA_SCAN_PADDING; y += 1) {
+      queueEdgePixel(SAFE_AREA_SCAN_PADDING, y);
+      queueEdgePixel(width - SAFE_AREA_SCAN_PADDING - 1, y);
+    }
+
+    while (queueX.length) {
+      const x = queueX.pop();
+      const y = queueY.pop();
+      const neighbors = [
+        [x - 1, y],
+        [x + 1, y],
+        [x, y - 1],
+        [x, y + 1],
+      ];
+      neighbors.forEach(([nextX, nextY]) => {
+        if (
+          nextX < SAFE_AREA_SCAN_PADDING ||
+          nextY < SAFE_AREA_SCAN_PADDING ||
+          nextX >= width - SAFE_AREA_SCAN_PADDING ||
+          nextY >= height - SAFE_AREA_SCAN_PADDING
+        ) {
+          return;
+        }
+        const nextIndex = nextY * width + nextX;
+        if (!darkMask[nextIndex] || edgeMask[nextIndex]) return;
+        edgeMask[nextIndex] = 1;
+        queueX.push(nextX);
+        queueY.push(nextY);
+      });
+    }
+
+    for (let y = SAFE_AREA_SCAN_PADDING; y < height - SAFE_AREA_SCAN_PADDING; y += 1) {
+      for (let x = SAFE_AREA_SCAN_PADDING; x < width - SAFE_AREA_SCAN_PADDING; x += 1) {
+        const maskIndex = y * width + x;
+        if (!darkMask[maskIndex] || edgeMask[maskIndex]) continue;
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
         maxX = Math.max(maxX, x);
@@ -1274,13 +1458,13 @@
     });
   }
 
-  async function resolveSafeAreaBounds() {
-    if (!safeAreaImageUrl) {
+  async function resolveSafeAreaBounds(safeAreaUrl) {
+    if (!safeAreaUrl) {
       return cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
     }
 
     try {
-      const response = await fetch(safeAreaImageUrl, { cache: 'force-cache' });
+      const response = await fetch(safeAreaUrl, { cache: 'force-cache' });
       if (!response.ok) {
         return cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
       }
@@ -1295,19 +1479,54 @@
   }
 
   function ensureSafeAreaBounds() {
-    if (safeAreaBoundsPromise) {
+    const safeAreaUrl = String(activeSafeAreaImageUrl || '').trim();
+    if (!safeAreaUrl) {
+      activeSafeAreaBounds = cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
+      applySafeAreaBoundaryLayout();
+      applyClipGuideBoundaryLayout();
+      return Promise.resolve(cloneSafeAreaBounds(activeSafeAreaBounds));
+    }
+
+    if (safeAreaBoundsByUrl.has(safeAreaUrl)) {
+      activeSafeAreaBounds = cloneSafeAreaBounds(safeAreaBoundsByUrl.get(safeAreaUrl));
+      applySafeAreaBoundaryLayout();
+      applyClipGuideBoundaryLayout();
+      return Promise.resolve(cloneSafeAreaBounds(activeSafeAreaBounds));
+    }
+
+    if (safeAreaBoundsPromise && safeAreaBoundsPromiseUrl === safeAreaUrl) {
       return safeAreaBoundsPromise;
     }
 
-    safeAreaBoundsPromise = resolveSafeAreaBounds()
+    safeAreaBoundsPromiseUrl = safeAreaUrl;
+    safeAreaBoundsPromise = resolveSafeAreaBounds(safeAreaUrl)
       .then((bounds) => {
-        activeSafeAreaBounds = sanitizeSafeAreaBounds(bounds);
-        applySafeAreaBoundaryLayout();
-        return cloneSafeAreaBounds(activeSafeAreaBounds);
+        const sanitizedBounds = sanitizeSafeAreaBounds(bounds);
+        safeAreaBoundsByUrl.set(safeAreaUrl, sanitizedBounds);
+        if (activeSafeAreaImageUrl === safeAreaUrl) {
+          activeSafeAreaBounds = cloneSafeAreaBounds(sanitizedBounds);
+          applySafeAreaBoundaryLayout();
+          applyClipGuideBoundaryLayout();
+        }
+        return cloneSafeAreaBounds(sanitizedBounds);
       })
-      .catch(() => cloneSafeAreaBounds(activeSafeAreaBounds));
+      .catch(() => cloneSafeAreaBounds(activeSafeAreaBounds))
+      .finally(() => {
+        if (safeAreaBoundsPromiseUrl === safeAreaUrl) {
+          safeAreaBoundsPromise = null;
+        }
+      });
 
     return safeAreaBoundsPromise;
+  }
+
+  function applyClipGuideBoundaryLayout() {
+    if (!clipGuideBoundary) return;
+    const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
+    clipGuideBoundary.style.setProperty('--clip-guide-x', `${safeArea.x}%`);
+    clipGuideBoundary.style.setProperty('--clip-guide-y', `${safeArea.y}%`);
+    clipGuideBoundary.style.setProperty('--clip-guide-w', `${safeArea.w}%`);
+    clipGuideBoundary.style.setProperty('--clip-guide-h', `${safeArea.h}%`);
   }
 
   async function getStyleImagePayload(styleValue) {
@@ -2029,6 +2248,13 @@
     return boxKey === 'date' ? dateInput.value.trim() : lastNameInput.value.trim();
   }
 
+  function getTextboxLayoutForValidation(boxKey) {
+    if (boxInteraction) {
+      return activeTextLayout[boxKey] || null;
+    }
+    return renderedTextLayout[boxKey] || activeTextLayout[boxKey] || null;
+  }
+
   function hasLayoutChangedSignificantly(sourceLayout, targetLayout) {
     if (!sourceLayout || !targetLayout) return false;
     return (
@@ -2112,7 +2338,7 @@
 
     for (const boxKey of textboxKeys) {
       if (!getTextboxValueByKey(boxKey)) continue;
-      const activeLayout = activeTextLayout[boxKey] || null;
+      const activeLayout = getTextboxLayoutForValidation(boxKey);
       if (!isTextboxInsideSafeArea(activeLayout)) {
         return ENGRAVING_AREA_ERROR;
       }
@@ -2146,6 +2372,7 @@
     applySafeAreaBoundaryLayout();
     applyTextboxLayout('lastName');
     applyTextboxLayout('date');
+    renderedTextLayout = cloneTextLayout(activeTextLayout);
 
     deterministicLastName.textContent = lastNameInput.value.trim() || ' ';
     deterministicDate.textContent = dateInput.value.trim() || ' ';
@@ -2178,9 +2405,11 @@
       const renderedNameLayout = buildRenderedTextboxLayout('lastName', deterministicLastName, lastNameFontSize);
       const renderedDateLayout = buildRenderedTextboxLayout('date', deterministicDate, dateFontSize);
       if (renderedNameLayout) {
+        renderedTextLayout.lastName = renderedNameLayout;
         applyTextboxLayout('lastName', renderedNameLayout);
       }
       if (renderedDateLayout) {
+        renderedTextLayout.date = renderedDateLayout;
         applyTextboxLayout('date', renderedDateLayout);
       }
     }
@@ -2588,7 +2817,7 @@
       if (!labelNode) return;
 
       const defaultLabel = trigger.dataset.personalizationDefaultLabel || 'Customize Now';
-      if (isConfiguredState(state)) {
+      if (isTriggerEligible(trigger) && isConfiguredState(state)) {
         labelNode.textContent = 'Edit Customization';
         trigger.classList.add('is-configured');
       } else {
@@ -2687,7 +2916,16 @@
     });
   }
 
-  function openEditor(trigger) {
+  async function openEditor(trigger) {
+    if (!isTriggerEligible(trigger)) {
+      const scope = String(trigger?.dataset?.personalizationScope || '').trim();
+      if (scope) {
+        syncScopePersonalizationEligibility(scope);
+        updateTriggerLabels(scope);
+      }
+      return;
+    }
+
     onBoxPointerUp();
     onIconPointerUp();
     activeEditorSessionId += 1;
@@ -2705,6 +2943,9 @@
 
     lastNameInput.maxLength = activeLastNameMax;
     dateInput.maxLength = activeDateMax;
+    setActiveStageImageUrl(trigger.dataset.personalizationStageImageUrl);
+    setActiveSafeAreaImageUrl(trigger.dataset.personalizationSafeAreaUrl);
+    await ensureSafeAreaBounds();
 
     const productTitle = trigger.dataset.personalizationProductTitle || '';
     productName.textContent = productTitle;
@@ -2791,6 +3032,23 @@
     }
 
     return null;
+  }
+
+  function isTriggerEligible(trigger) {
+    if (!(trigger instanceof HTMLButtonElement)) return false;
+    if (trigger.disabled) return false;
+
+    const requiresCustomOption = String(trigger.dataset.personalizationRequiresCustomOption || '') === 'true';
+    if (!requiresCustomOption) {
+      return true;
+    }
+
+    const form = resolveAssociatedAddToCartForm(trigger);
+    if (form) {
+      return isCustomEngravingSelectedForForm(form);
+    }
+
+    return String(trigger.dataset.personalizationCustomSelected || '') === 'true';
   }
 
   document.addEventListener('change', (event) => {
@@ -2888,6 +3146,9 @@
     setGenerationError('');
     renderEditorState();
   });
+  removeIconButton.addEventListener('click', () => {
+    clearSelectedFlowerIcon();
+  });
   window.addEventListener('resize', () => {
     renderDeterministicOverlay();
   });
@@ -2929,6 +3190,21 @@
     if (event.target.closest('[data-personalization-icon-resize]')) return;
     setSelectedTextbox('');
     setIconSelected(false);
+  });
+
+  modal.addEventListener('keydown', (event) => {
+    if (!isIconSelected || !getSelectedFlowerIconValue()) return;
+    if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLSelectElement ||
+      (event.target instanceof HTMLElement && event.target.isContentEditable)
+    ) {
+      return;
+    }
+    clearSelectedFlowerIcon();
+    event.preventDefault();
   });
 
   document.body.addEventListener('modalClosed', () => {

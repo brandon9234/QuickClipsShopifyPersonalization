@@ -1,3 +1,235 @@
+@font-face {
+  font-family: 'Playpen Sans Hebrew';
+  src: url("PlaypenSansHebrew-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Homemade Apple';
+  src: url("HomemadeApple-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Caveat Brush';
+  src: url("CaveatBrush-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  src: url("Caveat-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  src: url("Caveat-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Karlie';
+  src: url("AlexBrush-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Brittany Signature';
+  src: url("Allura-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sofia';
+  src: url("Sofia-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto Flex';
+  src: url("Arimo-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AvenirNext LT Pro Regular';
+  src: url("Manrope-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Markazi Text';
+  src: url("MarkaziText-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Martel DemiBold';
+  src: url("Martel-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Martel Heavy';
+  src: url("Martel-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Titan One';
+  src: url("TitanOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bowlby One SC';
+  src: url("BowlbyOneSC-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Notable';
+  src: url("Notable-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EngraversGothic BT';
+  src: url("Cinzel-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bahnschrift';
+  src: url("Archivo-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Calibri';
+  src: url("Arimo-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hachi Maru Pop';
+  src: url("HachiMaruPop-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Century Gothic';
+  src: url("Manrope-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Original Surfer';
+  src: url("OriginalSurfer-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kiwi Maru';
+  src: url("KiwiMaru-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sacramento';
+  src: url("Sacramento-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Niconne';
+  src: url("Niconne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url("LibreBaskerville-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Limelight';
+  src: url("Limelight-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'KG Sorry Not Sorry';
+  src: url("Caveat-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'KG Sorry Not Sorry Chub';
+  src: url("Caveat-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 .personalization-line-item-properties {
   display: none;
 }
@@ -213,6 +445,11 @@
   outline-offset: 0.1rem;
 }
 
+.personalization-preview-modal__icon-clear {
+  align-self: flex-start;
+  margin-top: 0.7rem;
+}
+
 .personalization-preview-modal__range {
   width: 100%;
   margin: 0;
@@ -237,8 +474,11 @@
 
 .personalization-preview-modal__style-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: 0.65rem;
+  max-height: 25rem;
+  overflow-y: auto;
+  padding-right: 0.3rem;
 }
 
 .personalization-preview-modal__style-option {
@@ -253,24 +493,16 @@
 }
 
 .personalization-preview-modal__style-option-display {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0.1rem solid rgba(var(--color-foreground), 0.2);
   border-radius: var(--inputs-radius-outset);
-  overflow: hidden;
   cursor: pointer;
   background-color: rgba(var(--color-background), 1);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  padding-bottom: 0.5rem;
-}
-
-.personalization-preview-modal__style-option-image {
-  display: block;
-  width: 75%;
-  margin: 0.7rem auto 0.4rem;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  transform: none;
-  border-bottom: 0;
+  min-height: 4.8rem;
+  padding: 0.9rem 0.8rem;
 }
 
 .personalization-preview-modal__style-option-label {
@@ -278,13 +510,18 @@
   text-align: center;
   font-size: 1.3rem;
   font-weight: 600;
-  padding: 0.7rem 0.5rem;
+  line-height: 1.2;
   color: rgb(var(--color-foreground));
 }
 
 .personalization-preview-modal__style-option input:checked + .personalization-preview-modal__style-option-display {
   border-color: rgb(var(--color-button));
   box-shadow: 0 0 0 0.2rem rgba(var(--color-button), 0.14);
+}
+
+.personalization-preview-modal__style-option input:focus-visible + .personalization-preview-modal__style-option-display {
+  outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
+  outline-offset: 0.15rem;
 }
 
 .personalization-preview-modal__preview {
@@ -364,10 +601,18 @@
   z-index: 2;
 }
 
-.personalization-preview-modal__blank-clip.is-warning-armed.is-out-of-bounds .personalization-preview-modal__safe-area-boundary {
-  border-color: rgba(156, 43, 43, 0.92);
-  background: rgba(255, 94, 94, 0.08);
-  box-shadow: inset 0 0 0 0.14rem rgba(156, 43, 43, 0.28);
+.personalization-preview-modal__clip-guide-boundary {
+  position: absolute;
+  left: var(--clip-guide-x, 0%);
+  top: var(--clip-guide-y, 0%);
+  width: var(--clip-guide-w, 100%);
+  height: var(--clip-guide-h, 100%);
+  border: 0.2rem solid rgba(44, 124, 98, 0.78);
+  border-radius: 2.4rem;
+  background: rgba(44, 124, 98, 0.04);
+  box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.34), 0 0 0 0.1rem rgba(44, 124, 98, 0.18);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .personalization-preview-modal__safe-area-warning {
@@ -385,6 +630,16 @@
 
 .personalization-preview-modal__blank-clip.is-warning-armed.is-out-of-bounds .personalization-preview-modal__safe-area-warning {
   display: flex !important;
+}
+
+.personalization-preview-modal__blank-clip.is-mini-stage .personalization-preview-modal__clip-guide-boundary {
+  display: block;
+}
+
+.personalization-preview-modal__blank-clip.is-warning-armed.is-out-of-bounds .personalization-preview-modal__safe-area-boundary {
+  border-color: rgba(156, 43, 43, 0.92);
+  background: rgba(255, 94, 94, 0.08);
+  box-shadow: inset 0 0 0 0.14rem rgba(156, 43, 43, 0.28);
 }
 
 .personalization-preview-modal__safe-area-warning span {
@@ -724,7 +979,7 @@
   }
 
   .personalization-preview-modal__style-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .personalization-preview-modal__mode-options {

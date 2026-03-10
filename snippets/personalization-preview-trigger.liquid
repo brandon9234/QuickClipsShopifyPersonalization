@@ -31,8 +31,17 @@
   assign trigger_label = button_label | default: 'Customize Now'
   assign requires_custom_option = false
   assign is_custom_option_selected = false
+  assign stage_image_asset = 'HorizontalOGQuickClipZoomed.jpg'
+  assign safe_area_asset = 'HorizontalOGQuickClipZoomedOverLay.jpg'
 
   if target_product != blank
+    assign product_title_tokens = target_product.title | downcase
+    assign product_handle_tokens = target_product.handle | downcase
+    if product_title_tokens contains 'mini' or product_handle_tokens contains 'mini'
+      assign stage_image_asset = 'HorizontalMiniQuickClipZoomed.jpg'
+      assign safe_area_asset = 'HorizontalMiniQuickClipZoomedOverLay.jpg'
+    endif
+
     for variant in target_product.variants
       capture variant_tokens
         echo variant.title
@@ -99,6 +108,8 @@
     data-personalization-scope="{{ scope_id }}"
     data-personalization-product-id="{{ target_product.id }}"
     data-personalization-product-title="{{ target_product.title | escape }}"
+    data-personalization-stage-image-url="{{ stage_image_asset | asset_url }}"
+    data-personalization-safe-area-url="{{ safe_area_asset | asset_url }}"
     data-personalization-form-id="{{ product_form_id }}"
     data-personalization-primary-max="{{ primary_limit }}"
     data-personalization-secondary-max="{{ secondary_limit }}"

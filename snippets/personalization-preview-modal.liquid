@@ -25,7 +25,7 @@
         <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
           <p class="personalization-preview-modal__preview-label">Stage preview</p>
           <div
-            class="personalization-preview-modal__blank-clip is-style-1"
+            class="personalization-preview-modal__blank-clip is-handwritten-1"
             data-personalization-clip-surface
             data-personalization-stage-image-url="{{ 'HorizontalOGQuickClipZoomed.jpg' | asset_url }}"
             data-personalization-safe-area-url="{{ 'HorizontalOGQuickClipZoomedOverLay.jpg' | asset_url }}"
@@ -40,6 +40,12 @@
               class="personalization-preview-modal__safe-area-boundary"
               data-personalization-safe-area-boundary
               aria-hidden="true"
+            ></div>
+            <div
+              class="personalization-preview-modal__clip-guide-boundary"
+              data-personalization-clip-guide-boundary
+              aria-hidden="true"
+              hidden
             ></div>
             <div
               class="personalization-preview-modal__deterministic-overlay"
@@ -68,7 +74,7 @@
                 <img
                   class="personalization-preview-modal__deterministic-icon-image"
                   data-personalization-deterministic-icon-image
-                  alt="Selected flower icon"
+                  alt="Selected icon"
                   loading="lazy"
                 >
                 <button
@@ -93,59 +99,24 @@
           <div class="personalization-preview-modal__fields">
             <div class="personalization-preview-modal__field">
               <p class="form__label">Choose clip style</p>
+              {%- assign personalization_style_values = 'Handwritten 1|Handwritten 2|Handwritten 3|Cursive 1|Cursive 2|Cursive 3|Professional 1|Professional 2|Professional 3|Bold 1|Bold 2|Bold 3|Minimal 1|Minimal 2|Playful 1|Playful 2|Playful 3|Elegant 1|Elegant 2|Classic 1|Classic 2|Classic 3|Modern 1|Modern 2' | split: '|' -%}
               <div class="personalization-preview-modal__style-options">
-                <label class="personalization-preview-modal__style-option">
-                  <input
-                    type="radio"
-                    name="PersonalizationStyle"
-                    value="Style 1"
-                    data-personalization-input="style"
-                    checked
-                  >
-                  <span class="personalization-preview-modal__style-option-display">
-                    <img
-                      src="{{ 'quickclip-style-1.jpg' | asset_url }}"
-                      alt="Style 1 preview"
-                      class="personalization-preview-modal__style-option-image"
-                      loading="lazy"
+                {%- for style_value in personalization_style_values -%}
+                  <label class="personalization-preview-modal__style-option">
+                    <input
+                      type="radio"
+                      name="PersonalizationStyle"
+                      value="{{ style_value }}"
+                      data-personalization-input="style"
+                      {% if forloop.first %}
+                        checked
+                      {% endif %}
                     >
-                    <span class="personalization-preview-modal__style-option-label">Style 1</span>
-                  </span>
-                </label>
-                <label class="personalization-preview-modal__style-option">
-                  <input
-                    type="radio"
-                    name="PersonalizationStyle"
-                    value="Style 2"
-                    data-personalization-input="style"
-                  >
-                  <span class="personalization-preview-modal__style-option-display">
-                    <img
-                      src="{{ 'quickclip-style-2.jpg' | asset_url }}"
-                      alt="Style 2 preview"
-                      class="personalization-preview-modal__style-option-image"
-                      loading="lazy"
-                    >
-                    <span class="personalization-preview-modal__style-option-label">Style 2</span>
-                  </span>
-                </label>
-                <label class="personalization-preview-modal__style-option">
-                  <input
-                    type="radio"
-                    name="PersonalizationStyle"
-                    value="Style 3"
-                    data-personalization-input="style"
-                  >
-                  <span class="personalization-preview-modal__style-option-display">
-                    <img
-                      src="{{ 'quickclip-style-3.jpg' | asset_url }}"
-                      alt="Style 3 preview"
-                      class="personalization-preview-modal__style-option-image"
-                      loading="lazy"
-                    >
-                    <span class="personalization-preview-modal__style-option-label">Style 3</span>
-                  </span>
-                </label>
+                    <span class="personalization-preview-modal__style-option-display">
+                      <span class="personalization-preview-modal__style-option-label">{{ style_value }}</span>
+                    </span>
+                  </label>
+                {%- endfor -%}
               </div>
             </div>
 
@@ -197,7 +168,7 @@
 
             <div class="personalization-preview-modal__field-group">
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationFlowerIcon">Flower icon</label>
+                <label class="form__label" for="PersonalizationFlowerIcon">Icon</label>
                 <select
                   id="PersonalizationFlowerIcon"
                   class="personalization-preview-modal__input personalization-preview-modal__select"
@@ -205,12 +176,15 @@
                   data-personalization-icon-registry-url="{{ 'quickclip-icons.json' | asset_url }}"
                 >
                   <option value="">No icon</option>
-                  <option value="tulip" data-icon-url="{{ 'quickclip-icon-tulip.svg' | asset_url }}">Tulip</option>
-                  <option value="lily" data-icon-url="{{ 'quickclip-icon-lily.svg' | asset_url }}">Lily</option>
-                  <option value="rose" data-icon-url="{{ 'quickclip-icon-rose.svg' | asset_url }}">Rose</option>
-                  <option value="daisy" data-icon-url="{{ 'quickclip-icon-daisy.svg' | asset_url }}">Daisy</option>
-                  <option value="lavender" data-icon-url="{{ 'quickclip-icon-lavender.svg' | asset_url }}">Lavender</option>
                 </select>
+                <button
+                  type="button"
+                  class="button button--tertiary personalization-preview-modal__icon-clear"
+                  data-personalization-remove-icon
+                  hidden
+                >
+                  Remove icon
+                </button>
               </div>
             </div>
           </div>
