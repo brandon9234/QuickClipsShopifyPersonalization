@@ -29,27 +29,48 @@
   assign date_limit = date_max | default: 10
   assign deterministic_text_limit = deterministic_text_max | default: 40
   assign trigger_label = button_label | default: 'Customize Now'
-  assign tags_csv = target_product.tags | join: ',' | downcase
-  assign template_suffix = target_product.template_suffix | downcase
-  assign personalization_metafield = target_product.metafields.custom.personalization_enabled
+  assign requires_custom_option = false
+  assign is_custom_option_selected = false
+
+  if target_product != blank
+    for variant in target_product.variants
+      capture variant_tokens
+        echo variant.title
+        echo '|'
+        echo variant.options | join: '|'
+      endcapture
+      assign variant_tokens = variant_tokens | downcase
+      if variant_tokens contains 'custom engraving' or variant_tokens contains 'personalized' or variant_tokens contains 'personalization'
+        assign requires_custom_option = true
+        break
+      endif
+    endfor
+
+    assign selected_variant = target_product.selected_or_first_available_variant
+    if selected_variant != blank
+      capture selected_variant_tokens
+        echo selected_variant.title
+        echo '|'
+        echo selected_variant.options | join: '|'
+      endcapture
+      assign selected_variant_tokens = selected_variant_tokens | downcase
+      if selected_variant_tokens contains 'custom engraving' or selected_variant_tokens contains 'personalized' or selected_variant_tokens contains 'personalization'
+        assign is_custom_option_selected = true
+      endif
+    endif
+  endif
 
   assign show_personalization = false
   if force_show
     assign show_personalization = true
-  elsif personalization_metafield != blank
-    if personalization_metafield.value == true or personalization_metafield == true
+  elsif target_product != blank
+    capture personalization_enabled_output
+      render 'personalization-product-enabled', product: target_product
+    endcapture
+    assign personalization_enabled = personalization_enabled_output | strip
+    if personalization_enabled == 'true'
       assign show_personalization = true
     endif
-  elsif tags_csv contains 'customizable'
-    assign show_personalization = true
-  elsif tags_csv contains 'personalized'
-    assign show_personalization = true
-  elsif tags_csv contains 'personalization'
-    assign show_personalization = true
-  elsif template_suffix contains 'custom'
-    assign show_personalization = true
-  elsif template_suffix contains 'personal'
-    assign show_personalization = true
   endif
 -%}
 
@@ -68,6 +89,11 @@
     data-personalization-secondary-max="{{ secondary_limit }}"
     data-personalization-date-max="{{ date_limit }}"
     data-personalization-deterministic-text-max="{{ deterministic_text_limit }}"
+    data-personalization-requires-custom-option="{{ requires_custom_option }}"
+    data-personalization-custom-selected="{{ is_custom_option_selected }}"
+    {% if requires_custom_option and is_custom_option_selected == false %}
+      hidden
+    {% endif %}
   >
     <span data-personalization-trigger-label>{{ trigger_label }}</span>
   </button>

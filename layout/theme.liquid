@@ -31,7 +31,7 @@
     <script src="{{ 'constants.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'pubsub.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
-    <script src="{{ 'personalization-preview.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'personalization-preview.js' | asset_url | append: '&_qc_build=20260309-order-stage-preview-1' }}" defer="defer"></script>
     {%- if settings.animations_reveal_on_scroll -%}
       <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
@@ -253,7 +253,7 @@
     {% endstyle %}
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
-    {{ 'personalization-preview.css' | asset_url | stylesheet_tag }}
+    {{ 'personalization-preview.css' | asset_url | append: '&_qc_build=20260309-order-stage-preview-1' | stylesheet_tag }}
 
     {%- unless settings.type_body_font.system? -%}
       <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin>

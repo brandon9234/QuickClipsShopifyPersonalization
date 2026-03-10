@@ -7,11 +7,48 @@
 {% endcomment %}
 
 {%- if product != blank and personalization_scope != blank -%}
+  {%- capture personalization_enabled_output -%}
+    {%- render 'personalization-product-enabled', product: product -%}
+  {%- endcapture -%}
+  {%- assign personalization_enabled = personalization_enabled_output | strip -%}
+  {%- if personalization_enabled == 'true' -%}
+  {%- liquid
+    assign requires_custom_option = false
+    assign is_custom_option_selected = false
+
+    for variant in product.variants
+      capture variant_tokens
+        echo variant.title
+        echo '|'
+        echo variant.options | join: '|'
+      endcapture
+      assign variant_tokens = variant_tokens | downcase
+      if variant_tokens contains 'custom engraving' or variant_tokens contains 'personalized' or variant_tokens contains 'personalization'
+        assign requires_custom_option = true
+        break
+      endif
+    endfor
+
+    assign selected_variant = product.selected_or_first_available_variant
+    if selected_variant != blank
+      capture selected_variant_tokens
+        echo selected_variant.title
+        echo '|'
+        echo selected_variant.options | join: '|'
+      endcapture
+      assign selected_variant_tokens = selected_variant_tokens | downcase
+      if selected_variant_tokens contains 'custom engraving' or selected_variant_tokens contains 'personalized' or selected_variant_tokens contains 'personalization'
+        assign is_custom_option_selected = true
+      endif
+    endif
+  -%}
   <div
     class="personalization-line-item-properties"
     data-personalization-context
     data-personalization-scope="{{ personalization_scope }}"
     data-personalization-product-id="{{ product.id }}"
+    data-personalization-requires-custom-option="{{ requires_custom_option }}"
+    data-personalization-enabled="{% if requires_custom_option and is_custom_option_selected == false %}false{% else %}true{% endif %}"
   >
     <input
       type="hidden"
@@ -69,6 +106,12 @@
     >
     <input
       type="hidden"
+      name="properties[Personalization Icon]"
+      value=""
+      data-personalization-property="icon"
+    >
+    <input
+      type="hidden"
       name="properties[Personalization Deterministic Size]"
       value=""
       data-personalization-property="deterministic_size"
@@ -91,5 +134,13 @@
       value="{{ personalization_scope }}"
       data-personalization-property="scope"
     >
+    <input
+      type="file"
+      name="properties[Personalization Stage Preview]"
+      accept="image/png,image/jpeg,image/webp"
+      data-personalization-property="stage_preview_file"
+      hidden
+    >
   </div>
+  {%- endif -%}
 {%- endif -%}

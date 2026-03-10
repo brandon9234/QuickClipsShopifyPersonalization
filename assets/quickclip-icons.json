@@ -1,0 +1,27 @@
+[
+  {
+    "value": "tulip",
+    "label": "Tulip",
+    "asset": "quickclip-icon-tulip.svg"
+  },
+  {
+    "value": "lily",
+    "label": "Lily",
+    "asset": "quickclip-icon-lily.svg"
+  },
+  {
+    "value": "rose",
+    "label": "Rose",
+    "asset": "quickclip-icon-rose.svg"
+  },
+  {
+    "value": "daisy",
+    "label": "Daisy",
+    "asset": "quickclip-icon-daisy.svg"
+  },
+  {
+    "value": "lavender",
+    "label": "Lavender",
+    "asset": "quickclip-icon-lavender.svg"
+  }
+]

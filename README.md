@@ -16,9 +16,52 @@ This repository is a Shopify theme with a QuickClips personalization workflow:
 3. Authenticate Shopify CLI:
    - `.\scripts\shopify-cli.ps1 auth login --store <your-store>`
 4. Start local theme preview:
-   - `.\scripts\shopify-cli.ps1 theme dev --store <your-store> --path .`
+   - `.\scripts\start-shopify-theme-dev.ps1 -Store <your-store> -Port 9393`
 5. Start Gemini preview server in another terminal:
    - `.\scripts\start-gemini-preview-server.ps1`
+
+## Localhost Launch Rules
+
+Use these rules every time you start local preview to avoid `ERR_CONNECTION_REFUSED`:
+
+1. Start preview using the managed launcher:
+   - `.\scripts\start-shopify-theme-dev.ps1 -Store <your-store> -Port 9393`
+2. Open exactly `http://127.0.0.1:9393` after the script prints success.
+3. Never open bare `127.0.0.1` without a port.
+4. To restart cleanly:
+   - `.\scripts\stop-shopify-theme-dev.ps1 -All`
+   - `.\scripts\start-shopify-theme-dev.ps1 -Store <your-store> -Port 9393`
+5. Optional: if `<your-store>` is omitted, the launcher reads `SHOPIFY_FLAG_STORE` from `.env`.
+
+## Localhost Troubleshooting
+
+- Symptom: `This site can't be reached` / `ERR_CONNECTION_REFUSED` on `127.0.0.1:<port>`
+  - Cause: no active process is listening on that port.
+  - Fix:
+    1. Stop stale preview processes:
+       - `.\scripts\stop-shopify-theme-dev.ps1 -All`
+    2. Start preview on the known port:
+       - `.\scripts\start-shopify-theme-dev.ps1 -Store <your-store> -Port 9393`
+    3. Re-open `http://127.0.0.1:9393`
+
+- Symptom: `401` on localhost preview
+  - Cause: stale Shopify auth/session.
+  - Fix:
+    1. `.\scripts\shopify-cli.ps1 auth logout`
+    2. `.\scripts\shopify-cli.ps1 auth login --store <your-store>`
+    3. Re-run `theme dev` and use the freshly served localhost URL.
+
+- Symptom: `http://127.0.0.1:9393` opens but keeps loading forever
+  - Cause: a stuck Shopify `theme dev` node process is still listening on the port but not returning a response.
+  - Fix:
+    1. Hard stop all local theme dev processes:
+       - `.\scripts\stop-shopify-theme-dev.ps1 -All`
+    2. Confirm the port is clear:
+       - `Get-NetTCPConnection -LocalPort 9393 -ErrorAction SilentlyContinue`
+       - Expect no results.
+    3. Start a fresh process:
+       - `.\scripts\start-shopify-theme-dev.ps1 -Store <your-store> -Port 9393`
+    4. Re-open `http://127.0.0.1:9393`
 
 ## Repository Layout
 
@@ -36,11 +79,44 @@ This repository is a Shopify theme with a QuickClips personalization workflow:
 
 - `snippets/personalization-preview-modal.liquid`
 - `snippets/personalization-preview-trigger.liquid`
+- `snippets/personalization-product-enabled.liquid`
 - `snippets/personalization-line-item-properties.liquid`
 - `assets/personalization-preview.js`
 - `assets/personalization-preview.css`
 - `QuickClipsPersonalization/gemini-preview-server.mjs`
 - `QuickClipsPersonalization/README.md`
+
+## Product Eligibility (Customize Button)
+
+`Customize Now` / `Edit Customization` only renders for products that are explicitly eligible:
+
+- `product.metafields.custom.personalization_enabled = true`
+- OR product has one of these tags: `customizable`, `personalized`, `personalization`
+
+To remove the button from a non-custom product (for example a logo-only product), remove those tags and keep the metafield false/blank.
+
+## Order-Saved Stage Preview
+
+Personalized products now attach a file line-item property:
+
+- `properties[Personalization Stage Preview]`
+
+At add-to-cart, the script generates or reuses the current stage preview image, attaches it as a file property, and Shopify stores that file URL on the order line item.
+
+## Custom Icon Uploads (Repo)
+
+You can upload your own engraving icons into the repo and have them appear in the `Flower icon` dropdown.
+
+1. Add an icon file using the helper script:
+   - `.\scripts\add-personalization-icon.ps1 -SourcePath "C:\path\to\my-icon.svg" -Label "My Icon"`
+2. The script will:
+   - Copy the file into `assets/` as `quickclip-icon-<key>.<ext>`
+   - Update `assets/quickclip-icons.json`
+3. Refresh your theme preview and reopen the personalization modal.
+
+Notes:
+- Supported formats: `.svg`, `.png`, `.jpg`, `.jpeg`, `.webp`
+- Icon picker options are loaded from `assets/quickclip-icons.json`
 
 ## Agent-Friendly Docs
 

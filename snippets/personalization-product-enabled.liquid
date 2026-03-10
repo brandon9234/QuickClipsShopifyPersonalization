@@ -1,0 +1,58 @@
+{% comment %}
+  Outputs "true" when a product is eligible for personalization.
+
+  Eligibility rules:
+  - `product.metafields.custom.personalization_enabled` is true
+  - OR product tags include one of:
+    - customizable
+    - personalized
+    - personalization
+  - OR any product variant/options include:
+    - custom engraving
+    - personalized
+    - personalization
+
+  Accepts:
+  - product: {Object} Product object
+{% endcomment %}
+
+{%- liquid
+  assign target_product = product
+  assign is_enabled = false
+
+  if target_product != blank
+    assign personalization_metafield = target_product.metafields.custom.personalization_enabled
+    assign tags_csv = target_product.tags | join: ',' | downcase
+
+    if personalization_metafield != blank
+      if personalization_metafield.value == true or personalization_metafield == true
+        assign is_enabled = true
+      endif
+    endif
+
+    if is_enabled == false
+      if tags_csv contains 'customizable' or tags_csv contains 'personalized' or tags_csv contains 'personalization'
+        assign is_enabled = true
+      endif
+    endif
+
+    if is_enabled == false
+      for variant in target_product.variants
+        capture variant_tokens
+          echo variant.title
+          echo '|'
+          echo variant.options | join: '|'
+        endcapture
+        assign variant_tokens = variant_tokens | downcase
+        if variant_tokens contains 'custom engraving' or variant_tokens contains 'personalized' or variant_tokens contains 'personalization'
+          assign is_enabled = true
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  if is_enabled
+    echo 'true'
+  endif
+-%}

@@ -23,11 +23,12 @@
 
       <div class="personalization-preview-modal__workspace">
         <div class="personalization-preview-modal__preview" aria-live="polite" data-personalization-picked-panel>
-          <p class="personalization-preview-modal__preview-label">QuickClip preview workspace</p>
+          <p class="personalization-preview-modal__preview-label">Stage preview</p>
           <div
             class="personalization-preview-modal__blank-clip is-style-1"
             data-personalization-clip-surface
-            data-personalization-stage-image-url="{{ 'HorizontalOGQuickClip.jpg' | asset_url }}"
+            data-personalization-stage-image-url="{{ 'HorizontalOGQuickClipZoomed.jpg' | asset_url }}"
+            data-personalization-safe-area-url="{{ 'HorizontalOGQuickClipZoomedOverLay.jpg' | asset_url }}"
           >
             <img
               class="personalization-preview-modal__style-preview-image"
@@ -36,14 +37,54 @@
               hidden
             >
             <div
+              class="personalization-preview-modal__safe-area-boundary"
+              data-personalization-safe-area-boundary
+              aria-hidden="true"
+            ></div>
+            <div
               class="personalization-preview-modal__deterministic-overlay"
               data-personalization-deterministic-overlay
               hidden
             >
-              <div class="personalization-preview-modal__deterministic-textbox">
+              <div class="personalization-preview-modal__deterministic-textbox personalization-preview-modal__deterministic-textbox--name" data-personalization-textbox="lastName">
                 <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--name" data-personalization-deterministic-last-name></p>
-                <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--date" data-personalization-deterministic-date></p>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__resize-handle"
+                  data-personalization-resize="lastName"
+                  aria-label="Resize last name text box"
+                ></button>
               </div>
+              <div class="personalization-preview-modal__deterministic-textbox personalization-preview-modal__deterministic-textbox--date" data-personalization-textbox="date">
+                <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--date" data-personalization-deterministic-date></p>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__resize-handle"
+                  data-personalization-resize="date"
+                  aria-label="Resize date text box"
+                ></button>
+              </div>
+              <div class="personalization-preview-modal__deterministic-icon" data-personalization-deterministic-icon hidden>
+                <img
+                  class="personalization-preview-modal__deterministic-icon-image"
+                  data-personalization-deterministic-icon-image
+                  alt="Selected flower icon"
+                  loading="lazy"
+                >
+                <button
+                  type="button"
+                  class="personalization-preview-modal__icon-resize-handle"
+                  data-personalization-icon-resize
+                  aria-label="Resize flower icon"
+                ></button>
+              </div>
+            </div>
+            <div
+              class="personalization-preview-modal__safe-area-warning"
+              data-personalization-safe-area-warning
+              hidden
+            >
+              <span>You can't engrave here.</span>
             </div>
           </div>
         </div>
@@ -106,16 +147,6 @@
                   </span>
                 </label>
               </div>
-              <p class="personalization-preview-modal__helper">
-                Upload style images in theme assets as: quickclip-style-1.jpg, quickclip-style-2.jpg, quickclip-style-3.jpg.
-                Editing canvas image: HorizontalOGQuickClip.jpg
-              </p>
-            </div>
-
-            <div class="personalization-preview-modal__field">
-              <p class="personalization-preview-modal__helper">
-                Style font presets are applied automatically based on the selected style.
-              </p>
             </div>
 
             <div class="personalization-preview-modal__field-group">
@@ -129,7 +160,6 @@
                   placeholder="Ex: The Johnsons"
                   data-personalization-input="lastName"
                 >
-                <p class="personalization-preview-modal__count" data-personalization-count="lastName"></p>
               </div>
 
               <div class="personalization-preview-modal__field">
@@ -142,7 +172,45 @@
                   placeholder="MM/DD/YYYY"
                   data-personalization-input="date"
                 >
-                <p class="personalization-preview-modal__count" data-personalization-count="date"></p>
+              </div>
+            </div>
+
+            <div class="personalization-preview-modal__field-group">
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationLastNameFont">Last name font</label>
+                <select
+                  id="PersonalizationLastNameFont"
+                  class="personalization-preview-modal__input personalization-preview-modal__select"
+                  data-personalization-input="lastNameFont"
+                ></select>
+              </div>
+
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationDateFont">Date font</label>
+                <select
+                  id="PersonalizationDateFont"
+                  class="personalization-preview-modal__input personalization-preview-modal__select"
+                  data-personalization-input="dateFont"
+                ></select>
+              </div>
+            </div>
+
+            <div class="personalization-preview-modal__field-group">
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationFlowerIcon">Flower icon</label>
+                <select
+                  id="PersonalizationFlowerIcon"
+                  class="personalization-preview-modal__input personalization-preview-modal__select"
+                  data-personalization-input="flowerIcon"
+                  data-personalization-icon-registry-url="{{ 'quickclip-icons.json' | asset_url }}"
+                >
+                  <option value="">No icon</option>
+                  <option value="tulip" data-icon-url="{{ 'quickclip-icon-tulip.svg' | asset_url }}">Tulip</option>
+                  <option value="lily" data-icon-url="{{ 'quickclip-icon-lily.svg' | asset_url }}">Lily</option>
+                  <option value="rose" data-icon-url="{{ 'quickclip-icon-rose.svg' | asset_url }}">Rose</option>
+                  <option value="daisy" data-icon-url="{{ 'quickclip-icon-daisy.svg' | asset_url }}">Daisy</option>
+                  <option value="lavender" data-icon-url="{{ 'quickclip-icon-lavender.svg' | asset_url }}">Lavender</option>
+                </select>
               </div>
             </div>
           </div>

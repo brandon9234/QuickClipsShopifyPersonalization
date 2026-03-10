@@ -58,6 +58,8 @@ function validatePayload(body) {
   const style = sanitize(body.style, 20);
   const lastName = sanitize(body.lastName || body.name1, 40);
   const date = sanitize(body.date, 20);
+  const normalizedFlowerIcon = sanitize(body.flowerIcon, 64).toLowerCase();
+  const flowerIcon = /^[a-z0-9_-]*$/.test(normalizedFlowerIcon) ? normalizedFlowerIcon : '';
   let styleImage = null;
   let contextImage = null;
 
@@ -109,6 +111,7 @@ function validatePayload(body) {
       style,
       lastName,
       date,
+      flowerIcon,
       styleImage,
       contextImage,
     },
@@ -143,9 +146,15 @@ async function callGeminiImageEdit(payload) {
 
   if (editMode === 'context-apply') {
     promptLines.push(
-      'Image 1 is the original clip photo. Image 2 is a deterministic staging preview with the desired text layout.',
+      'Image 1 is the original clip photo. Image 2 is the text-preview layout showing exact wording and placement.',
       'Use Image 2 as context for text placement and style, but output only the edited version of Image 1.'
     );
+    if (payload.flowerIcon) {
+      promptLines.push(
+        `Image 2 includes a "${payload.flowerIcon}" decorative flower icon.`,
+        'Replicate that icon in the same location and scale as a clean engraved mark.'
+      );
+    }
     promptLines.push(
       `Surname line MUST be exactly: "${engravedLastName}".`,
       engravedDate
