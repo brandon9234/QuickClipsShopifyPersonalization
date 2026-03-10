@@ -1,0 +1,11 @@
+{
+    "pid":  7748,
+    "store":  "489d6f.myshopify.com",
+    "host":  "127.0.0.1",
+    "port":  9393,
+    "url":  "http://127.0.0.1:9393",
+    "startedAt":  "2026-03-09T15:04:39.6382418-06:00",
+    "statusCode":  200,
+    "stdoutLog":  "G:\\My Drive\\QuickClips\\QuickClipsPersonalizatiationPreviewingDemo\\.tools-local-backup\\shopify-theme-dev-9393-20260309-150432.out.log",
+    "stderrLog":  "G:\\My Drive\\QuickClips\\QuickClipsPersonalizatiationPreviewingDemo\\.tools-local-backup\\shopify-theme-dev-9393-20260309-150432.err.log"
+}

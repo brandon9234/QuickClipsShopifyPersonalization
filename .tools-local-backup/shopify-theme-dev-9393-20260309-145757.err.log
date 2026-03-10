@@ -1,0 +1,19 @@
+╭─ success ────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Preview your theme (t)                                                      │
+│    • http://127.0.0.1:9393                                                   │
+│                                                                              │
+│  Next steps                                                                  │
+│    • Share your theme preview (p) [1]                                        │
+│      https://489d6f.myshopify.com/?preview_theme_id=143910240371             │
+│    • Customize your theme at the theme editor (e) [2]                        │
+│    • Preview your gift cards (g) [3]                                         │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[1] https://489d6f.myshopify.com/?preview_theme_id=143910240371
+[2] https://489d6f.myshopify.com/admin/themes/143910240371/editor?hr=9393
+[3] http://127.0.0.1:9393/gift_cards/[store_id]/preview
+
+• 14:58:05 Request »    GET 200 / 1619ms
+• 14:58:06 Request »    GET 200 /products/retail-quickclip-minis-magnetic-boutonniere-clip 963ms
+• 14:58:07 Request »   POST 200 /shopify_pay/accelerated_checkout 333ms

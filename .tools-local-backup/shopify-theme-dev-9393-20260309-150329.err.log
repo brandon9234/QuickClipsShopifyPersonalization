@@ -1,0 +1,20 @@
+╭─ success ────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Preview your theme (t)                                                      │
+│    • http://127.0.0.1:9393                                                   │
+│                                                                              │
+│  Next steps                                                                  │
+│    • Share your theme preview (p) [1]                                        │
+│      https://489d6f.myshopify.com/?preview_theme_id=143910240371             │
+│    • Customize your theme at the theme editor (e) [2]                        │
+│    • Preview your gift cards (g) [3]                                         │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[1] https://489d6f.myshopify.com/?preview_theme_id=143910240371
+[2] https://489d6f.myshopify.com/admin/themes/143910240371/editor?hr=9393
+[3] http://127.0.0.1:9393/gift_cards/[store_id]/preview
+
+• 15:03:37 Request »    GET 200 / 1447ms
+• 15:03:53 Request »    GET 200 / 642ms
+• 15:03:54 Request »   POST 200 /shopify_pay/accelerated_checkout 270ms
+• 15:03:55 Request »   HEAD 200 / 448ms
