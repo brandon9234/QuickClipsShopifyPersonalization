@@ -28,14 +28,43 @@
           {%- endunless -%}
           {%- for property in item.properties -%}
             {%- assign property_first_char = property.first | slice: 0 -%}
-            {%- if property.last != blank and property_first_char != '_' -%}
+            {%- assign property_key = property.first | strip -%}
+            {%- assign hide_property = false -%}
+            {%- if property_key == 'Personalization Deterministic Text'
+              or property_key == 'Personalization Deterministic Size'
+              or property_key == 'Personalization Deterministic Box Width'
+              or property_key == 'Personalization Mode'
+              or property_key == 'Personalization Deterministic Font'
+              or property_key == 'Personalization Font'
+            -%}
+              {%- assign hide_property = true -%}
+            {%- endif -%}
+            {%- if property.last != blank and property_first_char != '_' and hide_property == false -%}
               <div class="product-option">
                 <dt>{{ property.first }}:</dt>
                 <dd>
                   {%- if property.last contains '/uploads/' -%}
-                    <a href="{{ property.last }}" class="link" target="_blank">
-                      {{ property.last | split: '/' | last }}
-                    </a>
+                    {%- if property_key == 'Personalization Stage Preview' -%}
+                      <a
+                        href="{{ property.last }}"
+                        class="link personalization-cart-preview-link"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        <img
+                          src="{{ property.last }}"
+                          alt="Saved personalization preview for {{ item.product.title | escape }}"
+                          class="personalization-cart-preview-image"
+                          loading="lazy"
+                          width="120"
+                          height="90"
+                        >
+                      </a>
+                    {%- else -%}
+                      <a href="{{ property.last }}" class="link" target="_blank" rel="noopener">
+                        {{ property.last | split: '/' | last }}
+                      </a>
+                    {%- endif -%}
                   {%- else -%}
                     {{ property.last }}
                   {%- endif -%}

@@ -31,7 +31,7 @@
   const ICON_LAYOUT_CHANGE_EPSILON = 0.18;
   const ICON_POINTER_MOVE_ACTIVATION_PX = 10;
   const STAGE_PREVIEW_FILE_NAME_PREFIX = 'quickclips-stage-preview';
-  const CUSTOM_ENGRAVING_KEYWORDS = Object.freeze(['custom engraving', 'personalization', 'personalized']);
+  const CUSTOM_ENGRAVING_KEYWORDS = Object.freeze(['custom engraving']);
   const DEFAULT_FLOWER_ICON_OPTIONS = Object.freeze([
     { value: 'tulip', label: 'Tulip', asset: 'quickclip-icon-tulip.svg' },
     { value: 'lily', label: 'Lily', asset: 'quickclip-icon-lily.svg' },
@@ -714,6 +714,29 @@
     return CUSTOM_ENGRAVING_KEYWORDS.some((keyword) => normalizedValue.includes(keyword));
   }
 
+  function getFormAssociatedControls(formElement) {
+    if (!(formElement instanceof HTMLFormElement)) return [];
+    const associatedControls = new Set();
+
+    formElement.querySelectorAll('input, select, textarea').forEach((control) => {
+      associatedControls.add(control);
+    });
+
+    const formId = String(formElement.id || '').trim();
+    if (formId) {
+      const escapedFormId = selectorEscape(formId);
+      document
+        .querySelectorAll(
+          `input[form="${escapedFormId}"], select[form="${escapedFormId}"], textarea[form="${escapedFormId}"]`
+        )
+        .forEach((control) => {
+          associatedControls.add(control);
+        });
+    }
+
+    return Array.from(associatedControls);
+  }
+
   function getVariantKeywordIndex(variantSelectsElement) {
     if (!variantSelectsElement) return null;
     if (variantKeywordIndexByElement.has(variantSelectsElement)) {
@@ -794,26 +817,64 @@
   function getSelectedFormOptionValues(formElement) {
     if (!formElement) return [];
     const selectedValues = [];
+    const associatedControls = getFormAssociatedControls(formElement);
 
-    formElement.querySelectorAll('fieldset').forEach((fieldsetElement) => {
-      const selectedRadio = fieldsetElement.querySelector('input[type="radio"]:checked');
-      if (selectedRadio) {
-        selectedValues.push(String(selectedRadio.value || '').trim());
-      }
+    const checkedRadiosByName = new Map();
+    associatedControls.forEach((control) => {
+      if (!(control instanceof HTMLInputElement)) return;
+      if (control.type !== 'radio' || !control.name || !control.checked) return;
+      checkedRadiosByName.set(control.name, control);
+    });
+    checkedRadiosByName.forEach((control) => {
+      selectedValues.push(String(control.value || '').trim());
     });
 
-    formElement.querySelectorAll('select').forEach((selectElement) => {
-      const selectedOption = selectElement.selectedOptions && selectElement.selectedOptions.length
-        ? selectElement.selectedOptions[0]
-        : null;
-      if (selectedOption) {
-        selectedValues.push(String(selectedOption.value || selectedOption.textContent || '').trim());
-      } else {
-        selectedValues.push(String(selectElement.value || '').trim());
+    associatedControls.forEach((control) => {
+      if (control instanceof HTMLInputElement && control.type === 'checkbox' && control.checked) {
+        selectedValues.push(String(control.value || '').trim());
+        return;
       }
+
+      if (!(control instanceof HTMLSelectElement)) return;
+      if (control.selectedOptions && control.selectedOptions.length) {
+        Array.from(control.selectedOptions).forEach((selectedOption) => {
+          selectedValues.push(String(selectedOption.value || selectedOption.textContent || '').trim());
+        });
+        return;
+      }
+
+      selectedValues.push(String(control.value || '').trim());
     });
 
     return selectedValues;
+  }
+
+  function formHasCustomEngravingOption(formElement) {
+    if (!formElement) return false;
+    const associatedControls = getFormAssociatedControls(formElement);
+    if (!associatedControls.length) return false;
+
+    for (const control of associatedControls) {
+      if (control instanceof HTMLInputElement) {
+        if (control.type !== 'radio' && control.type !== 'checkbox') continue;
+        if (hasCustomEngravingKeyword(control.value)) {
+          return true;
+        }
+        continue;
+      }
+
+      if (!(control instanceof HTMLSelectElement)) continue;
+      const options = Array.from(control.options || []);
+      if (
+        options.some((option) =>
+          hasCustomEngravingKeyword(String(option.value || option.textContent || '').trim())
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   function isCustomEngravingSelectedForForm(formElement) {
@@ -941,6 +1002,7 @@
       previewOpened: true,
       maxLastName: DEFAULT_LAST_NAME_MAX,
       maxDate: DEFAULT_DATE_MAX,
+      isSaved: false,
     };
   }
 
@@ -970,6 +1032,7 @@
       previewOpened: Boolean(nextState.previewOpened ?? currentState.previewOpened),
       maxLastName: parseMaxLength(nextState.maxLastName ?? currentState.maxLastName, DEFAULT_LAST_NAME_MAX),
       maxDate: parseMaxLength(nextState.maxDate ?? currentState.maxDate, DEFAULT_DATE_MAX),
+      isSaved: Boolean(nextState.isSaved ?? currentState.isSaved),
     });
   }
 
@@ -1670,13 +1733,16 @@
 
     if (!triggers.length && !contexts.length) return;
 
-    const requiresCustomOption =
+    let requiresCustomOption =
       triggers.some((trigger) => String(trigger.dataset.personalizationRequiresCustomOption || '') === 'true') ||
       contexts.some((context) => String(context.dataset.personalizationRequiresCustomOption || '') === 'true');
+    const scopeForm = resolveScopeForm(scope);
+    if (!requiresCustomOption && scopeForm) {
+      requiresCustomOption = formHasCustomEngravingOption(scopeForm);
+    }
 
     let isPersonalizationEnabledForScope = true;
     if (requiresCustomOption) {
-      const scopeForm = resolveScopeForm(scope);
       if (scopeForm) {
         isPersonalizationEnabledForScope = isCustomEngravingSelectedForForm(scopeForm);
       } else {
@@ -1688,11 +1754,14 @@
     }
 
     triggers.forEach((trigger) => {
+      trigger.dataset.personalizationRequiresCustomOption = requiresCustomOption ? 'true' : 'false';
+      trigger.dataset.personalizationCustomSelected = isPersonalizationEnabledForScope ? 'true' : 'false';
       trigger.toggleAttribute('hidden', !isPersonalizationEnabledForScope);
       trigger.disabled = !isPersonalizationEnabledForScope;
     });
 
     contexts.forEach((context) => {
+      context.dataset.personalizationRequiresCustomOption = requiresCustomOption ? 'true' : 'false';
       setContextInputsEnabled(context, isPersonalizationEnabledForScope);
     });
 
@@ -2396,15 +2465,9 @@
     const name1Property = context.querySelector('[data-personalization-property="name1"]');
     const name2Property = context.querySelector('[data-personalization-property="name2"]');
     const dateProperty = context.querySelector('[data-personalization-property="date"]');
-    const modeProperty = context.querySelector('[data-personalization-property="mode"]');
-    const deterministicTextProperty = context.querySelector('[data-personalization-property="deterministic_text"]');
-    const deterministicFontProperty = context.querySelector('[data-personalization-property="deterministic_font"]');
     const iconProperty = context.querySelector('[data-personalization-property="icon"]');
-    const deterministicSizeProperty = context.querySelector('[data-personalization-property="deterministic_size"]');
-    const deterministicBoxWidthProperty = context.querySelector('[data-personalization-property="deterministic_box_width"]');
     const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
-    const stylePreset = getStylePreset(state.style || DEFAULT_STYLE);
 
     if (primaryProperty) primaryProperty.value = state.lastName || '';
     if (secondaryProperty) secondaryProperty.value = '';
@@ -2412,18 +2475,7 @@
     if (name1Property) name1Property.value = state.lastName || '';
     if (name2Property) name2Property.value = '';
     if (dateProperty) dateProperty.value = state.date || '';
-    if (modeProperty) modeProperty.value = 'deterministic';
-    if (deterministicTextProperty) {
-      deterministicTextProperty.value = `${state.lastName || ''}${state.date ? ` | ${state.date}` : ''}`.trim();
-    }
-    if (deterministicFontProperty) {
-      const resolvedLastNameFont = state.lastNameFont || stylePreset.nameFamily;
-      const resolvedDateFont = state.dateFont || stylePreset.dateFamily;
-      deterministicFontProperty.value = `${resolvedLastNameFont} | ${resolvedDateFont}`;
-    }
     if (iconProperty) iconProperty.value = normalizeFlowerIcon(state.flowerIcon);
-    if (deterministicSizeProperty) deterministicSizeProperty.value = String(stylePreset.nameSize);
-    if (deterministicBoxWidthProperty) deterministicBoxWidthProperty.value = String(stylePreset.boxWidth);
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
   }
@@ -2431,6 +2483,95 @@
   function isConfiguredState(state) {
     if (!state) return false;
     return Boolean(state.lastName || state.date || state.flowerIcon || state.geminiSummary || state.generatedImage);
+  }
+
+  function isSavedState(state) {
+    return Boolean(state && state.isSaved);
+  }
+
+  function buildSavedPreviewMeta(state) {
+    if (!state) return '';
+    const segments = [];
+    if (state.style) segments.push(`Style: ${state.style}`);
+    if (state.lastName) segments.push(`Name: ${state.lastName}`);
+    if (state.date) segments.push(`Date: ${state.date}`);
+    return segments.join(' | ');
+  }
+
+  function renderSavedPreviewPanels(scope, state, previewImageDataUrl) {
+    if (!scope) return;
+
+    const escapedScope = selectorEscape(scope);
+    const savedPreviewBlocks = document.querySelectorAll(
+      `[data-personalization-saved-preview][data-personalization-scope="${escapedScope}"]`
+    );
+    if (!savedPreviewBlocks.length) return;
+
+    const shouldShowPreview = isSavedState(state);
+    const normalizedPreviewDataUrl = resolveStagePreviewDataUrl(previewImageDataUrl);
+    const metaText = shouldShowPreview ? buildSavedPreviewMeta(state) : '';
+
+    savedPreviewBlocks.forEach((previewBlock) => {
+      const previewImage = previewBlock.querySelector('[data-personalization-saved-preview-image]');
+      const previewMeta = previewBlock.querySelector('[data-personalization-saved-preview-meta]');
+
+      previewBlock.toggleAttribute('hidden', !shouldShowPreview);
+      if (!shouldShowPreview) {
+        if (previewImage instanceof HTMLImageElement) {
+          previewImage.removeAttribute('src');
+          previewImage.setAttribute('hidden', '');
+        }
+        if (previewMeta instanceof HTMLElement) {
+          previewMeta.textContent = '';
+          previewMeta.setAttribute('hidden', '');
+        }
+        return;
+      }
+
+      if (previewImage instanceof HTMLImageElement) {
+        if (normalizedPreviewDataUrl) {
+          previewImage.src = normalizedPreviewDataUrl;
+          previewImage.removeAttribute('hidden');
+        } else {
+          previewImage.removeAttribute('src');
+          previewImage.setAttribute('hidden', '');
+        }
+      }
+
+      if (previewMeta instanceof HTMLElement) {
+        previewMeta.textContent = metaText;
+        previewMeta.toggleAttribute('hidden', !metaText);
+      }
+    });
+  }
+
+  async function syncSavedPreviewPanels(scope) {
+    if (!scope) return;
+
+    const state = getScopeState(scope);
+    if (!state || !isSavedState(state)) {
+      renderSavedPreviewPanels(scope, state, '');
+      return;
+    }
+
+    const existingPreviewDataUrl = resolveStagePreviewDataUrl(state.stagePreviewDataUrl || state.generatedImage);
+    if (existingPreviewDataUrl) {
+      renderSavedPreviewPanels(scope, state, existingPreviewDataUrl);
+      return;
+    }
+
+    let generatedStagePreviewDataUrl = '';
+    try {
+      generatedStagePreviewDataUrl = await ensureScopeStagePreviewDataUrl(scope, state);
+    } catch (error) {
+      generatedStagePreviewDataUrl = '';
+    }
+
+    const latestState = getScopeState(scope) || state;
+    const resolvedPreviewDataUrl = resolveStagePreviewDataUrl(
+      generatedStagePreviewDataUrl || latestState.stagePreviewDataUrl || latestState.generatedImage
+    );
+    renderSavedPreviewPanels(scope, latestState, resolvedPreviewDataUrl);
   }
 
   function updateTriggerLabels(scope) {
@@ -2468,6 +2609,7 @@
     contexts.forEach((context) => applyStateToContext(context, state));
     updateTriggerLabels(scope);
     syncScopePersonalizationEligibility(scope);
+    void syncSavedPreviewPanels(scope);
   }
 
   function resolveContextScope(context) {
@@ -2501,28 +2643,38 @@
       const defaultState = createDefaultState();
       const initialStyle =
         (context.querySelector('[data-personalization-property="style"]') || {}).value || defaultState.style;
+      const contextNameValue =
+        (context.querySelector('[data-personalization-property="name1"]') || {}).value ||
+        (context.querySelector('[data-personalization-property="primary"]') || {}).value ||
+        '';
+      const contextDateValue = (context.querySelector('[data-personalization-property="date"]') || {}).value || '';
+      const contextIconValue = (context.querySelector('[data-personalization-property="icon"]') || {}).value || '';
+      const contextGeminiSummary =
+        (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '';
+      const hasPersistedPersonalization = Boolean(
+        String(contextNameValue).trim() ||
+          String(contextDateValue).trim() ||
+          String(contextIconValue).trim() ||
+          String(contextGeminiSummary).trim()
+      );
       setScopeState(scope, {
         style: initialStyle,
-        lastName:
-          (context.querySelector('[data-personalization-property="name1"]') || {}).value ||
-          (context.querySelector('[data-personalization-property="primary"]') || {}).value ||
-          defaultState.lastName,
-        date: (context.querySelector('[data-personalization-property="date"]') || {}).value || defaultState.date,
+        lastName: contextNameValue || defaultState.lastName,
+        date: contextDateValue || defaultState.date,
         lastNameFont: getStylePreset(
           initialStyle
         ).nameFamily,
         dateFont: getStylePreset(
           initialStyle
         ).dateFamily,
-        flowerIcon:
-          (context.querySelector('[data-personalization-property="icon"]') || {}).value ||
-          defaultState.flowerIcon,
+        flowerIcon: contextIconValue || defaultState.flowerIcon,
         textLayout: defaultState.textLayout,
-        geminiSummary: (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '',
+        geminiSummary: contextGeminiSummary,
         generatedImage: '',
         stagePreviewDataUrl: '',
         maxLastName: DEFAULT_LAST_NAME_MAX,
         maxDate: DEFAULT_DATE_MAX,
+        isSaved: hasPersistedPersonalization,
       });
     }
 
@@ -2608,10 +2760,43 @@
     openEditor(trigger);
   });
 
+  function resolveAssociatedAddToCartForm(target) {
+    if (!(target instanceof Element)) return null;
+    const formFromAncestor = target.closest('form[data-type="add-to-cart-form"]');
+    if (formFromAncestor instanceof HTMLFormElement) return formFromAncestor;
+
+    if (target instanceof HTMLElement) {
+      if (target.form instanceof HTMLFormElement && target.form.dataset.type === 'add-to-cart-form') {
+        return target.form;
+      }
+
+      const associatedFormId = String(target.getAttribute('form') || '').trim();
+      if (associatedFormId) {
+        const associatedForm = document.getElementById(associatedFormId);
+        if (associatedForm instanceof HTMLFormElement && associatedForm.dataset.type === 'add-to-cart-form') {
+          return associatedForm;
+        }
+      }
+    }
+
+    const variantSelects = target.closest('variant-selects[data-section]');
+    if (variantSelects instanceof HTMLElement) {
+      const sectionId = String(variantSelects.dataset.section || '').trim();
+      if (sectionId) {
+        const sectionForm = document.getElementById(`product-form-${sectionId}`);
+        if (sectionForm instanceof HTMLFormElement && sectionForm.dataset.type === 'add-to-cart-form') {
+          return sectionForm;
+        }
+      }
+    }
+
+    return null;
+  }
+
   document.addEventListener('change', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const form = target.closest('form[data-type="add-to-cart-form"]');
+    const form = resolveAssociatedAddToCartForm(target);
     if (!form) return;
     scheduleFormPersonalizationEligibilitySync(form);
   });
@@ -2619,7 +2804,13 @@
   document.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const form = target.closest('form[data-type="add-to-cart-form"]');
+    let form = resolveAssociatedAddToCartForm(target);
+    if (!form && target instanceof HTMLLabelElement && target.htmlFor) {
+      const labelledControl = document.getElementById(target.htmlFor);
+      if (labelledControl instanceof Element) {
+        form = resolveAssociatedAddToCartForm(labelledControl);
+      }
+    }
     if (!form) return;
     scheduleFormPersonalizationEligibilitySync(form);
   });
@@ -2631,7 +2822,7 @@
       return;
     }
 
-    const form = target.closest('form[data-type="add-to-cart-form"]');
+    const form = resolveAssociatedAddToCartForm(target);
     if (form) {
       scheduleFormPersonalizationEligibilitySync(form);
       return;
@@ -2639,6 +2830,26 @@
 
     syncAllScopePersonalizationEligibility();
   });
+
+  if (
+    typeof subscribe === 'function' &&
+    typeof PUB_SUB_EVENTS !== 'undefined' &&
+    PUB_SUB_EVENTS &&
+    PUB_SUB_EVENTS.variantChange
+  ) {
+    subscribe(PUB_SUB_EVENTS.variantChange, (event) => {
+      const sectionId = String(event?.data?.sectionId || '').trim();
+      if (sectionId) {
+        const sectionForm = document.getElementById(`product-form-${sectionId}`);
+        if (sectionForm instanceof HTMLFormElement && sectionForm.dataset.type === 'add-to-cart-form') {
+          scheduleFormPersonalizationEligibilitySync(sectionForm);
+          return;
+        }
+      }
+
+      syncAllScopePersonalizationEligibility();
+    });
+  }
 
   styleInputs.forEach((input) => {
     input.addEventListener('change', () => {
@@ -2767,6 +2978,7 @@
       previewOpened: true,
       maxLastName: activeLastNameMax,
       maxDate: activeDateMax,
+      isSaved: true,
     });
 
     syncScope(activeScope);
@@ -2913,8 +3125,19 @@
     generatePreview();
   });
 
-  saveButton.addEventListener('click', () => {
-    commitActiveState(true);
+  saveButton.addEventListener('click', async () => {
+    const scopeToSave = activeScope;
+    const committed = commitActiveState(false);
+    if (!committed || !scopeToSave) return;
+
+    try {
+      await ensureScopeStagePreviewDataUrl(scopeToSave);
+    } catch (error) {
+      // Keep save flow non-blocking if stage preview generation fails.
+    }
+
+    syncScope(scopeToSave);
+    closeEditor();
   });
 
   cancelButton.addEventListener('click', () => {

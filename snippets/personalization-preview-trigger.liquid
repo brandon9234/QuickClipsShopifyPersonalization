@@ -40,11 +40,26 @@
         echo variant.options | join: '|'
       endcapture
       assign variant_tokens = variant_tokens | downcase
-      if variant_tokens contains 'custom engraving' or variant_tokens contains 'personalized' or variant_tokens contains 'personalization'
+      if variant_tokens contains 'custom engraving'
         assign requires_custom_option = true
         break
       endif
     endfor
+
+    if requires_custom_option == false
+      for option in target_product.options_with_values
+        capture option_tokens
+          echo option.name
+          echo '|'
+          echo option.values | join: '|'
+        endcapture
+        assign option_tokens = option_tokens | downcase
+        if option_tokens contains 'custom engraving'
+          assign requires_custom_option = true
+          break
+        endif
+      endfor
+    endif
 
     assign selected_variant = target_product.selected_or_first_available_variant
     if selected_variant != blank
@@ -54,7 +69,7 @@
         echo selected_variant.options | join: '|'
       endcapture
       assign selected_variant_tokens = selected_variant_tokens | downcase
-      if selected_variant_tokens contains 'custom engraving' or selected_variant_tokens contains 'personalized' or selected_variant_tokens contains 'personalization'
+      if selected_variant_tokens contains 'custom engraving'
         assign is_custom_option_selected = true
       endif
     endif
@@ -97,4 +112,24 @@
   >
     <span data-personalization-trigger-label>{{ trigger_label }}</span>
   </button>
+  <div
+    class="personalization-preview-trigger__saved"
+    data-personalization-saved-preview
+    data-personalization-scope="{{ scope_id }}"
+    hidden
+  >
+    <p class="personalization-preview-trigger__saved-label">Saved preview</p>
+    <img
+      class="personalization-preview-trigger__saved-image"
+      data-personalization-saved-preview-image
+      alt="Saved personalization preview"
+      loading="lazy"
+      hidden
+    >
+    <p
+      class="personalization-preview-trigger__saved-meta caption"
+      data-personalization-saved-preview-meta
+      hidden
+    ></p>
+  </div>
 {%- endif -%}

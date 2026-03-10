@@ -23,11 +23,26 @@
         echo variant.options | join: '|'
       endcapture
       assign variant_tokens = variant_tokens | downcase
-      if variant_tokens contains 'custom engraving' or variant_tokens contains 'personalized' or variant_tokens contains 'personalization'
+      if variant_tokens contains 'custom engraving'
         assign requires_custom_option = true
         break
       endif
     endfor
+
+    if requires_custom_option == false
+      for option in product.options_with_values
+        capture option_tokens
+          echo option.name
+          echo '|'
+          echo option.values | join: '|'
+        endcapture
+        assign option_tokens = option_tokens | downcase
+        if option_tokens contains 'custom engraving'
+          assign requires_custom_option = true
+          break
+        endif
+      endfor
+    endif
 
     assign selected_variant = product.selected_or_first_available_variant
     if selected_variant != blank
@@ -37,7 +52,7 @@
         echo selected_variant.options | join: '|'
       endcapture
       assign selected_variant_tokens = selected_variant_tokens | downcase
-      if selected_variant_tokens contains 'custom engraving' or selected_variant_tokens contains 'personalized' or selected_variant_tokens contains 'personalization'
+      if selected_variant_tokens contains 'custom engraving'
         assign is_custom_option_selected = true
       endif
     endif
@@ -88,39 +103,9 @@
     >
     <input
       type="hidden"
-      name="properties[Personalization Mode]"
-      value="ai"
-      data-personalization-property="mode"
-    >
-    <input
-      type="hidden"
-      name="properties[Personalization Deterministic Text]"
-      value=""
-      data-personalization-property="deterministic_text"
-    >
-    <input
-      type="hidden"
-      name="properties[Personalization Deterministic Font]"
-      value=""
-      data-personalization-property="deterministic_font"
-    >
-    <input
-      type="hidden"
       name="properties[Personalization Icon]"
       value=""
       data-personalization-property="icon"
-    >
-    <input
-      type="hidden"
-      name="properties[Personalization Deterministic Size]"
-      value=""
-      data-personalization-property="deterministic_size"
-    >
-    <input
-      type="hidden"
-      name="properties[Personalization Deterministic Box Width]"
-      value=""
-      data-personalization-property="deterministic_box_width"
     >
     <input
       type="hidden"
