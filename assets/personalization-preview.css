@@ -445,6 +445,135 @@
   outline-offset: 0.1rem;
 }
 
+.personalization-preview-modal__icon-native-select {
+  display: none;
+}
+
+.personalization-preview-modal__icon-dropdown {
+  position: relative;
+  margin-top: 0.7rem;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle {
+  width: 100%;
+  min-height: 4.4rem;
+  border: 0.1rem solid rgba(var(--color-foreground), var(--inputs-border-opacity));
+  border-radius: var(--inputs-radius-outset);
+  padding: 0.7rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font: inherit;
+  color: rgb(var(--color-foreground));
+  background-color: rgb(var(--color-background));
+  cursor: pointer;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle:focus-visible {
+  outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
+  outline-offset: 0.1rem;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle-preview {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.6rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.16);
+  background: rgba(var(--color-background-contrast), 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle-preview img {
+  width: 1.8rem;
+  height: 1.8rem;
+  object-fit: contain;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle-label {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.personalization-preview-modal__icon-dropdown-toggle-caret {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.18s ease;
+}
+
+.personalization-preview-modal__icon-dropdown.is-open .personalization-preview-modal__icon-dropdown-toggle-caret {
+  transform: rotate(180deg);
+}
+
+.personalization-preview-modal__icon-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 0;
+  right: 0;
+  z-index: 35;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.18);
+  border-radius: var(--inputs-radius-outset);
+  background-color: rgb(var(--color-background));
+  box-shadow: 0 1.3rem 2.8rem rgba(var(--color-foreground), 0.13);
+  padding: 0.7rem;
+  max-height: 25rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.personalization-preview-modal__icon-dropdown-option {
+  width: 100%;
+  min-height: 4.1rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.2);
+  border-radius: var(--inputs-radius-outset);
+  background: rgba(var(--color-background), 1);
+  color: rgb(var(--color-foreground));
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  cursor: pointer;
+}
+
+.personalization-preview-modal__icon-dropdown-option:hover {
+  border-color: rgba(var(--color-button), 0.58);
+}
+
+.personalization-preview-modal__icon-dropdown-option:focus-visible {
+  outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
+  outline-offset: 0.1rem;
+}
+
+.personalization-preview-modal__icon-dropdown-option[aria-selected="true"] {
+  border-color: rgb(var(--color-button));
+  box-shadow: 0 0 0 0.2rem rgba(var(--color-button), 0.14);
+}
+
+.personalization-preview-modal__icon-dropdown-option-image {
+  width: 2.4rem;
+  height: 2.4rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.personalization-preview-modal__icon-dropdown-option-image.is-placeholder {
+  border: 0.1rem dashed rgba(var(--color-foreground), 0.25);
+  border-radius: 50%;
+}
+
+.personalization-preview-modal__icon-dropdown-option-label {
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
 .personalization-preview-modal__icon-clear {
   align-self: flex-start;
   margin-top: 0.7rem;
@@ -772,6 +901,7 @@
 }
 
 .personalization-preview-modal__deterministic-icon {
+  --icon-color: #4b341f;
   position: absolute;
   left: var(--icon-x, 50%);
   top: var(--icon-y, 50%);
@@ -785,14 +915,34 @@
   pointer-events: auto;
   touch-action: none;
   z-index: 3;
+  color: var(--icon-color);
+}
+
+.personalization-preview-modal__deterministic-icon::before {
+  content: '';
+  position: absolute;
+  inset: var(--icon-inner-inset, 0.18rem);
+  background: currentColor;
+  -webkit-mask-image: var(--icon-mask-image);
+  -webkit-mask-position: var(--icon-mask-pos-x, 50%) var(--icon-mask-pos-y, 50%);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: var(--icon-mask-size-x, 100%) var(--icon-mask-size-y, 100%);
+  mask-image: var(--icon-mask-image);
+  mask-position: var(--icon-mask-pos-x, 50%) var(--icon-mask-pos-y, 50%);
+  mask-repeat: no-repeat;
+  mask-size: var(--icon-mask-size-x, 100%) var(--icon-mask-size-y, 100%);
+  pointer-events: none;
 }
 
 .personalization-preview-modal__deterministic-icon-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: contain;
   pointer-events: none;
+  opacity: 0;
 }
 
 .personalization-preview-modal__deterministic-icon.is-selected {
@@ -980,6 +1130,10 @@
 
   .personalization-preview-modal__style-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .personalization-preview-modal__icon-dropdown-menu {
+    grid-template-columns: 1fr;
   }
 
   .personalization-preview-modal__mode-options {

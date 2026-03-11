@@ -99,24 +99,24 @@
           <div class="personalization-preview-modal__fields">
             <div class="personalization-preview-modal__field">
               <p class="form__label">Choose clip style</p>
-              {%- assign personalization_style_values = 'Handwritten 1|Handwritten 2|Handwritten 3|Cursive 1|Cursive 2|Cursive 3|Professional 1|Professional 2|Professional 3|Bold 1|Bold 2|Bold 3|Minimal 1|Minimal 2|Playful 1|Playful 2|Playful 3|Elegant 1|Elegant 2|Classic 1|Classic 2|Classic 3|Modern 1|Modern 2' | split: '|' -%}
-              <div class="personalization-preview-modal__style-options">
-                {%- for style_value in personalization_style_values -%}
-                  <label class="personalization-preview-modal__style-option">
-                    <input
-                      type="radio"
-                      name="PersonalizationStyle"
-                      value="{{ style_value }}"
-                      data-personalization-input="style"
-                      {% if forloop.first %}
-                        checked
-                      {% endif %}
-                    >
-                    <span class="personalization-preview-modal__style-option-display">
-                      <span class="personalization-preview-modal__style-option-label">{{ style_value }}</span>
-                    </span>
-                  </label>
-                {%- endfor -%}
+              <div class="personalization-preview-modal__field-group">
+                <div class="personalization-preview-modal__field">
+                  <label class="form__label" for="PersonalizationStyleFamily">Style family</label>
+                  <select
+                    id="PersonalizationStyleFamily"
+                    class="personalization-preview-modal__input personalization-preview-modal__select"
+                    data-personalization-input="styleFamily"
+                  ></select>
+                </div>
+
+                <div class="personalization-preview-modal__field">
+                  <label class="form__label" for="PersonalizationStyleVariant">Style option</label>
+                  <select
+                    id="PersonalizationStyleVariant"
+                    class="personalization-preview-modal__input personalization-preview-modal__select"
+                    data-personalization-input="styleVariant"
+                  ></select>
+                </div>
               </div>
             </div>
 
@@ -171,12 +171,49 @@
                 <label class="form__label" for="PersonalizationFlowerIcon">Icon</label>
                 <select
                   id="PersonalizationFlowerIcon"
-                  class="personalization-preview-modal__input personalization-preview-modal__select"
+                  class="personalization-preview-modal__input personalization-preview-modal__select personalization-preview-modal__icon-native-select"
                   data-personalization-input="flowerIcon"
                   data-personalization-icon-registry-url="{{ 'quickclip-icons.json' | asset_url }}"
                 >
                   <option value="">No icon</option>
                 </select>
+                <div class="personalization-preview-modal__icon-dropdown" data-personalization-icon-dropdown>
+                  <button
+                    type="button"
+                    class="personalization-preview-modal__icon-dropdown-toggle"
+                    data-personalization-icon-dropdown-toggle
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  >
+                    <span
+                      class="personalization-preview-modal__icon-dropdown-toggle-preview"
+                      data-personalization-icon-dropdown-toggle-preview
+                      hidden
+                    >
+                      <img
+                        data-personalization-icon-dropdown-toggle-image
+                        alt=""
+                        loading="lazy"
+                      >
+                    </span>
+                    <span
+                      class="personalization-preview-modal__icon-dropdown-toggle-label"
+                      data-personalization-icon-dropdown-toggle-label
+                    >
+                      No icon
+                    </span>
+                    <span class="personalization-preview-modal__icon-dropdown-toggle-caret" aria-hidden="true">
+                      {% render 'icon-caret' %}
+                    </span>
+                  </button>
+                  <div
+                    class="personalization-preview-modal__icon-dropdown-menu"
+                    data-personalization-icon-dropdown-menu
+                    role="listbox"
+                    aria-label="Available icons"
+                    hidden
+                  ></div>
+                </div>
                 <button
                   type="button"
                   class="button button--tertiary personalization-preview-modal__icon-clear"

@@ -34,11 +34,58 @@
       return aliases;
     }, {})
   );
+  const STYLE_METADATA_BY_VALUE = Object.freeze(
+    STYLE_DEFINITIONS.reduce((metadata, definition) => {
+      const styleValue = String(definition.value || '').trim();
+      if (!styleValue) return metadata;
+      const match = styleValue.match(/^(.*?)(?:\s+(\d+))$/);
+      const family = String(match ? match[1] : styleValue).trim();
+      const variantNumber = String(match && match[2] ? match[2] : '').trim();
+      metadata[styleValue] = Object.freeze({
+        family,
+        variantLabel: variantNumber ? `Style ${variantNumber}` : styleValue,
+      });
+      return metadata;
+    }, {})
+  );
+  const STYLE_FAMILY_VALUES = Object.freeze(
+    Object.keys(
+      STYLE_DEFINITIONS.reduce((families, definition) => {
+        const styleValue = String(definition.value || '').trim();
+        const styleMetadata = STYLE_METADATA_BY_VALUE[styleValue];
+        if (!styleMetadata || !styleMetadata.family) return families;
+        if (!families[styleMetadata.family]) families[styleMetadata.family] = true;
+        return families;
+      }, {})
+    )
+  );
+  const STYLE_OPTIONS_BY_FAMILY = Object.freeze(
+    STYLE_FAMILY_VALUES.reduce((groups, family) => {
+      const familyOptions = STYLE_DEFINITIONS.filter((definition) => {
+        const styleValue = String(definition.value || '').trim();
+        const styleMetadata = STYLE_METADATA_BY_VALUE[styleValue];
+        return styleMetadata && styleMetadata.family === family;
+      }).map((definition) => {
+        const styleValue = String(definition.value || '').trim();
+        const styleMetadata = STYLE_METADATA_BY_VALUE[styleValue];
+        return Object.freeze({
+          value: styleValue,
+          label: styleMetadata ? styleMetadata.variantLabel : styleValue,
+        });
+      });
+      groups[family] = Object.freeze(familyOptions);
+      return groups;
+    }, {})
+  );
+  const DEFAULT_STYLE_FAMILY =
+    (STYLE_METADATA_BY_VALUE[DEFAULT_STYLE] && STYLE_METADATA_BY_VALUE[DEFAULT_STYLE].family) ||
+    STYLE_FAMILY_VALUES[0] ||
+    '';
   const DEFAULT_LAST_NAME_MAX = 30;
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-10-style-names';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-style-groups-icon-trim';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -55,7 +102,6 @@
   const DEFAULT_SAFE_AREA_TOLERANCE = 1.4;
   const TEXTBOX_LAYOUT_CHANGE_EPSILON = 0.18;
   const TEXTBOX_POINTER_MOVE_ACTIVATION_PX = 12;
-  const SAFE_AREA_CENTER_SNAP_THRESHOLD = 1.1;
   const RENDER_SAFE_AREA_INSET = 1.1;
   const DEFAULT_ICON_SCALE = 100;
   const MIN_ICON_SIZE = 3.4;
@@ -65,7 +111,6 @@
   const STAGE_PREVIEW_FILE_NAME_PREFIX = 'quickclips-stage-preview';
   const CUSTOM_ENGRAVING_KEYWORDS = Object.freeze(['custom engraving']);
   const DEFAULT_FLOWER_ICON_OPTIONS = Object.freeze([
-    { value: 'style-outlines', label: 'Style Outlines', asset: 'StyleOutlines.png' },
     { value: 'cartoon-flower', label: 'Cartoon Flower', asset: 'Cartoon Flower.png' },
     { value: 'flower-with-stem', label: 'Flower With Stem', asset: 'Flower With Stem.png' },
     { value: 'flower-with-stem-leaves', label: 'Flower With Stem + Leaves', asset: 'flower-with-stem-leaves.png' },
@@ -102,7 +147,6 @@
   const MINI_STAGE_IMAGE_KEYWORD = 'horizontalminiquickclipzoomed';
   const SAFE_AREA_SCAN_PADDING = 6;
   const SAFE_AREA_BRIGHTNESS_THRESHOLD = 80;
-  const ENGRAVING_AREA_ERROR = "You can't engrave here.";
   const DEFAULT_TEXT_LAYOUT = Object.freeze(buildDefaultTextLayout(DEFAULT_SAFE_AREA_BOUNDS));
   const FONT_FAMILIES = Object.freeze({
     playpenSansHebrew: '"Playpen Sans Hebrew", "Segoe UI", sans-serif',
@@ -206,7 +250,8 @@
   modal.setAttribute('data-personalization-preview-build', PERSONALIZATION_PREVIEW_BUILD);
   window.QuickClipsPersonalizationPreviewBuild = PERSONALIZATION_PREVIEW_BUILD;
 
-  const styleInputs = Array.from(modal.querySelectorAll('[data-personalization-input="style"]'));
+  const styleFamilySelect = modal.querySelector('[data-personalization-input="styleFamily"]');
+  const styleVariantSelect = modal.querySelector('[data-personalization-input="styleVariant"]');
   const lastNameInput = modal.querySelector('[data-personalization-input="lastName"]');
   const lastNameCount = modal.querySelector('[data-personalization-count="lastName"]');
   const dateInput = modal.querySelector('[data-personalization-input="date"]');
@@ -215,6 +260,12 @@
   const dateFontSelect = modal.querySelector('[data-personalization-input="dateFont"]');
   const flowerIconSelect = modal.querySelector('[data-personalization-input="flowerIcon"]');
   const iconRegistryUrl = String(flowerIconSelect?.dataset.personalizationIconRegistryUrl || '').trim();
+  const iconDropdown = modal.querySelector('[data-personalization-icon-dropdown]');
+  const iconDropdownToggle = modal.querySelector('[data-personalization-icon-dropdown-toggle]');
+  const iconDropdownTogglePreview = modal.querySelector('[data-personalization-icon-dropdown-toggle-preview]');
+  const iconDropdownToggleImage = modal.querySelector('[data-personalization-icon-dropdown-toggle-image]');
+  const iconDropdownToggleLabel = modal.querySelector('[data-personalization-icon-dropdown-toggle-label]');
+  const iconDropdownMenu = modal.querySelector('[data-personalization-icon-dropdown-menu]');
   const deterministicLastNameBox = modal.querySelector('[data-personalization-textbox="lastName"]');
   const deterministicDateBox = modal.querySelector('[data-personalization-textbox="date"]');
   const resizeHandles = Array.from(modal.querySelectorAll('[data-personalization-resize]'));
@@ -241,12 +292,19 @@
   const cancelButton = modal.querySelector('[data-personalization-cancel]');
 
   if (
-    styleInputs.length === 0 ||
+    !styleFamilySelect ||
+    !styleVariantSelect ||
     !lastNameInput ||
     !dateInput ||
     !lastNameFontSelect ||
     !dateFontSelect ||
     !flowerIconSelect ||
+    !iconDropdown ||
+    !iconDropdownToggle ||
+    !iconDropdownTogglePreview ||
+    !iconDropdownToggleImage ||
+    !iconDropdownToggleLabel ||
+    !iconDropdownMenu ||
     !deterministicLastNameBox ||
     !deterministicDateBox ||
     resizeHandles.length < 2 ||
@@ -275,6 +333,7 @@
   const stateByScope = new Map();
   const styleImagePayloadCache = new Map();
   const iconImagePayloadCache = new Map();
+  const pendingIconImagePayloadByUrl = new Map();
   const safeAreaBoundsByUrl = new Map();
   const variantKeywordIndexByElement = new WeakMap();
   const pendingEligibilityScopes = new Set();
@@ -300,9 +359,11 @@
   let iconInteraction = null;
   let selectedTextboxKey = '';
   let isIconSelected = false;
+  let isIconDropdownOpen = false;
   let activeEditorSessionId = 0;
   let shouldValidateEngravingBounds = false;
   let hasUserMovedTextInCurrentSession = false;
+  let pendingFontRefreshRequestId = 0;
   const textMeasureCanvas = document.createElement('canvas');
   const textMeasureContext = textMeasureCanvas.getContext('2d');
   const defaultGenerateButtonText = generateButtonLabel
@@ -323,6 +384,14 @@
       lastName: { ...source.lastName },
       date: { ...source.date },
     };
+  }
+
+  function isTextLayoutAtDefault(layout) {
+    const candidateLayout = sanitizeTextLayout(layout || createDefaultTextLayout());
+    const defaultLayout = createDefaultTextLayout();
+    return !['lastName', 'date'].some((boxKey) =>
+      hasLayoutChangedSignificantly(candidateLayout[boxKey], defaultLayout[boxKey])
+    );
   }
 
   function createDefaultIconLayout(textLayout) {
@@ -498,8 +567,10 @@
     const actualRight = Math.max(0, Number(metrics.actualBoundingBoxRight || 0));
     const actualAscent = Math.max(0, Number(metrics.actualBoundingBoxAscent || 0));
     const actualDescent = Math.max(0, Number(metrics.actualBoundingBoxDescent || 0));
+    const advanceWidth = Math.max(1, Number(metrics.width || 0));
     return {
-      width: Math.max(1, Number(metrics.width || 0), actualLeft + actualRight),
+      width: Math.max(1, advanceWidth, actualLeft + actualRight),
+      advanceWidth,
       height: Math.max(1, actualAscent + actualDescent, fontSize * 0.92),
       left: actualLeft,
       right: actualRight,
@@ -558,6 +629,79 @@
       lastName: clampTextboxToSafeArea(normalizedLayout.lastName, safeArea),
       date: clampTextboxToSafeArea(normalizedLayout.date, safeArea),
     };
+  }
+
+  function getTextboxResizeSafeArea() {
+    const inset = 0;
+    return {
+      x: inset,
+      y: inset,
+      w: 100 - inset * 2,
+      h: 100 - inset * 2,
+    };
+  }
+
+  function isIconLayoutAtDefault(layout, textLayout) {
+    const baselineTextLayout = sanitizeTextLayout(textLayout || activeTextLayout);
+    const candidateLayout = sanitizeIconLayout(layout || createDefaultIconLayout(baselineTextLayout));
+    const defaultLayout = sanitizeIconLayout(createDefaultIconLayout(baselineTextLayout));
+    return (
+      Math.abs(candidateLayout.x - defaultLayout.x) <= ICON_LAYOUT_CHANGE_EPSILON &&
+      Math.abs(candidateLayout.y - defaultLayout.y) <= ICON_LAYOUT_CHANGE_EPSILON &&
+      Math.abs(candidateLayout.size - defaultLayout.size) <= ICON_LAYOUT_CHANGE_EPSILON
+    );
+  }
+
+  function syncPreviewLayoutForInitialPlacement() {
+    const shouldResetTextLayout = isTextLayoutAtDefault(activeTextLayout);
+    const shouldResetIconLayout = getSelectedFlowerIconValue() && isIconLayoutAtDefault(activeIconLayout, activeTextLayout);
+    if (!shouldResetTextLayout && !shouldResetIconLayout) return false;
+
+    if (shouldResetTextLayout) {
+      activeTextLayout = createDefaultTextLayout();
+      renderedTextLayout = cloneTextLayout(activeTextLayout);
+      initialTextLayout = cloneTextLayout(activeTextLayout);
+    }
+
+    if (shouldResetIconLayout) {
+      activeIconLayout = sanitizeIconLayout(createDefaultIconLayout(activeTextLayout));
+      initialIconLayout = { ...activeIconLayout };
+    }
+
+    return true;
+  }
+
+  async function refreshPreviewAfterFontsReady(options = {}) {
+    const refreshRequestId = ++pendingFontRefreshRequestId;
+    const shouldSyncInitialPlacement = Boolean(options.syncInitialPlacement);
+    if (shouldSyncInitialPlacement) {
+      syncPreviewLayoutForInitialPlacement();
+    }
+
+    renderEditorState();
+
+    if (!modal.hasAttribute('open')) return;
+    if (!document.fonts || typeof document.fonts.load !== 'function') return;
+
+    const selectedStyle = getSelectedStyle();
+    const stylePreset = getStylePreset(selectedStyle);
+    const activeFonts = getActiveFontFamilies(selectedStyle);
+    const nameSample = lastNameInput.value.trim() || DEFAULT_LAST_NAME_VALUE;
+    const dateSample = dateInput.value.trim() || DEFAULT_DATE_VALUE;
+
+    await Promise.allSettled([
+      document.fonts.load(`600 48px ${activeFonts.lastName}`, nameSample),
+      document.fonts.load(`${stylePreset.dateWeight || '600'} 36px ${activeFonts.date}`, dateSample),
+    ]);
+
+    if (refreshRequestId !== pendingFontRefreshRequestId) return;
+    if (!modal.hasAttribute('open')) return;
+
+    if (shouldSyncInitialPlacement) {
+      syncPreviewLayoutForInitialPlacement();
+    }
+
+    renderEditorState();
   }
 
   function populateFontSelect(selectElement) {
@@ -643,6 +787,122 @@
     return normalizedAssetPath;
   }
 
+  function getDefaultIconTrimBounds() {
+    return { x: 0, y: 0, w: 1, h: 1 };
+  }
+
+  function normalizeIconTrimBounds(trimBounds) {
+    const fallback = getDefaultIconTrimBounds();
+    const source = trimBounds || fallback;
+    const width = clampNumber(Number(source.w), 0.001, 1);
+    const height = clampNumber(Number(source.h), 0.001, 1);
+    const x = clampNumber(Number(source.x), 0, 1 - width);
+    const y = clampNumber(Number(source.y), 0, 1 - height);
+    return {
+      x: Number(x.toFixed(6)),
+      y: Number(y.toFixed(6)),
+      w: Number(width.toFixed(6)),
+      h: Number(height.toFixed(6)),
+    };
+  }
+
+  function getIconMaskPositionPercent(start, size) {
+    const safeSize = clampNumber(Number(size), 0.001, 1);
+    if (safeSize >= 0.9999) return '50%';
+    const travel = 1 - safeSize;
+    const safeStart = clampNumber(Number(start), 0, travel);
+    return `${((safeStart / travel) * 100).toFixed(3)}%`;
+  }
+
+  function applyIconTrimBounds(trimBounds) {
+    const normalizedBounds = normalizeIconTrimBounds(trimBounds);
+    deterministicIcon.style.setProperty('--icon-mask-size-x', `${(100 / normalizedBounds.w).toFixed(3)}%`);
+    deterministicIcon.style.setProperty('--icon-mask-size-y', `${(100 / normalizedBounds.h).toFixed(3)}%`);
+    deterministicIcon.style.setProperty('--icon-mask-pos-x', getIconMaskPositionPercent(normalizedBounds.x, normalizedBounds.w));
+    deterministicIcon.style.setProperty('--icon-mask-pos-y', getIconMaskPositionPercent(normalizedBounds.y, normalizedBounds.h));
+  }
+
+  function clearIconTrimBounds() {
+    deterministicIcon.style.removeProperty('--icon-mask-size-x');
+    deterministicIcon.style.removeProperty('--icon-mask-size-y');
+    deterministicIcon.style.removeProperty('--icon-mask-pos-x');
+    deterministicIcon.style.removeProperty('--icon-mask-pos-y');
+  }
+
+  function resolveImageTrimBounds(imageElement) {
+    if (!imageElement) return getDefaultIconTrimBounds();
+    const width = imageElement.naturalWidth || imageElement.width || 0;
+    const height = imageElement.naturalHeight || imageElement.height || 0;
+    if (!width || !height) return getDefaultIconTrimBounds();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return getDefaultIconTrimBounds();
+
+    context.clearRect(0, 0, width, height);
+    context.drawImage(imageElement, 0, 0, width, height);
+
+    let imageData = null;
+    try {
+      imageData = context.getImageData(0, 0, width, height).data;
+    } catch (error) {
+      return getDefaultIconTrimBounds();
+    }
+    if (!imageData) return getDefaultIconTrimBounds();
+
+    let minX = width;
+    let minY = height;
+    let maxX = -1;
+    let maxY = -1;
+    const alphaThreshold = 10;
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const alpha = imageData[(y * width + x) * 4 + 3];
+        if (alpha <= alphaThreshold) continue;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+
+    if (maxX < minX || maxY < minY) {
+      return getDefaultIconTrimBounds();
+    }
+
+    const pad = 1;
+    minX = Math.max(0, minX - pad);
+    minY = Math.max(0, minY - pad);
+    maxX = Math.min(width - 1, maxX + pad);
+    maxY = Math.min(height - 1, maxY + pad);
+
+    return normalizeIconTrimBounds({
+      x: minX / width,
+      y: minY / height,
+      w: (maxX - minX + 1) / width,
+      h: (maxY - minY + 1) / height,
+    });
+  }
+
+  function resolveTrimmedIconSourceRect(trimBounds, sourceWidth, sourceHeight) {
+    const normalizedBounds = normalizeIconTrimBounds(trimBounds);
+    const width = Math.max(1, Number(sourceWidth || 0));
+    const height = Math.max(1, Number(sourceHeight || 0));
+    const x = clampNumber(normalizedBounds.x * width, 0, width - 1);
+    const y = clampNumber(normalizedBounds.y * height, 0, height - 1);
+    const w = clampNumber(normalizedBounds.w * width, 1, width - x);
+    const h = clampNumber(normalizedBounds.h * height, 1, height - y);
+    return {
+      x: Number(x.toFixed(3)),
+      y: Number(y.toFixed(3)),
+      w: Number(w.toFixed(3)),
+      h: Number(h.toFixed(3)),
+    };
+  }
+
   function readFlowerIconOptionsFromSelect() {
     const options = [];
     Array.from(flowerIconSelect.options).forEach((optionElement) => {
@@ -654,6 +914,103 @@
       options.push({ value, label, url });
     });
     return options;
+  }
+
+  function getFlowerIconOptionByValue(value) {
+    const normalizedValue = normalizeFlowerIcon(value);
+    if (!normalizedValue) return null;
+    const option = Array.from(flowerIconSelect.options).find((candidate) => candidate.value === normalizedValue);
+    if (!option) return null;
+    return {
+      value: normalizedValue,
+      label: String(option.textContent || '').trim() || humanizeIconValue(normalizedValue),
+      url: String(option.dataset.iconUrl || '').trim(),
+    };
+  }
+
+  function getFlowerIconOptionEntries() {
+    const entries = [];
+    const seen = new Set();
+    Array.from(flowerIconSelect.options).forEach((optionElement) => {
+      const normalizedValue = normalizeIconValue(optionElement.value);
+      const value = normalizedValue || '';
+      if (seen.has(value)) return;
+      seen.add(value);
+      entries.push({
+        value,
+        label:
+          String(optionElement.textContent || '').trim() ||
+          (value ? humanizeIconValue(value) : 'No icon'),
+        url: String(optionElement.dataset.iconUrl || '').trim(),
+      });
+    });
+    return entries;
+  }
+
+  function setIconDropdownOpen(open) {
+    const nextOpen = Boolean(open);
+    if (isIconDropdownOpen === nextOpen) return;
+    isIconDropdownOpen = nextOpen;
+    iconDropdown.classList.toggle('is-open', nextOpen);
+    iconDropdownToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+    iconDropdownMenu.toggleAttribute('hidden', !nextOpen);
+  }
+
+  function syncIconDropdownSelection() {
+    const selectedValue = getSelectedFlowerIconValue();
+    iconDropdownMenu.querySelectorAll('[data-personalization-icon-option-value]').forEach((buttonElement) => {
+      if (!(buttonElement instanceof HTMLButtonElement)) return;
+      const optionValue = normalizeIconValue(buttonElement.dataset.personalizationIconOptionValue);
+      const isSelected = selectedValue ? optionValue === selectedValue : !optionValue;
+      buttonElement.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+  }
+
+  function syncIconDropdownToggle() {
+    const selectedIcon = getFlowerIconOptionByValue(getSelectedFlowerIconValue());
+    if (selectedIcon && selectedIcon.url) {
+      iconDropdownToggleLabel.textContent = selectedIcon.label;
+      iconDropdownToggleImage.src = selectedIcon.url;
+      iconDropdownTogglePreview.removeAttribute('hidden');
+      return;
+    }
+    iconDropdownToggleLabel.textContent = 'No icon';
+    iconDropdownToggleImage.removeAttribute('src');
+    iconDropdownTogglePreview.setAttribute('hidden', '');
+  }
+
+  function renderFlowerIconDropdownOptions() {
+    iconDropdownMenu.innerHTML = '';
+    getFlowerIconOptionEntries().forEach((entry) => {
+      const optionButton = document.createElement('button');
+      optionButton.type = 'button';
+      optionButton.className = 'personalization-preview-modal__icon-dropdown-option';
+      optionButton.dataset.personalizationIconOptionValue = entry.value;
+      optionButton.setAttribute('role', 'option');
+      optionButton.setAttribute('aria-selected', 'false');
+
+      if (entry.url) {
+        const iconImage = document.createElement('img');
+        iconImage.className = 'personalization-preview-modal__icon-dropdown-option-image';
+        iconImage.src = entry.url;
+        iconImage.alt = '';
+        iconImage.loading = 'lazy';
+        optionButton.appendChild(iconImage);
+      } else {
+        const iconPlaceholder = document.createElement('span');
+        iconPlaceholder.className = 'personalization-preview-modal__icon-dropdown-option-image is-placeholder';
+        iconPlaceholder.setAttribute('aria-hidden', 'true');
+        optionButton.appendChild(iconPlaceholder);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'personalization-preview-modal__icon-dropdown-option-label';
+      label.textContent = entry.label;
+      optionButton.appendChild(label);
+      iconDropdownMenu.appendChild(optionButton);
+    });
+    syncIconDropdownSelection();
+    syncIconDropdownToggle();
   }
 
   function normalizeFlowerIconRegistryEntries(entries) {
@@ -691,7 +1048,9 @@
       flowerIconSelect.appendChild(optionElement);
     });
 
-    return setFlowerIconValue(preferredValue || pendingFlowerIconValue || flowerIconSelect.value || '');
+    const resolvedValue = setFlowerIconValue(preferredValue || pendingFlowerIconValue || flowerIconSelect.value || '');
+    renderFlowerIconDropdownOptions();
+    return resolvedValue;
   }
 
   async function loadFlowerIconRegistryOptions() {
@@ -742,10 +1101,14 @@
     if (hasOption) {
       pendingFlowerIconValue = '';
       flowerIconSelect.value = normalizedValue;
+      syncIconDropdownSelection();
+      syncIconDropdownToggle();
       return flowerIconSelect.value;
     }
     pendingFlowerIconValue = normalizedValue || '';
     flowerIconSelect.value = '';
+    syncIconDropdownSelection();
+    syncIconDropdownToggle();
     return flowerIconSelect.value;
   }
 
@@ -754,11 +1117,8 @@
   }
 
   function getSelectedFlowerIconUrl(value) {
-    const normalizedValue = normalizeFlowerIcon(value);
-    if (!normalizedValue) return '';
-    const option = Array.from(flowerIconSelect.options).find((candidate) => candidate.value === normalizedValue);
-    if (!option) return '';
-    return String(option.dataset.iconUrl || '').trim();
+    const selectedIcon = getFlowerIconOptionByValue(value);
+    return selectedIcon ? selectedIcon.url : '';
   }
 
   function applyIconLayout(layoutOverride) {
@@ -786,6 +1146,8 @@
 
   function clearSelectedFlowerIcon() {
     onIconPointerUp();
+    setIconDropdownOpen(false);
+    invalidateGeneratedPreview();
     setFlowerIconValue('');
     setIconSelected(false);
     setGenerationError('');
@@ -798,9 +1160,29 @@
     if (!flowerIconValue || !flowerIconUrl) {
       deterministicIcon.setAttribute('hidden', '');
       deterministicIconImage.removeAttribute('src');
+      deterministicIcon.style.removeProperty('--icon-mask-image');
+      deterministicIcon.style.removeProperty('--icon-color');
+      clearIconTrimBounds();
       setIconSelected(false);
       syncRemoveIconButton();
       return;
+    }
+
+    const stylePreset = getStylePreset(getSelectedStyle());
+    deterministicIcon.style.setProperty('--icon-mask-image', `url("${flowerIconUrl.replace(/"/g, '\\"')}")`);
+    deterministicIcon.style.setProperty('--icon-color', stylePreset.color || BASE_STYLE_PRESET.color);
+
+    const cachedIconPayload = iconImagePayloadCache.get(flowerIconUrl) || null;
+    if (cachedIconPayload && cachedIconPayload.trimBounds) {
+      applyIconTrimBounds(cachedIconPayload.trimBounds);
+    } else {
+      clearIconTrimBounds();
+      void getIconImagePayload(flowerIconUrl).then((iconPayload) => {
+        if (!iconPayload || !iconPayload.trimBounds) return;
+        const activeIconUrl = getSelectedFlowerIconUrl(getSelectedFlowerIconValue());
+        if (activeIconUrl !== flowerIconUrl) return;
+        applyIconTrimBounds(iconPayload.trimBounds);
+      });
     }
 
     applyIconLayout(activeIconLayout);
@@ -817,6 +1199,8 @@
 
   populateFontSelect(lastNameFontSelect);
   populateFontSelect(dateFontSelect);
+  populateStyleFamilyOptions();
+  setSelectedStyle(DEFAULT_STYLE);
   loadFlowerIconRegistryOptions();
 
   function selectorEscape(value) {
@@ -1138,8 +1522,8 @@
       lastNameFont: String(nextState.lastNameFont ?? currentState.lastNameFont ?? '').trim(),
       dateFont: String(nextState.dateFont ?? currentState.dateFont ?? '').trim(),
       flowerIcon: normalizeFlowerIcon(nextState.flowerIcon ?? currentState.flowerIcon),
-      textLayout: clampTextLayoutToSafeArea(nextState.textLayout ?? currentState.textLayout),
-      iconLayout: clampIconLayoutToSafeArea(
+      textLayout: sanitizeTextLayout(nextState.textLayout ?? currentState.textLayout),
+      iconLayout: sanitizeIconLayout(
         nextState.iconLayout ?? currentState.iconLayout ?? createDefaultIconLayout(nextState.textLayout ?? currentState.textLayout)
       ),
       geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
@@ -1180,16 +1564,62 @@
     generateButton.textContent = isLoading ? 'Generating...' : defaultGenerateButtonText;
   }
 
+  function normalizeStyleFamily(value) {
+    const normalizedFamily = String(value || '').trim();
+    if (normalizedFamily && STYLE_OPTIONS_BY_FAMILY[normalizedFamily]) return normalizedFamily;
+    return DEFAULT_STYLE_FAMILY;
+  }
+
+  function populateStyleFamilyOptions() {
+    styleFamilySelect.innerHTML = '';
+    STYLE_FAMILY_VALUES.forEach((family) => {
+      const optionElement = document.createElement('option');
+      optionElement.value = family;
+      optionElement.textContent = family;
+      styleFamilySelect.appendChild(optionElement);
+    });
+    setSelectValue(styleFamilySelect, styleFamilySelect.value, DEFAULT_STYLE_FAMILY);
+  }
+
+  function populateStyleVariantOptions(styleFamily, preferredStyleValue) {
+    const normalizedFamily = normalizeStyleFamily(styleFamily);
+    const styleOptions = STYLE_OPTIONS_BY_FAMILY[normalizedFamily] || [];
+    styleVariantSelect.innerHTML = '';
+
+    if (!styleOptions.length) {
+      const fallbackStyle = normalizeStyle(preferredStyleValue || DEFAULT_STYLE);
+      const optionElement = document.createElement('option');
+      optionElement.value = fallbackStyle;
+      optionElement.textContent = fallbackStyle;
+      styleVariantSelect.appendChild(optionElement);
+      styleVariantSelect.value = fallbackStyle;
+      return fallbackStyle;
+    }
+
+    styleOptions.forEach((styleOption) => {
+      const optionElement = document.createElement('option');
+      optionElement.value = styleOption.value;
+      optionElement.textContent = styleOption.label;
+      styleVariantSelect.appendChild(optionElement);
+    });
+
+    const normalizedPreferredStyle = normalizeStyle(preferredStyleValue);
+    const hasPreferredOption = styleOptions.some((styleOption) => styleOption.value === normalizedPreferredStyle);
+    const fallbackStyle = styleOptions[0].value;
+    styleVariantSelect.value = hasPreferredOption ? normalizedPreferredStyle : fallbackStyle;
+    return normalizeStyle(styleVariantSelect.value);
+  }
+
   function getSelectedStyle() {
-    const checkedInput = styleInputs.find((input) => input.checked);
-    return normalizeStyle(checkedInput ? checkedInput.value : DEFAULT_STYLE);
+    return normalizeStyle(styleVariantSelect.value || DEFAULT_STYLE);
   }
 
   function setSelectedStyle(styleValue) {
     const normalizedStyle = normalizeStyle(styleValue);
-    styleInputs.forEach((input) => {
-      input.checked = input.value === normalizedStyle;
-    });
+    const styleMetadata = STYLE_METADATA_BY_VALUE[normalizedStyle];
+    const styleFamily = normalizeStyleFamily(styleMetadata ? styleMetadata.family : DEFAULT_STYLE_FAMILY);
+    setSelectValue(styleFamilySelect, styleFamily, DEFAULT_STYLE_FAMILY);
+    return populateStyleVariantOptions(styleFamily, normalizedStyle);
   }
 
   function applyStyleDefaultFonts(styleValue) {
@@ -1261,6 +1691,11 @@
 
   function setGeneratedImage(dataUrl) {
     generatedImageData = String(dataUrl || '').trim();
+  }
+
+  function invalidateGeneratedPreview() {
+    if (!generatedImageData) return;
+    setGeneratedImage('');
   }
 
   function getGeneratedImageData() {
@@ -1566,27 +2001,66 @@
     if (iconImagePayloadCache.has(normalizedIconUrl)) {
       return iconImagePayloadCache.get(normalizedIconUrl) || null;
     }
-
-    try {
-      const response = await fetch(normalizedIconUrl, { cache: 'force-cache' });
-      if (!response.ok) return null;
-
-      const blob = await response.blob();
-      const dataUrl = await blobToDataUrl(blob);
-      const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
-      if (!base64Data) return null;
-
-      const payload = {
-        mimeType: blob.type || 'image/svg+xml',
-        data: base64Data,
-        url: normalizedIconUrl,
-        dataUrl,
-      };
-      iconImagePayloadCache.set(normalizedIconUrl, payload);
-      return payload;
-    } catch (error) {
-      return null;
+    if (pendingIconImagePayloadByUrl.has(normalizedIconUrl)) {
+      return pendingIconImagePayloadByUrl.get(normalizedIconUrl) || null;
     }
+
+    const request = (async () => {
+      try {
+        const response = await fetch(normalizedIconUrl, { cache: 'force-cache' });
+        if (!response.ok) return null;
+
+        const blob = await response.blob();
+        const dataUrl = await blobToDataUrl(blob);
+        const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
+        if (!base64Data) return null;
+
+        let trimBounds = getDefaultIconTrimBounds();
+        try {
+          const iconImage = await loadImage(dataUrl);
+          trimBounds = resolveImageTrimBounds(iconImage);
+        } catch (error) {
+          trimBounds = getDefaultIconTrimBounds();
+        }
+
+        const payload = {
+          mimeType: blob.type || 'image/svg+xml',
+          data: base64Data,
+          url: normalizedIconUrl,
+          dataUrl,
+          trimBounds: normalizeIconTrimBounds(trimBounds),
+        };
+        iconImagePayloadCache.set(normalizedIconUrl, payload);
+        return payload;
+      } catch (error) {
+        return null;
+      } finally {
+        pendingIconImagePayloadByUrl.delete(normalizedIconUrl);
+      }
+    })();
+
+    pendingIconImagePayloadByUrl.set(normalizedIconUrl, request);
+    return request;
+  }
+
+  async function buildTintedIconCanvas(iconImage, color) {
+    if (!iconImage) return null;
+    const width = iconImage.naturalWidth || iconImage.width || 0;
+    const height = iconImage.naturalHeight || iconImage.height || 0;
+    if (!width || !height) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.drawImage(iconImage, 0, 0, width, height);
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = String(color || BASE_STYLE_PRESET.color || '#4b341f');
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'source-over';
+    return canvas;
   }
 
   function resolveBestFitFontSize(ctx, text, options) {
@@ -1624,6 +2098,14 @@
     return best;
   }
 
+  function getTextOpticalOffsetPx(metrics) {
+    if (!metrics) return 0;
+    const advanceWidth = Math.max(1, Number(metrics.advanceWidth || metrics.width || 0));
+    const left = Math.max(0, Number(metrics.left || 0));
+    const right = Math.max(0, Number(metrics.right || 0));
+    return ((right - left) - advanceWidth) / 2;
+  }
+
   function drawFittedText(ctx, text, options) {
     const trimmedText = String(text || '').trim();
     if (!trimmedText) return options.minSize || 8;
@@ -1632,7 +2114,13 @@
     const fontWeight = options.fontWeight || '600';
     const fontFamily = options.fontFamily || 'sans-serif';
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-    ctx.fillText(trimmedText, options.x, options.y);
+    const metrics = getCanvasTextMetrics(ctx, trimmedText, {
+      fontSize,
+      fontFamily,
+      fontWeight,
+    });
+    const opticalOffsetPx = getTextOpticalOffsetPx(metrics);
+    ctx.fillText(trimmedText, options.x - opticalOffsetPx, options.y);
     return fontSize;
   }
 
@@ -1756,13 +2244,34 @@
       if (resolvedIconLayout && iconPayload && iconPayload.dataUrl) {
         try {
           const iconImage = await loadImage(iconPayload.dataUrl);
+          const tintedIconCanvas = await buildTintedIconCanvas(iconImage, stylePreset.color);
+          const iconSource = tintedIconCanvas || iconImage;
+          const sourceWidth =
+            iconSource instanceof HTMLImageElement
+              ? iconSource.naturalWidth || iconSource.width || 0
+              : Number(iconSource.width || 0);
+          const sourceHeight =
+            iconSource instanceof HTMLImageElement
+              ? iconSource.naturalHeight || iconSource.height || 0
+              : Number(iconSource.height || 0);
           const iconBox = boxToPixels({
             x: resolvedIconLayout.x - resolvedIconLayout.size / 2,
             y: resolvedIconLayout.y - resolvedIconLayout.size / 2,
             w: resolvedIconLayout.size,
             h: resolvedIconLayout.size,
           });
-          ctx.drawImage(iconImage, iconBox.x, iconBox.y, iconBox.w, iconBox.h);
+          const iconSourceRect = resolveTrimmedIconSourceRect(iconPayload.trimBounds, sourceWidth, sourceHeight);
+          ctx.drawImage(
+            iconSource,
+            iconSourceRect.x,
+            iconSourceRect.y,
+            iconSourceRect.w,
+            iconSourceRect.h,
+            iconBox.x,
+            iconBox.y,
+            iconBox.w,
+            iconBox.h
+          );
         } catch (error) {
           // Ignore icon rendering failure and continue rendering text context.
         }
@@ -1803,8 +2312,8 @@
     const styleImagePayload = await getStyleImagePayload(style);
     if (!styleImagePayload) return '';
 
-    const layout = clampTextLayoutToSafeArea(state.textLayout || createDefaultTextLayout());
-    const iconLayout = clampIconLayoutToSafeArea(state.iconLayout || createDefaultIconLayout(layout));
+    const layout = sanitizeTextLayout(state.textLayout || createDefaultTextLayout());
+    const iconLayout = sanitizeIconLayout(state.iconLayout || createDefaultIconLayout(layout));
     const fonts = getStateFontFamilies({ ...state, style });
     const flowerIconValue = normalizeFlowerIcon(state.flowerIcon);
     const flowerIconUrl = getSelectedFlowerIconUrl(flowerIconValue);
@@ -2065,11 +2574,6 @@
       return `Date must be ${activeDateMax} characters or fewer.`;
     }
 
-    const engravingAreaError = getEngravingAreaError();
-    if (engravingAreaError) {
-      return engravingAreaError;
-    }
-
     if (requireAll) {
       if (!lastNameValue) return 'Last name is required before generating a preview.';
       if (!dateValue) return 'Date is required before generating a preview.';
@@ -2114,8 +2618,9 @@
 
   function armEngravingWarningState() {
     hasUserMovedTextInCurrentSession = true;
-    shouldValidateEngravingBounds = true;
-    clipSurface.classList.add('is-warning-armed');
+    shouldValidateEngravingBounds = false;
+    clipSurface.classList.remove('is-warning-armed');
+    clipSurface.classList.remove('is-out-of-bounds');
   }
 
   function applyTextboxLayout(boxKey, layoutOverride) {
@@ -2199,41 +2704,41 @@
 
     const frameWidth = Math.max(1, clipSurface.clientWidth || 1);
     const frameHeight = Math.max(1, clipSurface.clientHeight || 1);
-    const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
     const textMetrics = measureTextBounds(lineElement.textContent, {
       fontFamily: lineElement.style.fontFamily || 'sans-serif',
       fontWeight: lineElement.style.fontWeight || '600',
       fontSize,
     });
+    const opticalOffsetPct = (getTextOpticalOffsetPx(textMetrics) / frameWidth) * 100;
     const horizontalPadding = Math.max(TEXTBOX_TIGHT_HORIZONTAL_PADDING, fontSize * 0.48);
     const verticalPadding = Math.max(TEXTBOX_TIGHT_VERTICAL_PADDING, fontSize * 0.36);
 
-    const maxWidthWithinSafeArea = Math.max(
+    const maxWidthWithinClip = Math.max(
       MIN_RENDERED_TEXTBOX_WIDTH,
-      safeArea.w - RENDER_SAFE_AREA_INSET * 2
+      100 - RENDER_SAFE_AREA_INSET * 2
     );
-    const maxHeightWithinSafeArea = Math.max(
+    const maxHeightWithinClip = Math.max(
       MIN_RENDERED_TEXTBOX_HEIGHT,
-      safeArea.h - RENDER_SAFE_AREA_INSET * 2
+      100 - RENDER_SAFE_AREA_INSET * 2
     );
 
     const desiredWidth = clampNumber(
       ((textMetrics.width + horizontalPadding) / frameWidth) * 100,
       MIN_RENDERED_TEXTBOX_WIDTH,
-      Math.min(constraintBox.w, maxWidthWithinSafeArea)
+      Math.min(constraintBox.w, maxWidthWithinClip)
     );
     const desiredHeight = clampNumber(
       ((textMetrics.height + verticalPadding) / frameHeight) * 100,
       MIN_RENDERED_TEXTBOX_HEIGHT,
-      Math.min(constraintBox.h, maxHeightWithinSafeArea)
+      Math.min(constraintBox.h, maxHeightWithinClip)
     );
     const centerX = constraintBox.x + constraintBox.w / 2;
     const centerY = constraintBox.y + constraintBox.h / 2;
-    const minX = Math.max(0, safeArea.x + RENDER_SAFE_AREA_INSET);
-    const minY = Math.max(0, safeArea.y + RENDER_SAFE_AREA_INSET);
-    const maxX = Math.min(100 - desiredWidth, safeArea.x + safeArea.w - RENDER_SAFE_AREA_INSET - desiredWidth);
-    const maxY = Math.min(100 - desiredHeight, safeArea.y + safeArea.h - RENDER_SAFE_AREA_INSET - desiredHeight);
-    const x = clampNumber(centerX - desiredWidth / 2, minX, Math.max(minX, maxX));
+    const minX = Math.max(0, RENDER_SAFE_AREA_INSET);
+    const minY = Math.max(0, RENDER_SAFE_AREA_INSET);
+    const maxX = Math.min(100 - desiredWidth, 100 - RENDER_SAFE_AREA_INSET - desiredWidth);
+    const maxY = Math.min(100 - desiredHeight, 100 - RENDER_SAFE_AREA_INSET - desiredHeight);
+    const x = clampNumber(centerX - desiredWidth / 2 - opticalOffsetPct, minX, Math.max(minX, maxX));
     const y = clampNumber(centerY - desiredHeight / 2, minY, Math.max(minY, maxY));
 
     return {
@@ -2248,11 +2753,12 @@
     return boxKey === 'date' ? dateInput.value.trim() : lastNameInput.value.trim();
   }
 
-  function getTextboxLayoutForValidation(boxKey) {
-    if (boxInteraction) {
-      return activeTextLayout[boxKey] || null;
-    }
+  function getTextboxLayoutForDisplay(boxKey) {
     return renderedTextLayout[boxKey] || activeTextLayout[boxKey] || null;
+  }
+
+  function getTextboxLayoutForValidation(boxKey) {
+    return getTextboxLayoutForDisplay(boxKey);
   }
 
   function hasLayoutChangedSignificantly(sourceLayout, targetLayout) {
@@ -2283,72 +2789,6 @@
       Math.abs(baselineLayout.y - candidateLayout.y) > ICON_LAYOUT_CHANGE_EPSILON ||
       Math.abs(baselineLayout.size - candidateLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
     );
-  }
-
-  function isTextboxInsideSafeArea(layout) {
-    if (!layout) return true;
-    const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
-    const styleLayoutSettings = getStyleLayoutSettings(getSelectedStyle());
-    const inset = styleLayoutSettings.safeAreaTolerance;
-    const right = layout.x + layout.w;
-    const bottom = layout.y + layout.h;
-
-    return (
-      layout.x >= safeArea.x - inset &&
-      layout.y >= safeArea.y - inset &&
-      right <= safeArea.x + safeArea.w + inset &&
-      bottom <= safeArea.y + safeArea.h + inset
-    );
-  }
-
-  function isIconInsideSafeArea(layout) {
-    if (!layout) return true;
-    const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
-    const styleLayoutSettings = getStyleLayoutSettings(getSelectedStyle());
-    const inset = styleLayoutSettings.safeAreaTolerance;
-    const half = Math.max(MIN_ICON_SIZE / 2, Number(layout.size || 0) / 2);
-    const left = layout.x - half;
-    const right = layout.x + half;
-    const top = layout.y - half;
-    const bottom = layout.y + half;
-    return (
-      left >= safeArea.x - inset &&
-      top >= safeArea.y - inset &&
-      right <= safeArea.x + safeArea.w + inset &&
-      bottom <= safeArea.y + safeArea.h + inset
-    );
-  }
-
-  function getEngravingAreaError() {
-    if (!shouldValidateEngravingBounds || !hasUserMovedTextInCurrentSession) {
-      return '';
-    }
-
-    if (!activeScope || !modal.hasAttribute('open')) {
-      return '';
-    }
-
-    const hasMovedTextBoxes = hasTextLayoutChangedFromInitial(activeTextLayout);
-    const hasMovedIcon = hasIconLayoutChangedFromInitial(activeIconLayout);
-    if (!hasMovedTextBoxes && !hasMovedIcon) {
-      return '';
-    }
-
-    const textboxKeys = ['lastName', 'date'];
-
-    for (const boxKey of textboxKeys) {
-      if (!getTextboxValueByKey(boxKey)) continue;
-      const activeLayout = getTextboxLayoutForValidation(boxKey);
-      if (!isTextboxInsideSafeArea(activeLayout)) {
-        return ENGRAVING_AREA_ERROR;
-      }
-    }
-
-    if (getSelectedFlowerIconValue() && !isIconInsideSafeArea(activeIconLayout)) {
-      return ENGRAVING_AREA_ERROR;
-    }
-
-    return '';
   }
 
   function renderDeterministicOverlay() {
@@ -2401,18 +2841,16 @@
       insetY: styleLayoutSettings.previewInsetY,
     });
 
-    if (!boxInteraction) {
-      const renderedNameLayout = buildRenderedTextboxLayout('lastName', deterministicLastName, lastNameFontSize);
-      const renderedDateLayout = buildRenderedTextboxLayout('date', deterministicDate, dateFontSize);
-      if (renderedNameLayout) {
-        renderedTextLayout.lastName = renderedNameLayout;
-        applyTextboxLayout('lastName', renderedNameLayout);
-      }
-      if (renderedDateLayout) {
-        renderedTextLayout.date = renderedDateLayout;
-        applyTextboxLayout('date', renderedDateLayout);
-      }
+    const renderedNameLayout = buildRenderedTextboxLayout('lastName', deterministicLastName, lastNameFontSize);
+    const renderedDateLayout = buildRenderedTextboxLayout('date', deterministicDate, dateFontSize);
+    if (renderedNameLayout) {
+      renderedTextLayout.lastName = renderedNameLayout;
     }
+    if (renderedDateLayout) {
+      renderedTextLayout.date = renderedDateLayout;
+    }
+    applyTextboxLayout('lastName', getTextboxLayoutForDisplay('lastName'));
+    applyTextboxLayout('date', getTextboxLayoutForDisplay('date'));
 
     renderFlowerIcon();
   }
@@ -2452,35 +2890,32 @@
     const box = nextLayout[boxInteraction.boxKey];
     if (!box) return;
 
-    let isCenterSnapped = false;
-
     if (boxInteraction.mode === 'resize') {
-      const nextWidth = clampNumber(boxInteraction.startBox.w + deltaXPct, MIN_TEXTBOX_WIDTH, 98 - boxInteraction.startBox.x);
-      const nextHeight = clampNumber(
-        boxInteraction.startBox.h + deltaYPct,
-        MIN_TEXTBOX_HEIGHT,
-        98 - boxInteraction.startBox.y
+      const resizeSafeArea = getTextboxResizeSafeArea();
+      const clampedStartBox = clampTextboxToSafeArea(boxInteraction.startBox, resizeSafeArea);
+      const maxWidth = Math.max(MIN_TEXTBOX_WIDTH, resizeSafeArea.x + resizeSafeArea.w - clampedStartBox.x);
+      const maxHeight = Math.max(MIN_TEXTBOX_HEIGHT, resizeSafeArea.y + resizeSafeArea.h - clampedStartBox.y);
+      const nextWidth = clampNumber(
+        clampedStartBox.w + deltaXPct,
+        MIN_TEXTBOX_WIDTH,
+        maxWidth
       );
+      const nextHeight = clampNumber(
+        clampedStartBox.h + deltaYPct,
+        MIN_TEXTBOX_HEIGHT,
+        maxHeight
+      );
+      box.x = clampedStartBox.x;
+      box.y = clampedStartBox.y;
       box.w = nextWidth;
       box.h = nextHeight;
       setTextboxCenterSnapState(boxInteraction.boxKey, false);
     } else {
+      box.w = boxInteraction.startBox.w;
+      box.h = boxInteraction.startBox.h;
       box.x = clampNumber(boxInteraction.startBox.x + deltaXPct, 0, 100 - boxInteraction.startBox.w);
       box.y = clampNumber(boxInteraction.startBox.y + deltaYPct, 0, 100 - boxInteraction.startBox.h);
-
-      const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
-      const targetCenterX = safeArea.x + (safeArea.w - box.w) / 2;
-      const targetCenterY = safeArea.y + (safeArea.h - box.h) / 2;
-
-      if (Math.abs(box.x - targetCenterX) <= SAFE_AREA_CENTER_SNAP_THRESHOLD) {
-        box.x = targetCenterX;
-        isCenterSnapped = true;
-      }
-      if (Math.abs(box.y - targetCenterY) <= SAFE_AREA_CENTER_SNAP_THRESHOLD) {
-        box.y = targetCenterY;
-        isCenterSnapped = true;
-      }
-      setTextboxCenterSnapState(boxInteraction.boxKey, isCenterSnapped);
+      setTextboxCenterSnapState(boxInteraction.boxKey, false);
     }
 
     activeTextLayout = sanitizeTextLayout(nextLayout);
@@ -2512,8 +2947,10 @@
     if (isGenerating) return;
     if (event.button !== 0) return;
     onIconPointerUp();
-    const currentBox = activeTextLayout[boxKey];
-    if (!currentBox) return;
+    const activeBox = activeTextLayout[boxKey];
+    if (!activeBox) return;
+    const displayBox = getTextboxLayoutForDisplay(boxKey);
+    const interactionBox = mode === 'drag' && displayBox ? displayBox : activeBox;
     setSelectedTextbox(boxKey);
     setIconSelected(false);
 
@@ -2522,7 +2959,7 @@
       mode,
       startX: event.clientX,
       startY: event.clientY,
-      startBox: { ...currentBox },
+      startBox: { ...interactionBox },
       dragActivated: false,
       layoutChanged: false,
       sessionId: activeEditorSessionId,
@@ -2583,6 +3020,7 @@
       Math.abs(activeIconLayout.size - iconInteraction.startLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
     ) {
       iconInteraction.layoutChanged = true;
+      invalidateGeneratedPreview();
       armEngravingWarningState();
     }
 
@@ -2649,12 +3087,9 @@
   }
 
   function renderValidationState() {
-    const engravingAreaError = getEngravingAreaError();
-    const canRenderEngravingWarning = Boolean(shouldValidateEngravingBounds && hasUserMovedTextInCurrentSession);
-    const hasEngravingAreaError = Boolean(canRenderEngravingWarning && engravingAreaError);
-    clipSurface.classList.toggle('is-warning-armed', canRenderEngravingWarning);
-    clipSurface.classList.toggle('is-out-of-bounds', hasEngravingAreaError);
-    safeAreaWarning.toggleAttribute('hidden', !hasEngravingAreaError);
+    clipSurface.classList.remove('is-warning-armed');
+    clipSurface.classList.remove('is-out-of-bounds');
+    safeAreaWarning.setAttribute('hidden', '');
 
     const validationError = getValidationError();
     const hasError = Boolean(validationError);
@@ -2959,9 +3394,9 @@
     setSelectValue(lastNameFontSelect, existingState.lastNameFont, stylePreset.nameFamily);
     setSelectValue(dateFontSelect, existingState.dateFont, stylePreset.dateFamily);
     setFlowerIconValue(existingState.flowerIcon);
-    activeTextLayout = clampTextLayoutToSafeArea(existingState.textLayout);
+    activeTextLayout = sanitizeTextLayout(existingState.textLayout);
     initialTextLayout = cloneTextLayout(activeTextLayout);
-    activeIconLayout = clampIconLayoutToSafeArea(existingState.iconLayout || createDefaultIconLayout(activeTextLayout));
+    activeIconLayout = sanitizeIconLayout(existingState.iconLayout || createDefaultIconLayout(activeTextLayout));
     initialIconLayout = { ...activeIconLayout };
     resetEngravingWarningState();
     selectedTextboxKey = '';
@@ -2978,6 +3413,7 @@
     } else {
       modal.setAttribute('open', '');
     }
+    void refreshPreviewAfterFontsReady({ syncInitialPlacement: true });
   }
 
   function closeEditor() {
@@ -3109,14 +3545,23 @@
     });
   }
 
-  styleInputs.forEach((input) => {
-    input.addEventListener('change', () => {
-      setGeneratedImage('');
-      setGenerationError('');
-      resetEngravingWarningState();
-      applyStyleDefaultFonts(getSelectedStyle());
-      renderEditorState();
-    });
+  function handleStyleSelectionChange() {
+    setGeneratedImage('');
+    setGenerationError('');
+    resetEngravingWarningState();
+    applyStyleDefaultFonts(getSelectedStyle());
+    void refreshPreviewAfterFontsReady({ syncInitialPlacement: true });
+  }
+
+  styleFamilySelect.addEventListener('change', () => {
+    const currentStyle = getSelectedStyle();
+    populateStyleVariantOptions(styleFamilySelect.value, currentStyle);
+    handleStyleSelectionChange();
+  });
+
+  styleVariantSelect.addEventListener('change', () => {
+    setSelectedStyle(styleVariantSelect.value);
+    handleStyleSelectionChange();
   });
   lastNameInput.addEventListener('input', () => {
     setGenerationError('');
@@ -3129,22 +3574,54 @@
   [lastNameFontSelect, dateFontSelect].forEach((selectElement) => {
     selectElement.addEventListener('change', () => {
       setGenerationError('');
-      renderEditorState();
+      void refreshPreviewAfterFontsReady({ syncInitialPlacement: true });
     });
   });
   flowerIconSelect.addEventListener('change', () => {
     onIconPointerUp();
+    setIconDropdownOpen(false);
+    invalidateGeneratedPreview();
     const previousIconValue = getSelectedFlowerIconValue();
     setFlowerIconValue(flowerIconSelect.value);
-    if (!previousIconValue && getSelectedFlowerIconValue()) {
-      activeIconLayout = clampIconLayoutToSafeArea(createDefaultIconLayout(activeTextLayout));
+    const nextIconValue = getSelectedFlowerIconValue();
+    if (!previousIconValue && nextIconValue) {
+      activeIconLayout = sanitizeIconLayout(createDefaultIconLayout(activeTextLayout));
       initialIconLayout = { ...activeIconLayout };
     }
-    if (!getSelectedFlowerIconValue()) {
+    if (!nextIconValue) {
       setIconSelected(false);
+    } else {
+      setSelectedTextbox('');
+      setIconSelected(true);
     }
     setGenerationError('');
     renderEditorState();
+  });
+  iconDropdownToggle.addEventListener('click', () => {
+    if (!isIconDropdownOpen) {
+      renderFlowerIconDropdownOptions();
+    }
+    setIconDropdownOpen(!isIconDropdownOpen);
+  });
+  iconDropdownMenu.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const optionButton = target.closest('[data-personalization-icon-option-value]');
+    if (!(optionButton instanceof HTMLButtonElement)) return;
+    const nextValue = normalizeIconValue(optionButton.dataset.personalizationIconOptionValue);
+    flowerIconSelect.value = nextValue || '';
+    flowerIconSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    iconDropdownToggle.focus();
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!isIconDropdownOpen) return;
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      setIconDropdownOpen(false);
+      return;
+    }
+    if (iconDropdown.contains(target)) return;
+    setIconDropdownOpen(false);
   });
   removeIconButton.addEventListener('click', () => {
     clearSelectedFlowerIcon();
@@ -3193,8 +3670,14 @@
   });
 
   modal.addEventListener('keydown', (event) => {
-    if (!isIconSelected || !getSelectedFlowerIconValue()) return;
+    if (event.key === 'Escape' && isIconDropdownOpen) {
+      setIconDropdownOpen(false);
+      event.preventDefault();
+      return;
+    }
+
     if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+    if (!getSelectedFlowerIconValue()) return;
     if (
       event.target instanceof HTMLInputElement ||
       event.target instanceof HTMLTextAreaElement ||
@@ -3211,6 +3694,7 @@
     if (modal.hasAttribute('open')) return;
     onBoxPointerUp();
     onIconPointerUp();
+    setIconDropdownOpen(false);
     setSelectedTextbox('');
     setIconSelected(false);
     resetEngravingWarningState();
@@ -3222,6 +3706,7 @@
       if (!modal.hasAttribute('open')) {
         onBoxPointerUp();
         onIconPointerUp();
+        setIconDropdownOpen(false);
         setSelectedTextbox('');
         setIconSelected(false);
       }
@@ -3539,8 +4024,8 @@
   hydrateContexts(document);
   syncAllScopePersonalizationEligibility();
   ensureSafeAreaBounds().then(() => {
-    activeTextLayout = clampTextLayoutToSafeArea(activeTextLayout);
-    activeIconLayout = clampIconLayoutToSafeArea(activeIconLayout);
+    activeTextLayout = sanitizeTextLayout(activeTextLayout);
+    activeIconLayout = sanitizeIconLayout(activeIconLayout);
     if (activeScope) {
       renderEditorState();
     }
