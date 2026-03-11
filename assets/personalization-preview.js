@@ -85,7 +85,7 @@
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-text-safe-area-bounds';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-font-weight-preview-persistence';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -205,12 +205,40 @@
     { label: 'KG Sorry Not Sorry Chub', family: FONT_FAMILIES.kgSorryNotSorryChub },
     { label: 'EngraversGothic BT', family: FONT_FAMILIES.engraversGothicBt },
   ];
+  const FONT_WEIGHT_OPTIONS = Object.freeze({
+    [FONT_FAMILIES.playpenSansHebrew]: Object.freeze(['400']),
+    [FONT_FAMILIES.homemadeApple]: Object.freeze(['400']),
+    [FONT_FAMILIES.caveatBrush]: Object.freeze(['400']),
+    [FONT_FAMILIES.karlie]: Object.freeze(['400']),
+    [FONT_FAMILIES.brittanySignature]: Object.freeze(['400']),
+    [FONT_FAMILIES.sofia]: Object.freeze(['400']),
+    [FONT_FAMILIES.robotoFlex]: Object.freeze(['400']),
+    [FONT_FAMILIES.markaziText]: Object.freeze(['400']),
+    [FONT_FAMILIES.martelDemiBold]: Object.freeze(['600']),
+    [FONT_FAMILIES.martelHeavy]: Object.freeze(['800']),
+    [FONT_FAMILIES.titanOne]: Object.freeze(['400']),
+    [FONT_FAMILIES.bowlbyOneSc]: Object.freeze(['400']),
+    [FONT_FAMILIES.notable]: Object.freeze(['400']),
+    [FONT_FAMILIES.avenirNext]: Object.freeze(['400']),
+    [FONT_FAMILIES.hachiMaruPop]: Object.freeze(['400']),
+    [FONT_FAMILIES.centuryGothic]: Object.freeze(['400']),
+    [FONT_FAMILIES.originalSurfer]: Object.freeze(['400']),
+    [FONT_FAMILIES.kiwiMaru]: Object.freeze(['400']),
+    [FONT_FAMILIES.sacramento]: Object.freeze(['400']),
+    [FONT_FAMILIES.niconne]: Object.freeze(['400']),
+    [FONT_FAMILIES.libreBaskerville]: Object.freeze(['400']),
+    [FONT_FAMILIES.limelight]: Object.freeze(['400']),
+    [FONT_FAMILIES.kgSorryNotSorry]: Object.freeze(['400']),
+    [FONT_FAMILIES.kgSorryNotSorryChub]: Object.freeze(['700']),
+    [FONT_FAMILIES.engraversGothicBt]: Object.freeze(['400']),
+  });
   const BASE_STYLE_PRESET = Object.freeze({
     nameSize: 60,
     dateSize: 38,
     boxWidth: 68,
     rotation: 0,
     color: '#4b341f',
+    nameWeight: '600',
     dateWeight: '600',
   });
   const STYLE_FONT_PRESETS = {
@@ -255,12 +283,7 @@
   const dateFontSelect = modal.querySelector('[data-personalization-input="dateFont"]');
   const flowerIconSelect = modal.querySelector('[data-personalization-input="flowerIcon"]');
   const iconRegistryUrl = String(flowerIconSelect?.dataset.personalizationIconRegistryUrl || '').trim();
-  const iconDropdown = modal.querySelector('[data-personalization-icon-dropdown]');
-  const iconDropdownToggle = modal.querySelector('[data-personalization-icon-dropdown-toggle]');
-  const iconDropdownTogglePreview = modal.querySelector('[data-personalization-icon-dropdown-toggle-preview]');
-  const iconDropdownToggleImage = modal.querySelector('[data-personalization-icon-dropdown-toggle-image]');
-  const iconDropdownToggleLabel = modal.querySelector('[data-personalization-icon-dropdown-toggle-label]');
-  const iconDropdownMenu = modal.querySelector('[data-personalization-icon-dropdown-menu]');
+  const iconList = modal.querySelector('[data-personalization-icon-list]');
   const deterministicLastNameBox = modal.querySelector('[data-personalization-textbox="lastName"]');
   const deterministicDateBox = modal.querySelector('[data-personalization-textbox="date"]');
   const resizeHandles = Array.from(modal.querySelectorAll('[data-personalization-resize]'));
@@ -292,12 +315,7 @@
     !lastNameFontSelect ||
     !dateFontSelect ||
     !flowerIconSelect ||
-    !iconDropdown ||
-    !iconDropdownToggle ||
-    !iconDropdownTogglePreview ||
-    !iconDropdownToggleImage ||
-    !iconDropdownToggleLabel ||
-    !iconDropdownMenu ||
+    !iconList ||
     !deterministicLastNameBox ||
     !deterministicDateBox ||
     resizeHandles.length < 2 ||
@@ -349,7 +367,6 @@
   let iconInteraction = null;
   let selectedTextboxKey = '';
   let selectedIconId = '';
-  let isIconDropdownOpen = false;
   let nextIconInstanceId = 1;
   let suppressFlowerIconSelectChange = false;
   let activeEditorSessionId = 0;
@@ -685,10 +702,13 @@
     const actualAscent = Math.max(0, Number(metrics.actualBoundingBoxAscent || 0));
     const actualDescent = Math.max(0, Number(metrics.actualBoundingBoxDescent || 0));
     const advanceWidth = Math.max(1, Number(metrics.width || 0));
+    const inkWidth = Math.max(0, actualLeft + actualRight);
+    const inkHeight = Math.max(0, actualAscent + actualDescent);
     return {
-      width: Math.max(1, advanceWidth, actualLeft + actualRight),
+      // Fit and display against the visible glyph bounds, not the font's invisible side bearings.
+      width: Math.max(1, inkWidth || advanceWidth),
       advanceWidth,
-      height: Math.max(1, actualAscent + actualDescent, fontSize * 0.92),
+      height: Math.max(1, inkHeight || fontSize * 0.92),
       left: actualLeft,
       right: actualRight,
       ascent: actualAscent,
@@ -844,8 +864,8 @@
     const dateSample = dateInput.value.trim() || DEFAULT_DATE_VALUE;
 
     await Promise.allSettled([
-      document.fonts.load(`600 48px ${activeFonts.lastName}`, nameSample),
-      document.fonts.load(`${stylePreset.dateWeight || '600'} 36px ${activeFonts.date}`, dateSample),
+      document.fonts.load(`${activeFonts.lastNameWeight} 48px ${activeFonts.lastName}`, nameSample),
+      document.fonts.load(`${activeFonts.dateWeight} 36px ${activeFonts.date}`, dateSample),
     ]);
 
     if (refreshRequestId !== pendingFontRefreshRequestId) return;
@@ -908,6 +928,37 @@
       canvasHeightRatio: resolvePositiveNumber(stylePreset.canvasHeightRatio, DEFAULT_CANVAS_TEXT_HEIGHT_RATIO),
       safeAreaTolerance: resolvePositiveNumber(stylePreset.safeAreaTolerance, DEFAULT_SAFE_AREA_TOLERANCE),
     };
+  }
+
+  function resolveFontWeightForFamily(fontFamily, preferredWeight) {
+    const normalizedFamily = String(fontFamily || '').trim();
+    const requestedWeight = String(preferredWeight || '400').trim() || '400';
+    const supportedWeights = FONT_WEIGHT_OPTIONS[normalizedFamily];
+    if (!Array.isArray(supportedWeights) || !supportedWeights.length) {
+      return requestedWeight;
+    }
+    if (supportedWeights.includes(requestedWeight)) {
+      return requestedWeight;
+    }
+
+    const requestedWeightValue = Number.parseInt(requestedWeight, 10);
+    if (!Number.isFinite(requestedWeightValue)) {
+      return supportedWeights[0];
+    }
+
+    return supportedWeights.reduce((closestWeight, candidateWeight) => {
+      const candidateValue = Number.parseInt(candidateWeight, 10);
+      const closestValue = Number.parseInt(closestWeight, 10);
+      if (!Number.isFinite(candidateValue)) {
+        return closestWeight;
+      }
+      if (!Number.isFinite(closestValue)) {
+        return candidateWeight;
+      }
+      return Math.abs(candidateValue - requestedWeightValue) < Math.abs(closestValue - requestedWeightValue)
+        ? candidateWeight
+        : closestWeight;
+    }, supportedWeights[0]);
   }
 
   function normalizeIconValue(value) {
@@ -1114,25 +1165,16 @@
         value,
         label:
           String(optionElement.textContent || '').trim() ||
-          (value ? humanizeIconValue(value) : 'No icon'),
+          (value ? humanizeIconValue(value) : 'Select icon'),
         url: String(optionElement.dataset.iconUrl || '').trim(),
       });
     });
     return entries;
   }
 
-  function setIconDropdownOpen(open) {
-    const nextOpen = Boolean(open);
-    if (isIconDropdownOpen === nextOpen) return;
-    isIconDropdownOpen = nextOpen;
-    iconDropdown.classList.toggle('is-open', nextOpen);
-    iconDropdownToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-    iconDropdownMenu.toggleAttribute('hidden', !nextOpen);
-  }
-
   function syncIconDropdownSelection() {
     const selectedValue = getSelectedFlowerIconValue();
-    iconDropdownMenu.querySelectorAll('[data-personalization-icon-option-value]').forEach((buttonElement) => {
+    iconList.querySelectorAll('[data-personalization-icon-option-value]').forEach((buttonElement) => {
       if (!(buttonElement instanceof HTMLButtonElement)) return;
       const optionValue = normalizeIconValue(buttonElement.dataset.personalizationIconOptionValue);
       const isSelected = selectedValue ? optionValue === selectedValue : !optionValue;
@@ -1140,21 +1182,8 @@
     });
   }
 
-  function syncIconDropdownToggle() {
-    const selectedIcon = getFlowerIconOptionByValue(getSelectedFlowerIconValue());
-    if (selectedIcon && selectedIcon.url) {
-      iconDropdownToggleLabel.textContent = selectedIcon.label;
-      iconDropdownToggleImage.src = selectedIcon.url;
-      iconDropdownTogglePreview.removeAttribute('hidden');
-      return;
-    }
-    iconDropdownToggleLabel.textContent = 'No icon';
-    iconDropdownToggleImage.removeAttribute('src');
-    iconDropdownTogglePreview.setAttribute('hidden', '');
-  }
-
   function renderFlowerIconDropdownOptions() {
-    iconDropdownMenu.innerHTML = '';
+    iconList.innerHTML = '';
     getFlowerIconOptionEntries().forEach((entry) => {
       const optionButton = document.createElement('button');
       optionButton.type = 'button';
@@ -1182,10 +1211,9 @@
       label.className = 'personalization-preview-modal__icon-dropdown-option-label';
       label.textContent = entry.label;
       optionButton.appendChild(label);
-      iconDropdownMenu.appendChild(optionButton);
+      iconList.appendChild(optionButton);
     });
     syncIconDropdownSelection();
-    syncIconDropdownToggle();
   }
 
   function normalizeFlowerIconRegistryEntries(entries) {
@@ -1209,11 +1237,9 @@
 
   function setFlowerIconOptions(options, preferredValue) {
     const normalizedOptions = normalizeFlowerIconRegistryEntries(options);
+    const requestedValue =
+      typeof preferredValue === 'string' ? preferredValue : pendingFlowerIconValue || flowerIconSelect.value || '';
     flowerIconSelect.innerHTML = '';
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = 'No icon';
-    flowerIconSelect.appendChild(emptyOption);
 
     normalizedOptions.forEach((entry) => {
       const optionElement = document.createElement('option');
@@ -1223,7 +1249,7 @@
       flowerIconSelect.appendChild(optionElement);
     });
 
-    const resolvedValue = setFlowerIconValue(preferredValue || pendingFlowerIconValue || flowerIconSelect.value || '');
+    const resolvedValue = setFlowerIconValue(requestedValue);
     renderFlowerIconDropdownOptions();
     return resolvedValue;
   }
@@ -1277,14 +1303,12 @@
       pendingFlowerIconValue = '';
       flowerIconSelect.value = normalizedValue;
       syncIconDropdownSelection();
-      syncIconDropdownToggle();
       return flowerIconSelect.value;
     }
     pendingFlowerIconValue = normalizedValue || '';
-    flowerIconSelect.value = '';
+    flowerIconSelect.selectedIndex = -1;
     syncIconDropdownSelection();
-    syncIconDropdownToggle();
-    return flowerIconSelect.value;
+    return '';
   }
 
   function getSelectedFlowerIconValue() {
@@ -1354,7 +1378,6 @@
   function clearSelectedFlowerIcon() {
     if (!selectedIconId) return;
     onIconPointerUp();
-    setIconDropdownOpen(false);
     invalidateGeneratedPreview();
     activeIcons = activeIcons.filter((entry) => entry.id !== selectedIconId);
     selectedIconId = '';
@@ -1953,9 +1976,13 @@
 
   function getActiveFontFamilies(styleValue) {
     const stylePreset = getStylePreset(styleValue);
+    const lastName = setSelectValue(lastNameFontSelect, lastNameFontSelect.value, stylePreset.nameFamily);
+    const date = setSelectValue(dateFontSelect, dateFontSelect.value, stylePreset.dateFamily);
     return {
-      lastName: setSelectValue(lastNameFontSelect, lastNameFontSelect.value, stylePreset.nameFamily),
-      date: setSelectValue(dateFontSelect, dateFontSelect.value, stylePreset.dateFamily),
+      lastName,
+      date,
+      lastNameWeight: resolveFontWeightForFamily(lastName, stylePreset.nameWeight || '600'),
+      dateWeight: resolveFontWeightForFamily(date, stylePreset.dateWeight || '600'),
     };
   }
 
@@ -2475,6 +2502,14 @@
     if (!width || !height) return null;
     const lastNameFont = String(fontFamilies?.lastName || stylePreset.nameFamily || '').trim() || stylePreset.nameFamily;
     const dateFont = String(fontFamilies?.date || stylePreset.dateFamily || '').trim() || stylePreset.dateFamily;
+    const lastNameWeight = resolveFontWeightForFamily(
+      lastNameFont,
+      fontFamilies?.lastNameWeight || stylePreset.nameWeight || '600'
+    );
+    const dateWeight = resolveFontWeightForFamily(
+      dateFont,
+      fontFamilies?.dateWeight || stylePreset.dateWeight || '600'
+    );
 
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -2552,7 +2587,7 @@
       minSize: 10,
       maxSize: Math.max(10, Math.round(nameBox.h * 1.6)),
       fontFamily: lastNameFont,
-      fontWeight: '600',
+      fontWeight: lastNameWeight,
     });
 
     const dateBox = boxToPixels(layout.date);
@@ -2564,7 +2599,7 @@
       minSize: 9,
       maxSize: Math.max(9, Math.round(dateBox.h * 1.6)),
       fontFamily: dateFont,
-      fontWeight: stylePreset.dateWeight || '600',
+      fontWeight: dateWeight,
     });
 
     const iconEntries = Array.isArray(iconEntriesConfig) ? iconEntriesConfig : [];
@@ -2628,9 +2663,13 @@
 
   function getStateFontFamilies(state) {
     const stylePreset = getStylePreset(state?.style || DEFAULT_STYLE);
+    const lastName = String(state?.lastNameFont || stylePreset.nameFamily).trim() || stylePreset.nameFamily;
+    const date = String(state?.dateFont || stylePreset.dateFamily).trim() || stylePreset.dateFamily;
     return {
-      lastName: String(state?.lastNameFont || stylePreset.nameFamily).trim() || stylePreset.nameFamily,
-      date: String(state?.dateFont || stylePreset.dateFamily).trim() || stylePreset.dateFamily,
+      lastName,
+      date,
+      lastNameWeight: resolveFontWeightForFamily(lastName, stylePreset.nameWeight || '600'),
+      dateWeight: resolveFontWeightForFamily(date, stylePreset.dateWeight || '600'),
     };
   }
 
@@ -3094,7 +3133,10 @@
         boxKey === 'date'
           ? activeFonts.date || stylePreset.dateFamily
           : activeFonts.lastName || stylePreset.nameFamily,
-      fontWeight: boxKey === 'date' ? stylePreset.dateWeight || '600' : '600',
+      fontWeight:
+        boxKey === 'date'
+          ? activeFonts.dateWeight || stylePreset.dateWeight || '600'
+          : activeFonts.lastNameWeight || stylePreset.nameWeight || '600',
       minSize,
       maxSize,
     };
@@ -3182,11 +3224,11 @@
   }
 
   function getTextboxLayoutForDisplay(boxKey) {
-    return renderedTextLayout[boxKey] || activeTextLayout[boxKey] || null;
+    return activeTextLayout[boxKey] || null;
   }
 
   function getTextboxLayoutForValidation(boxKey) {
-    return getTextboxLayoutForDisplay(boxKey);
+    return renderedTextLayout[boxKey] || activeTextLayout[boxKey] || null;
   }
 
   function getTextBoundsValidationIssue() {
@@ -3268,25 +3310,25 @@
     deterministicDate.textContent = dateInput.value.trim() || ' ';
 
     deterministicLastName.style.setProperty('font-family', activeFonts.lastName || stylePreset.nameFamily);
-    deterministicLastName.style.setProperty('font-weight', '600');
+    deterministicLastName.style.setProperty('font-weight', activeFonts.lastNameWeight || stylePreset.nameWeight || '600');
     deterministicLastName.style.setProperty('color', stylePreset.color);
     const lastNameFontSize = fitLineToContainer(deterministicLastName, {
       minPx: 8,
       maxPx: nameMaxSize,
       fontFamily: activeFonts.lastName || stylePreset.nameFamily,
-      fontWeight: '600',
+      fontWeight: activeFonts.lastNameWeight || stylePreset.nameWeight || '600',
       insetX: styleLayoutSettings.previewInsetX,
       insetY: styleLayoutSettings.previewInsetY,
     });
 
     deterministicDate.style.setProperty('font-family', activeFonts.date || stylePreset.dateFamily);
-    deterministicDate.style.setProperty('font-weight', stylePreset.dateWeight || '600');
+    deterministicDate.style.setProperty('font-weight', activeFonts.dateWeight || stylePreset.dateWeight || '600');
     deterministicDate.style.setProperty('color', stylePreset.color);
     const dateFontSize = fitLineToContainer(deterministicDate, {
       minPx: 7,
       maxPx: dateMaxSize,
       fontFamily: activeFonts.date || stylePreset.dateFamily,
-      fontWeight: stylePreset.dateWeight || '600',
+      fontWeight: activeFonts.dateWeight || stylePreset.dateWeight || '600',
       insetX: styleLayoutSettings.previewInsetX,
       insetY: styleLayoutSettings.previewInsetY,
     });
@@ -3408,11 +3450,8 @@
     onIconPointerUp();
     const activeBox = activeTextLayout[boxKey];
     if (!activeBox) return;
-    const displayBox = getTextboxLayoutForDisplay(boxKey);
-    const interactionBox = clampTextboxToSafeArea(
-      mode === 'drag' && displayBox ? displayBox : activeBox,
-      getTextboxResizeSafeArea()
-    );
+    // Drag must preserve the persisted constraint box; the rendered box is tighter and would shrink the font on move.
+    const interactionBox = clampTextboxToSafeArea(activeBox, getTextboxResizeSafeArea());
     setSelectedTextbox(boxKey);
     setIconSelected(false);
 
@@ -4116,18 +4155,11 @@
   flowerIconSelect.addEventListener('change', () => {
     if (suppressFlowerIconSelectChange) return;
     onIconPointerUp();
-    setIconDropdownOpen(false);
     const nextValue = normalizeFlowerIcon(flowerIconSelect.value);
     if (!nextValue) return;
     addIconToClip(nextValue);
   });
-  iconDropdownToggle.addEventListener('click', () => {
-    if (!isIconDropdownOpen) {
-      renderFlowerIconDropdownOptions();
-    }
-    setIconDropdownOpen(!isIconDropdownOpen);
-  });
-  iconDropdownMenu.addEventListener('click', (event) => {
+  iconList.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const optionButton = target.closest('[data-personalization-icon-option-value]');
@@ -4135,10 +4167,8 @@
     const nextValue = normalizeIconValue(optionButton.dataset.personalizationIconOptionValue);
     if (!nextValue) return;
     addIconToClip(nextValue);
-    setIconDropdownOpen(false);
-    iconDropdownToggle.focus();
   });
-  iconDropdownMenu.addEventListener('dragstart', (event) => {
+  iconList.addEventListener('dragstart', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const optionButton = target.closest('[data-personalization-icon-option-value]');
@@ -4147,7 +4177,6 @@
     if (!iconValue || !event.dataTransfer) return;
     event.dataTransfer.setData('text/plain', iconValue);
     event.dataTransfer.effectAllowed = 'copy';
-    setIconDropdownOpen(false);
   });
   clipSurface.addEventListener('dragover', (event) => {
     if (isGenerating) return;
@@ -4176,16 +4205,6 @@
       };
     }
     addIconToClip(draggedValue, nextLayout);
-  });
-  document.addEventListener('pointerdown', (event) => {
-    if (!isIconDropdownOpen) return;
-    const target = event.target;
-    if (!(target instanceof Element)) {
-      setIconDropdownOpen(false);
-      return;
-    }
-    if (iconDropdown.contains(target)) return;
-    setIconDropdownOpen(false);
   });
   removeIconButton.addEventListener('click', () => {
     clearSelectedFlowerIcon();
@@ -4236,12 +4255,6 @@
   });
 
   modal.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && isIconDropdownOpen) {
-      setIconDropdownOpen(false);
-      event.preventDefault();
-      return;
-    }
-
     if (event.key !== 'Backspace' && event.key !== 'Delete') return;
     if (!selectedIconId) return;
     if (
@@ -4260,7 +4273,6 @@
     if (modal.hasAttribute('open')) return;
     onBoxPointerUp();
     onIconPointerUp();
-    setIconDropdownOpen(false);
     setSelectedTextbox('');
     setIconSelected(false);
     resetEngravingWarningState();
@@ -4272,7 +4284,6 @@
       if (!modal.hasAttribute('open')) {
         onBoxPointerUp();
         onIconPointerUp();
-        setIconDropdownOpen(false);
         setSelectedTextbox('');
         setIconSelected(false);
       }
@@ -4452,12 +4463,20 @@
     const committed = commitActiveState(false);
     if (!committed || !scopeToSave) return;
 
+    let stagePreviewDataUrl = '';
     try {
-      await ensureScopeStagePreviewDataUrl(scopeToSave);
+      stagePreviewDataUrl = await ensureScopeStagePreviewDataUrl(scopeToSave);
     } catch (error) {
       // Keep save flow non-blocking if stage preview generation fails.
     }
 
+    const escapedScope = selectorEscape(scopeToSave);
+    document
+      .querySelectorAll(`[data-personalization-context][data-personalization-scope="${escapedScope}"]`)
+      .forEach((context) => {
+        if (!(context instanceof HTMLElement)) return;
+        attachStagePreviewFileToContext(context, stagePreviewDataUrl, scopeToSave);
+      });
     syncScope(scopeToSave);
     closeEditor();
   });

@@ -162,45 +162,13 @@
                   data-personalization-input="flowerIcon"
                   data-personalization-icon-registry-url="{{ 'quickclip-icons.json' | asset_url }}"
                 >
-                  <option value="">No icon</option>
                 </select>
-                <div class="personalization-preview-modal__icon-dropdown" data-personalization-icon-dropdown>
-                  <button
-                    type="button"
-                    class="personalization-preview-modal__icon-dropdown-toggle"
-                    data-personalization-icon-dropdown-toggle
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                  >
-                    <span
-                      class="personalization-preview-modal__icon-dropdown-toggle-preview"
-                      data-personalization-icon-dropdown-toggle-preview
-                      hidden
-                    >
-                      <img
-                        data-personalization-icon-dropdown-toggle-image
-                        alt=""
-                        loading="lazy"
-                      >
-                    </span>
-                    <span
-                      class="personalization-preview-modal__icon-dropdown-toggle-label"
-                      data-personalization-icon-dropdown-toggle-label
-                    >
-                      No icon
-                    </span>
-                    <span class="personalization-preview-modal__icon-dropdown-toggle-caret" aria-hidden="true">
-                      {% render 'icon-caret' %}
-                    </span>
-                  </button>
-                  <div
-                    class="personalization-preview-modal__icon-dropdown-menu"
-                    data-personalization-icon-dropdown-menu
-                    role="listbox"
-                    aria-label="Available icons"
-                    hidden
-                  ></div>
-                </div>
+                <div
+                  class="personalization-preview-modal__icon-list"
+                  data-personalization-icon-list
+                  role="listbox"
+                  aria-label="Available icons"
+                ></div>
                 <button
                   type="button"
                   class="button button--tertiary personalization-preview-modal__icon-clear"
@@ -221,7 +189,7 @@
               <span class="personalization-preview-modal__button-spinner" aria-hidden="true"></span>
               <span class="personalization-preview-modal__button-label" data-personalization-generate-label>Generate</span>
             </button>
-            <button type="button" class="button" data-personalization-save>Save personalization</button>
+            <button type="button" class="button" data-personalization-save>Save preview</button>
           </div>
         </div>
       </div>

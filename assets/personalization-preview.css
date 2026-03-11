@@ -449,82 +449,16 @@
   display: none;
 }
 
-.personalization-preview-modal__icon-dropdown {
-  position: relative;
+.personalization-preview-modal__icon-list {
   margin-top: 0.7rem;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle {
-  width: 100%;
-  min-height: 4.4rem;
-  border: 0.1rem solid rgba(var(--color-foreground), var(--inputs-border-opacity));
-  border-radius: var(--inputs-radius-outset);
-  padding: 0.7rem 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  font: inherit;
-  color: rgb(var(--color-foreground));
-  background-color: rgb(var(--color-background));
-  cursor: pointer;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle:focus-visible {
-  outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
-  outline-offset: 0.1rem;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle-preview {
-  width: 2.8rem;
-  height: 2.8rem;
-  border-radius: 0.6rem;
-  border: 0.1rem solid rgba(var(--color-foreground), 0.16);
-  background: rgba(var(--color-background-contrast), 0.08);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle-preview img {
-  width: 1.8rem;
-  height: 1.8rem;
-  object-fit: contain;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle-label {
-  font-size: 1.4rem;
-  line-height: 1.2;
-  text-align: left;
-}
-
-.personalization-preview-modal__icon-dropdown-toggle-caret {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  transition: transform 0.18s ease;
-}
-
-.personalization-preview-modal__icon-dropdown.is-open .personalization-preview-modal__icon-dropdown-toggle-caret {
-  transform: rotate(180deg);
-}
-
-.personalization-preview-modal__icon-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.6rem);
-  left: 0;
-  right: 0;
-  z-index: 35;
   border: 0.1rem solid rgba(var(--color-foreground), 0.18);
   border-radius: var(--inputs-radius-outset);
   background-color: rgb(var(--color-background));
-  box-shadow: 0 1.3rem 2.8rem rgba(var(--color-foreground), 0.13);
   padding: 0.7rem;
   max-height: 25rem;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
@@ -1141,7 +1075,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .personalization-preview-modal__icon-dropdown-menu {
+  .personalization-preview-modal__icon-list {
     grid-template-columns: 1fr;
   }
 
