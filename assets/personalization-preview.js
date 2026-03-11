@@ -85,24 +85,19 @@
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-multi-icon-drag-drop';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-text-safe-area-bounds';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
   const MIN_TEXTBOX_HEIGHT = 14;
   const MIN_RENDERED_TEXTBOX_WIDTH = 5;
   const MIN_RENDERED_TEXTBOX_HEIGHT = 4;
-  const TEXTBOX_TIGHT_HORIZONTAL_PADDING = 20;
-  const TEXTBOX_TIGHT_VERTICAL_PADDING = 16;
-  const TEXTBOX_FIT_HORIZONTAL_INSET = 24;
-  const TEXTBOX_FIT_VERTICAL_INSET = 18;
   const DEFAULT_PREVIEW_TEXT_SCALE = 1.15;
   const DEFAULT_CANVAS_TEXT_WIDTH_RATIO = 0.94;
   const DEFAULT_CANVAS_TEXT_HEIGHT_RATIO = 0.84;
   const DEFAULT_SAFE_AREA_TOLERANCE = 1.4;
   const TEXTBOX_LAYOUT_CHANGE_EPSILON = 0.18;
   const TEXTBOX_POINTER_MOVE_ACTIVATION_PX = 12;
-  const RENDER_SAFE_AREA_INSET = 1.1;
   const DEFAULT_ICON_SCALE = 100;
   const MIN_ICON_SIZE = 3.4;
   const MAX_ICON_SIZE = 28;
@@ -431,19 +426,72 @@
     };
   }
 
-  function clampIconLayoutToSafeArea(layout) {
+  function normalizeIconAspectRatio(value) {
+    const aspectRatio = Number(value);
+    if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) return 1;
+    return Number(clampNumber(aspectRatio, 0.05, 20).toFixed(6));
+  }
+
+  function getIconBoxDimensions(size, aspectRatio) {
+    const normalizedSize = clampNumber(Number(size || 0), MIN_ICON_SIZE, MAX_ICON_SIZE);
+    const normalizedAspectRatio = normalizeIconAspectRatio(aspectRatio);
+    if (normalizedAspectRatio >= 1) {
+      return {
+        w: Number(normalizedSize.toFixed(3)),
+        h: Number((normalizedSize / normalizedAspectRatio).toFixed(3)),
+      };
+    }
+    return {
+      w: Number((normalizedSize * normalizedAspectRatio).toFixed(3)),
+      h: Number(normalizedSize.toFixed(3)),
+    };
+  }
+
+  function getMaxIconSizeForSafeArea(safeArea, aspectRatio) {
+    const normalizedAspectRatio = normalizeIconAspectRatio(aspectRatio);
+    const maxByWidth = normalizedAspectRatio >= 1 ? safeArea.w : safeArea.w / normalizedAspectRatio;
+    const maxByHeight = normalizedAspectRatio >= 1 ? safeArea.h * normalizedAspectRatio : safeArea.h;
+    return Math.max(MIN_ICON_SIZE, Math.min(MAX_ICON_SIZE, maxByWidth, maxByHeight));
+  }
+
+  function createIconBox(layout, aspectRatio) {
+    const normalizedLayout = sanitizeIconLayout(layout);
+    const dimensions = getIconBoxDimensions(normalizedLayout.size, aspectRatio);
+    return {
+      x: Number((normalizedLayout.x - dimensions.w / 2).toFixed(3)),
+      y: Number((normalizedLayout.y - dimensions.h / 2).toFixed(3)),
+      w: dimensions.w,
+      h: dimensions.h,
+    };
+  }
+
+  function areIconLayoutsEqual(left, right, epsilon) {
+    const tolerance = Number.isFinite(Number(epsilon)) ? Number(epsilon) : 0.001;
+    const leftLayout = sanitizeIconLayout(left);
+    const rightLayout = sanitizeIconLayout(right);
+    return (
+      Math.abs(leftLayout.x - rightLayout.x) <= tolerance &&
+      Math.abs(leftLayout.y - rightLayout.y) <= tolerance &&
+      Math.abs(leftLayout.size - rightLayout.size) <= tolerance
+    );
+  }
+
+  function clampIconLayoutToSafeArea(layout, aspectRatio) {
     const safeArea = sanitizeSafeAreaBounds(activeSafeAreaBounds);
     const normalized = sanitizeIconLayout(layout);
+    const normalizedAspectRatio = normalizeIconAspectRatio(aspectRatio);
     const size = clampNumber(
       normalized.size,
       MIN_ICON_SIZE,
-      Math.min(MAX_ICON_SIZE, Math.max(MIN_ICON_SIZE, Math.min(safeArea.w, safeArea.h)))
+      getMaxIconSizeForSafeArea(safeArea, normalizedAspectRatio)
     );
-    const half = size / 2;
-    const minX = safeArea.x + half;
-    const maxX = safeArea.x + safeArea.w - half;
-    const minY = safeArea.y + half;
-    const maxY = safeArea.y + safeArea.h - half;
+    const dimensions = getIconBoxDimensions(size, normalizedAspectRatio);
+    const halfWidth = dimensions.w / 2;
+    const halfHeight = dimensions.h / 2;
+    const minX = safeArea.x + halfWidth;
+    const maxX = safeArea.x + safeArea.w - halfWidth;
+    const minY = safeArea.y + halfHeight;
+    const maxY = safeArea.y + safeArea.h - halfHeight;
     return {
       x: Number(clampNumber(normalized.x, minX, Math.max(minX, maxX)).toFixed(3)),
       y: Number(clampNumber(normalized.y, minY, Math.max(minY, maxY)).toFixed(3)),
@@ -477,8 +525,10 @@
       if (!entry || typeof entry !== 'object') return;
       const value = normalizeFlowerIcon(entry.value);
       if (!value) return;
+      const aspectRatio = getIconAspectRatioForValue(value);
       const resolvedLayout = clampIconLayoutToSafeArea(
-        sanitizeIconLayout(entry.layout || createDefaultIconLayout(normalizedTextLayout))
+        sanitizeIconLayout(entry.layout || createDefaultIconLayout(normalizedTextLayout)),
+        aspectRatio
       );
       normalizedEntries.push({
         id: String(entry.id || createIconInstanceId()),
@@ -499,7 +549,8 @@
         id: createIconInstanceId(),
         value: fallbackValue,
         layout: clampIconLayoutToSafeArea(
-          sanitizeIconLayout(fallbackIconLayout || createDefaultIconLayout(normalizedTextLayout))
+          sanitizeIconLayout(fallbackIconLayout || createDefaultIconLayout(normalizedTextLayout)),
+          getIconAspectRatioForValue(fallbackValue)
         ),
       },
     ];
@@ -697,14 +748,39 @@
     };
   }
 
+  function getTextboxSafeArea() {
+    return sanitizeSafeAreaBounds(activeSafeAreaBounds);
+  }
+
   function getTextboxResizeSafeArea() {
-    const inset = 0;
-    return {
-      x: inset,
-      y: inset,
-      w: 100 - inset * 2,
-      h: 100 - inset * 2,
+    return getTextboxSafeArea();
+  }
+
+  function isLayoutWithinBounds(layout, bounds, tolerance) {
+    if (!layout || !bounds) return true;
+    const normalizedLayout = {
+      x: Number(layout.x || 0),
+      y: Number(layout.y || 0),
+      w: Number(layout.w || 0),
+      h: Number(layout.h || 0),
     };
+    const normalizedBounds = {
+      x: Number(bounds.x || 0),
+      y: Number(bounds.y || 0),
+      w: Number(bounds.w || 0),
+      h: Number(bounds.h || 0),
+    };
+    const safeTolerance = Math.max(0, Number(tolerance || 0));
+    const layoutRight = normalizedLayout.x + normalizedLayout.w;
+    const layoutBottom = normalizedLayout.y + normalizedLayout.h;
+    const boundsRight = normalizedBounds.x + normalizedBounds.w;
+    const boundsBottom = normalizedBounds.y + normalizedBounds.h;
+    return (
+      normalizedLayout.x >= normalizedBounds.x - safeTolerance &&
+      normalizedLayout.y >= normalizedBounds.y - safeTolerance &&
+      layoutRight <= boundsRight + safeTolerance &&
+      layoutBottom <= boundsBottom + safeTolerance
+    );
   }
 
   function isIconLayoutAtDefault(layout, textLayout) {
@@ -733,7 +809,10 @@
     if (shouldResetIconLayout) {
       const currentIcon = activeIcons[0];
       if (currentIcon) {
-        const resetLayout = clampIconLayoutToSafeArea(sanitizeIconLayout(createDefaultIconLayout(activeTextLayout)));
+        const resetLayout = clampIconLayoutToSafeArea(
+          sanitizeIconLayout(createDefaultIconLayout(activeTextLayout)),
+          getIconAspectRatioForEntry(currentIcon)
+        );
         activeIcons = [
           {
             ...currentIcon,
@@ -823,8 +902,8 @@
 
     return {
       previewScale: resolvePositiveNumber(stylePreset.previewScale, DEFAULT_PREVIEW_TEXT_SCALE),
-      previewInsetX: resolvePositiveNumber(stylePreset.previewInsetX, TEXTBOX_FIT_HORIZONTAL_INSET),
-      previewInsetY: resolvePositiveNumber(stylePreset.previewInsetY, TEXTBOX_FIT_VERTICAL_INSET),
+      previewInsetX: resolvePositiveNumber(stylePreset.previewInsetX, 0),
+      previewInsetY: resolvePositiveNumber(stylePreset.previewInsetY, 0),
       canvasWidthRatio: resolvePositiveNumber(stylePreset.canvasWidthRatio, DEFAULT_CANVAS_TEXT_WIDTH_RATIO),
       canvasHeightRatio: resolvePositiveNumber(stylePreset.canvasHeightRatio, DEFAULT_CANVAS_TEXT_HEIGHT_RATIO),
       safeAreaTolerance: resolvePositiveNumber(stylePreset.safeAreaTolerance, DEFAULT_SAFE_AREA_TOLERANCE),
@@ -888,6 +967,23 @@
     const travel = 1 - safeSize;
     const safeStart = clampNumber(Number(start), 0, travel);
     return `${((safeStart / travel) * 100).toFixed(3)}%`;
+  }
+
+  function resolveTrimmedIconAspectRatio(trimBounds, sourceWidth, sourceHeight) {
+    const normalizedBounds = normalizeIconTrimBounds(trimBounds);
+    const width = Math.max(1, Number(sourceWidth || 0));
+    const height = Math.max(1, Number(sourceHeight || 0));
+    const trimmedWidth = Math.max(1, normalizedBounds.w * width);
+    const trimmedHeight = Math.max(1, normalizedBounds.h * height);
+    return normalizeIconAspectRatio(trimmedWidth / trimmedHeight);
+  }
+
+  function applyIconLayoutMetrics(iconElement, iconLayout, aspectRatio) {
+    if (!(iconElement instanceof HTMLElement)) return;
+    const normalizedLayout = sanitizeIconLayout(iconLayout);
+    const dimensions = getIconBoxDimensions(normalizedLayout.size, aspectRatio);
+    iconElement.style.setProperty('--icon-box-width', `${dimensions.w.toFixed(3)}%`);
+    iconElement.style.setProperty('--icon-box-height', `${dimensions.h.toFixed(3)}%`);
   }
 
   function applyIconTrimBounds(iconElement, trimBounds) {
@@ -1201,6 +1297,26 @@
     return selectedIcon ? selectedIcon.url : '';
   }
 
+  function getCachedIconPayloadByUrl(iconUrl) {
+    const normalizedIconUrl = String(iconUrl || '').trim();
+    if (!normalizedIconUrl) return null;
+    return iconImagePayloadCache.get(normalizedIconUrl) || null;
+  }
+
+  function getIconAspectRatioForUrl(iconUrl) {
+    const payload = getCachedIconPayloadByUrl(iconUrl);
+    return normalizeIconAspectRatio(payload && payload.aspectRatio);
+  }
+
+  function getIconAspectRatioForValue(value) {
+    const iconUrl = getSelectedFlowerIconUrl(value);
+    return getIconAspectRatioForUrl(iconUrl);
+  }
+
+  function getIconAspectRatioForEntry(entry) {
+    return getIconAspectRatioForValue(entry && entry.value);
+  }
+
   function syncFlowerIconPickerValue() {
     const selectedValue = getSelectedFlowerIconValue();
     suppressFlowerIconSelectChange = true;
@@ -1253,10 +1369,11 @@
     let didUpdate = false;
     activeIcons = activeIcons.map((entry) => {
       if (entry.id !== normalizedId) return entry;
+      const aspectRatio = getIconAspectRatioForEntry(entry);
       didUpdate = true;
       return {
         ...entry,
-        layout: clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout)),
+        layout: clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout), aspectRatio),
       };
     });
     return didUpdate;
@@ -1267,11 +1384,13 @@
     const iconUrl = getSelectedFlowerIconUrl(normalizedValue);
     if (!normalizedValue || !iconUrl) return false;
     const defaultLayout = createDefaultIconLayout(activeTextLayout);
+    const aspectRatio = getIconAspectRatioForValue(normalizedValue);
     const normalizedLayout = clampIconLayoutToSafeArea(
       sanitizeIconLayout({
         ...defaultLayout,
         ...(layoutOverride || {}),
-      })
+      }),
+      aspectRatio
     );
     const iconEntry = {
       id: createIconInstanceId(),
@@ -1354,7 +1473,8 @@
       resizeHandle.setAttribute('aria-label', 'Resize icon');
       iconElement.appendChild(resizeHandle);
 
-      const cachedIconPayload = iconImagePayloadCache.get(iconUrl) || null;
+      const cachedIconPayload = getCachedIconPayloadByUrl(iconUrl);
+      applyIconLayoutMetrics(iconElement, iconEntry.layout, cachedIconPayload && cachedIconPayload.aspectRatio);
       if (cachedIconPayload && cachedIconPayload.trimBounds) {
         applyIconTrimBounds(iconElement, cachedIconPayload.trimBounds);
       } else {
@@ -1364,6 +1484,13 @@
           const currentIcon = getIconEntryById(iconEntry.id);
           if (!currentIcon) return;
           if (getSelectedFlowerIconUrl(currentIcon.value) !== iconUrl) return;
+          const normalizedLayout = clampIconLayoutToSafeArea(currentIcon.layout, iconPayload.aspectRatio);
+          if (!areIconLayoutsEqual(normalizedLayout, currentIcon.layout)) {
+            updateIconEntryLayout(iconEntry.id, normalizedLayout);
+            renderEditorState();
+            return;
+          }
+          applyIconLayoutMetrics(iconElement, normalizedLayout, iconPayload.aspectRatio);
           applyIconTrimBounds(iconElement, iconPayload.trimBounds);
         });
       }
@@ -1701,7 +1828,7 @@
     if (!scope) return;
     const currentState = getScopeState(scope) || createDefaultState();
     const hasExplicitIcons = Object.prototype.hasOwnProperty.call(nextState || {}, 'icons');
-    const normalizedTextLayout = sanitizeTextLayout(nextState.textLayout ?? currentState.textLayout);
+    const normalizedTextLayout = clampTextLayoutToSafeArea(nextState.textLayout ?? currentState.textLayout);
     const normalizedIcons = normalizeIconEntries(
       nextState.icons ?? currentState.icons,
       normalizedTextLayout,
@@ -2212,19 +2339,28 @@
         if (!base64Data) return null;
 
         let trimBounds = getDefaultIconTrimBounds();
+        let sourceWidth = 0;
+        let sourceHeight = 0;
         try {
           const iconImage = await loadImage(dataUrl);
+          sourceWidth = iconImage.naturalWidth || iconImage.width || 0;
+          sourceHeight = iconImage.naturalHeight || iconImage.height || 0;
           trimBounds = resolveImageTrimBounds(iconImage);
         } catch (error) {
           trimBounds = getDefaultIconTrimBounds();
         }
+        const normalizedTrimBounds = normalizeIconTrimBounds(trimBounds);
+        const aspectRatio = resolveTrimmedIconAspectRatio(normalizedTrimBounds, sourceWidth, sourceHeight);
 
         const payload = {
           mimeType: blob.type || 'image/svg+xml',
           data: base64Data,
           url: normalizedIconUrl,
           dataUrl,
-          trimBounds: normalizeIconTrimBounds(trimBounds),
+          trimBounds: normalizedTrimBounds,
+          sourceWidth,
+          sourceHeight,
+          aspectRatio,
         };
         iconImagePayloadCache.set(normalizedIconUrl, payload);
         return payload;
@@ -2445,6 +2581,7 @@
         const iconImage = await loadImage(iconPayload.dataUrl);
         const tintedIconCanvas = await buildTintedIconCanvas(iconImage, stylePreset.color);
         const iconSource = tintedIconCanvas || iconImage;
+        const iconAspectRatio = normalizeIconAspectRatio(iconPayload.aspectRatio);
         const sourceWidth =
           iconSource instanceof HTMLImageElement
             ? iconSource.naturalWidth || iconSource.width || 0
@@ -2453,12 +2590,8 @@
           iconSource instanceof HTMLImageElement
             ? iconSource.naturalHeight || iconSource.height || 0
             : Number(iconSource.height || 0);
-        const iconBox = boxToPixels({
-          x: resolvedIconLayout.x - resolvedIconLayout.size / 2,
-          y: resolvedIconLayout.y - resolvedIconLayout.size / 2,
-          w: resolvedIconLayout.size,
-          h: resolvedIconLayout.size,
-        });
+        const clampedIconLayout = clampIconLayoutToSafeArea(resolvedIconLayout, iconAspectRatio);
+        const iconBox = boxToPixels(createIconBox(clampedIconLayout, iconAspectRatio));
         const iconSourceRect = resolveTrimmedIconSourceRect(iconPayload.trimBounds, sourceWidth, sourceHeight);
         ctx.drawImage(
           iconSource,
@@ -2510,7 +2643,7 @@
     const styleImagePayload = await getStyleImagePayload(style);
     if (!styleImagePayload) return '';
 
-    const layout = sanitizeTextLayout(state.textLayout || createDefaultTextLayout());
+    const layout = clampTextLayoutToSafeArea(state.textLayout || createDefaultTextLayout());
     const normalizedIcons = normalizeIconEntries(
       state.icons,
       layout,
@@ -2771,6 +2904,7 @@
 
   function getValidationError(options = {}) {
     const requireAll = Boolean(options.requireAll);
+    const boundsIssue = options.boundsIssue || null;
     const lastNameValue = lastNameInput.value.trim();
     const dateValue = dateInput.value.trim();
 
@@ -2784,6 +2918,15 @@
     if (requireAll) {
       if (!lastNameValue) return 'Last name is required before generating a preview.';
       if (!dateValue) return 'Date is required before generating a preview.';
+    }
+
+    if (boundsIssue && boundsIssue.message) {
+      return boundsIssue.message;
+    }
+
+    const activeBoundsIssue = getTextBoundsValidationIssue();
+    if (activeBoundsIssue && activeBoundsIssue.message) {
+      return activeBoundsIssue.message;
     }
 
     return '';
@@ -2852,12 +2995,14 @@
   function fitLineToContainer(lineElement, options) {
     const text = String(lineElement.textContent || '').trim();
     const parent = lineElement.parentElement;
+    const boxKey = parent instanceof HTMLElement ? String(parent.dataset.personalizationTextbox || '').trim() : '';
+    const boxPadding = getTextboxPaddingPx(boxKey, lineElement);
     const insetXValue = Number(options.insetX);
     const insetYValue = Number(options.insetY);
-    const insetX = Number.isFinite(insetXValue) ? Math.max(0, insetXValue) : TEXTBOX_FIT_HORIZONTAL_INSET;
-    const insetY = Number.isFinite(insetYValue) ? Math.max(0, insetYValue) : TEXTBOX_FIT_VERTICAL_INSET;
-    const maxWidth = Math.max(24, (parent ? parent.clientWidth : lineElement.clientWidth) - insetX);
-    const maxHeight = Math.max(12, (parent ? parent.clientHeight : lineElement.clientHeight) - insetY);
+    const insetX = Number.isFinite(insetXValue) ? Math.max(0, insetXValue) : 0;
+    const insetY = Number.isFinite(insetYValue) ? Math.max(0, insetYValue) : 0;
+    const maxWidth = Math.max(24, (parent ? parent.clientWidth : lineElement.clientWidth) - boxPadding.x - insetX);
+    const maxHeight = Math.max(12, (parent ? parent.clientHeight : lineElement.clientHeight) - boxPadding.y - insetY);
     const minPx = Number(options.minPx || 8);
     const maxPx = Number(options.maxPx || Math.max(60, maxHeight * 2));
     const fontFamily = String(options.fontFamily || lineElement.style.fontFamily || 'sans-serif');
@@ -2904,55 +3049,132 @@
     });
   }
 
-  function buildRenderedTextboxLayout(boxKey, lineElement, fontSize) {
-    const constraintBox = activeTextLayout[boxKey];
-    if (!constraintBox || !lineElement) return null;
+  function getTextboxLabel(boxKey) {
+    return boxKey === 'date' ? 'Date' : 'Last name';
+  }
 
+  function getTextboxPaddingPx(boxKey, lineElement) {
+    const parentElement =
+      (lineElement && lineElement.parentElement) ||
+      (boxKey === 'date' || boxKey === 'lastName' ? getTextboxByKey(boxKey) : null);
+    if (!(parentElement instanceof HTMLElement)) {
+      return { x: 0, y: 0 };
+    }
+    const computedStyles = window.getComputedStyle(parentElement);
+    const paddingLeft = Number.parseFloat(computedStyles.paddingLeft || '0');
+    const paddingRight = Number.parseFloat(computedStyles.paddingRight || '0');
+    const paddingTop = Number.parseFloat(computedStyles.paddingTop || '0');
+    const paddingBottom = Number.parseFloat(computedStyles.paddingBottom || '0');
+    return {
+      x: Math.max(0, paddingLeft) + Math.max(0, paddingRight),
+      y: Math.max(0, paddingTop) + Math.max(0, paddingBottom),
+    };
+  }
+
+  function getTextboxTypographyConfig(boxKey, styleValue, layoutOverride) {
+    const selectedStyle = normalizeStyle(styleValue || getSelectedStyle());
+    const stylePreset = getStylePreset(selectedStyle);
+    const styleLayoutSettings = getStyleLayoutSettings(selectedStyle);
+    const activeFonts = getActiveFontFamilies(selectedStyle);
+    const constraintBox = sanitizeTextLayout({
+      lastName: boxKey === 'lastName' ? layoutOverride || activeTextLayout.lastName : activeTextLayout.lastName,
+      date: boxKey === 'date' ? layoutOverride || activeTextLayout.date : activeTextLayout.date,
+    })[boxKey];
+    const frameHeight = Math.max(40, clipSurface.clientHeight || 0);
+    const maxSize = Math.max(
+      boxKey === 'date' ? 12 : 14,
+      Math.round((frameHeight * constraintBox.h) / 100 * styleLayoutSettings.previewScale)
+    );
+    const minSize = boxKey === 'date' ? 7 : 8;
+    return {
+      constraintBox,
+      stylePreset,
+      styleLayoutSettings,
+      fontFamily:
+        boxKey === 'date'
+          ? activeFonts.date || stylePreset.dateFamily
+          : activeFonts.lastName || stylePreset.nameFamily,
+      fontWeight: boxKey === 'date' ? stylePreset.dateWeight || '600' : '600',
+      minSize,
+      maxSize,
+    };
+  }
+
+  function resolveTextboxRenderSnapshot(boxKey, options = {}) {
+    const value = String(options.text ?? getTextboxValueByKey(boxKey)).trim();
+    if (!value) return null;
+
+    const typography = getTextboxTypographyConfig(boxKey, options.styleValue, options.layout);
     const frameWidth = Math.max(1, clipSurface.clientWidth || 1);
     const frameHeight = Math.max(1, clipSurface.clientHeight || 1);
-    const textMetrics = measureTextBounds(lineElement.textContent, {
-      fontFamily: lineElement.style.fontFamily || 'sans-serif',
-      fontWeight: lineElement.style.fontWeight || '600',
+    const boxPadding = getTextboxPaddingPx(boxKey);
+    const insetX = Math.max(0, Number(typography.styleLayoutSettings.previewInsetX || 0));
+    const insetY = Math.max(0, Number(typography.styleLayoutSettings.previewInsetY || 0));
+    const maxWidth = Math.max(24, (frameWidth * typography.constraintBox.w) / 100 - boxPadding.x - insetX);
+    const maxHeight = Math.max(12, (frameHeight * typography.constraintBox.h) / 100 - boxPadding.y - insetY);
+    const providedFontSize = Number(options.fontSize);
+    const fontSize =
+      Number.isFinite(providedFontSize) && providedFontSize > 0
+        ? providedFontSize
+        : textMeasureContext
+          ? resolveBestFitFontSize(textMeasureContext, value, {
+              minSize: typography.minSize,
+              maxSize: typography.maxSize,
+              maxWidth,
+              maxHeight,
+              fontFamily: typography.fontFamily,
+              fontWeight: typography.fontWeight,
+            })
+          : typography.minSize;
+    const textMetrics = measureTextBounds(value, {
+      fontFamily: typography.fontFamily,
+      fontWeight: typography.fontWeight,
       fontSize,
     });
     const opticalOffsetPct = (getTextOpticalOffsetPx(textMetrics) / frameWidth) * 100;
-    const horizontalPadding = Math.max(TEXTBOX_TIGHT_HORIZONTAL_PADDING, fontSize * 0.48);
-    const verticalPadding = Math.max(TEXTBOX_TIGHT_VERTICAL_PADDING, fontSize * 0.36);
-
-    const maxWidthWithinClip = Math.max(
-      MIN_RENDERED_TEXTBOX_WIDTH,
-      100 - RENDER_SAFE_AREA_INSET * 2
-    );
-    const maxHeightWithinClip = Math.max(
-      MIN_RENDERED_TEXTBOX_HEIGHT,
-      100 - RENDER_SAFE_AREA_INSET * 2
-    );
-
     const desiredWidth = clampNumber(
-      ((textMetrics.width + horizontalPadding) / frameWidth) * 100,
+      ((textMetrics.width + boxPadding.x + insetX) / frameWidth) * 100,
       MIN_RENDERED_TEXTBOX_WIDTH,
-      Math.min(constraintBox.w, maxWidthWithinClip)
+      100
     );
     const desiredHeight = clampNumber(
-      ((textMetrics.height + verticalPadding) / frameHeight) * 100,
+      ((textMetrics.height + boxPadding.y + insetY) / frameHeight) * 100,
       MIN_RENDERED_TEXTBOX_HEIGHT,
-      Math.min(constraintBox.h, maxHeightWithinClip)
+      100
     );
-    const centerX = constraintBox.x + constraintBox.w / 2;
-    const centerY = constraintBox.y + constraintBox.h / 2;
-    const minX = Math.max(0, RENDER_SAFE_AREA_INSET);
-    const minY = Math.max(0, RENDER_SAFE_AREA_INSET);
-    const maxX = Math.min(100 - desiredWidth, 100 - RENDER_SAFE_AREA_INSET - desiredWidth);
-    const maxY = Math.min(100 - desiredHeight, 100 - RENDER_SAFE_AREA_INSET - desiredHeight);
-    const x = clampNumber(centerX - desiredWidth / 2 - opticalOffsetPct, minX, Math.max(minX, maxX));
-    const y = clampNumber(centerY - desiredHeight / 2, minY, Math.max(minY, maxY));
+    const centerX = typography.constraintBox.x + typography.constraintBox.w / 2;
+    const centerY = typography.constraintBox.y + typography.constraintBox.h / 2;
 
     return {
-      x: Number(x.toFixed(3)),
-      y: Number(y.toFixed(3)),
-      w: Number(desiredWidth.toFixed(3)),
-      h: Number(desiredHeight.toFixed(3)),
+      value,
+      fontSize,
+      textMetrics,
+      constraintBox: typography.constraintBox,
+      maxWidth,
+      maxHeight,
+      safeAreaTolerance: typography.styleLayoutSettings.safeAreaTolerance,
+      renderedLayout: {
+        x: Number((centerX - desiredWidth / 2 - opticalOffsetPct).toFixed(3)),
+        y: Number((centerY - desiredHeight / 2).toFixed(3)),
+        w: Number(desiredWidth.toFixed(3)),
+        h: Number(desiredHeight.toFixed(3)),
+      },
+      fitsWithinConstraint:
+        textMetrics.width <= maxWidth + 0.5 &&
+        textMetrics.height <= maxHeight + 0.5,
     };
+  }
+
+  function buildRenderedTextboxLayout(boxKey, lineElement, fontSize) {
+    if (!lineElement) return null;
+    const snapshot = resolveTextboxRenderSnapshot(boxKey, {
+      text: lineElement.textContent,
+      styleValue: getSelectedStyle(),
+      layout: activeTextLayout[boxKey],
+      fontSize,
+    });
+    if (!snapshot) return null;
+    return snapshot.renderedLayout;
   }
 
   function getTextboxValueByKey(boxKey) {
@@ -2965,6 +3187,39 @@
 
   function getTextboxLayoutForValidation(boxKey) {
     return getTextboxLayoutForDisplay(boxKey);
+  }
+
+  function getTextBoundsValidationIssue() {
+    const safeArea = getTextboxSafeArea();
+    const selectedStyle = getSelectedStyle();
+
+    for (const boxKey of ['lastName', 'date']) {
+      const snapshot = resolveTextboxRenderSnapshot(boxKey, { styleValue: selectedStyle });
+      if (!snapshot) continue;
+
+      if (!isLayoutWithinBounds(snapshot.constraintBox, safeArea, snapshot.safeAreaTolerance)) {
+        return {
+          boxKey,
+          message: `${getTextboxLabel(boxKey)} must stay inside the engravable area.`,
+        };
+      }
+
+      if (!snapshot.fitsWithinConstraint) {
+        return {
+          boxKey,
+          message: `${getTextboxLabel(boxKey)} does not fit inside the engravable area. Resize its box or shorten the text.`,
+        };
+      }
+
+      if (!isLayoutWithinBounds(snapshot.renderedLayout, safeArea, snapshot.safeAreaTolerance)) {
+        return {
+          boxKey,
+          message: `${getTextboxLabel(boxKey)} extends outside the engravable area. Reposition it or shorten the text.`,
+        };
+      }
+    }
+
+    return null;
   }
 
   function hasLayoutChangedSignificantly(sourceLayout, targetLayout) {
@@ -3106,14 +3361,23 @@
       box.h = nextHeight;
       setTextboxCenterSnapState(boxInteraction.boxKey, false);
     } else {
+      const dragSafeArea = getTextboxResizeSafeArea();
       box.w = boxInteraction.startBox.w;
       box.h = boxInteraction.startBox.h;
-      box.x = clampNumber(boxInteraction.startBox.x + deltaXPct, 0, 100 - boxInteraction.startBox.w);
-      box.y = clampNumber(boxInteraction.startBox.y + deltaYPct, 0, 100 - boxInteraction.startBox.h);
+      box.x = clampNumber(
+        boxInteraction.startBox.x + deltaXPct,
+        dragSafeArea.x,
+        Math.max(dragSafeArea.x, dragSafeArea.x + dragSafeArea.w - boxInteraction.startBox.w)
+      );
+      box.y = clampNumber(
+        boxInteraction.startBox.y + deltaYPct,
+        dragSafeArea.y,
+        Math.max(dragSafeArea.y, dragSafeArea.y + dragSafeArea.h - boxInteraction.startBox.h)
+      );
       setTextboxCenterSnapState(boxInteraction.boxKey, false);
     }
 
-    activeTextLayout = sanitizeTextLayout(nextLayout);
+    activeTextLayout = clampTextLayoutToSafeArea(nextLayout);
     const movedLayout = activeTextLayout[boxInteraction.boxKey];
     if (hasLayoutChangedSignificantly(boxInteraction.startBox, movedLayout)) {
       boxInteraction.layoutChanged = true;
@@ -3145,7 +3409,10 @@
     const activeBox = activeTextLayout[boxKey];
     if (!activeBox) return;
     const displayBox = getTextboxLayoutForDisplay(boxKey);
-    const interactionBox = mode === 'drag' && displayBox ? displayBox : activeBox;
+    const interactionBox = clampTextboxToSafeArea(
+      mode === 'drag' && displayBox ? displayBox : activeBox,
+      getTextboxResizeSafeArea()
+    );
     setSelectedTextbox(boxKey);
     setIconSelected(false);
 
@@ -3212,7 +3479,7 @@
       nextLayout.y = iconInteraction.startLayout.y + deltaYPct;
     }
 
-    const sanitizedNextLayout = clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout));
+    const sanitizedNextLayout = clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout), iconInteraction.aspectRatio);
     updateIconEntryLayout(iconInteraction.iconId, sanitizedNextLayout);
     if (
       Math.abs(sanitizedNextLayout.x - iconInteraction.startLayout.x) > ICON_LAYOUT_CHANGE_EPSILON ||
@@ -3258,6 +3525,7 @@
       mode,
       startX: event.clientX,
       startY: event.clientY,
+      aspectRatio: getIconAspectRatioForEntry(iconEntry),
       startLayout: { ...sanitizeIconLayout(iconEntry.layout) },
       dragActivated: false,
       layoutChanged: false,
@@ -3294,7 +3562,14 @@
     clipSurface.classList.remove('is-out-of-bounds');
     safeAreaWarning.setAttribute('hidden', '');
 
-    const validationError = getValidationError();
+    const boundsIssue = getTextBoundsValidationIssue();
+    if (boundsIssue) {
+      clipSurface.classList.add('is-warning-armed');
+      clipSurface.classList.add('is-out-of-bounds');
+      safeAreaWarning.removeAttribute('hidden');
+    }
+
+    const validationError = getValidationError({ boundsIssue });
     const hasError = Boolean(validationError);
     if (!isGenerating) {
       if (validationError) {
@@ -3650,7 +3925,7 @@
     const stylePreset = getStylePreset(normalizedStyle);
     setSelectValue(lastNameFontSelect, existingState.lastNameFont, stylePreset.nameFamily);
     setSelectValue(dateFontSelect, existingState.dateFont, stylePreset.dateFamily);
-    activeTextLayout = sanitizeTextLayout(existingState.textLayout);
+    activeTextLayout = clampTextLayoutToSafeArea(existingState.textLayout);
     initialTextLayout = cloneTextLayout(activeTextLayout);
     activeIcons = normalizeIconEntries(
       existingState.icons,
@@ -4310,7 +4585,9 @@
   hydrateContexts(document);
   syncAllScopePersonalizationEligibility();
   ensureSafeAreaBounds().then(() => {
-    activeTextLayout = sanitizeTextLayout(activeTextLayout);
+    activeTextLayout = clampTextLayoutToSafeArea(activeTextLayout);
+    renderedTextLayout = cloneTextLayout(activeTextLayout);
+    initialTextLayout = cloneTextLayout(activeTextLayout);
     activeIcons = normalizeIconEntries(activeIcons, activeTextLayout);
     if (activeScope) {
       renderEditorState();

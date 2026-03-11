@@ -915,12 +915,12 @@
   position: absolute;
   left: var(--icon-x, 50%);
   top: var(--icon-y, 50%);
-  width: var(--icon-size, 8%);
-  height: var(--icon-size, 8%);
+  width: var(--icon-box-width, var(--icon-size, 8%));
+  height: var(--icon-box-height, var(--icon-size, 8%));
   transform: translate(-50%, -50%);
-  border: 0.1rem dashed rgba(75, 52, 31, 0.45);
+  border: 0.1rem dashed transparent;
   border-radius: 0.45rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
   cursor: move;
   pointer-events: auto;
   touch-action: none;
@@ -985,8 +985,7 @@
 }
 
 .personalization-preview-modal__deterministic-icon.is-selected .personalization-preview-modal__icon-resize-handle,
-.personalization-preview-modal__deterministic-icon.is-active .personalization-preview-modal__icon-resize-handle,
-.personalization-preview-modal__deterministic-icon:hover .personalization-preview-modal__icon-resize-handle {
+.personalization-preview-modal__deterministic-icon.is-active .personalization-preview-modal__icon-resize-handle {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
