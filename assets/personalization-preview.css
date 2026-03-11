@@ -800,6 +800,16 @@
   z-index: 3;
 }
 
+.personalization-preview-modal__icon-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.personalization-preview-modal__icon-layer .personalization-preview-modal__deterministic-icon {
+  pointer-events: auto;
+}
+
 .personalization-preview-modal__deterministic-textbox {
   position: absolute;
   left: var(--box-x, 10%);

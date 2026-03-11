@@ -85,7 +85,7 @@
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-style-groups-icon-trim';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-multi-icon-drag-drop';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -276,9 +276,7 @@
   const deterministicOverlay = modal.querySelector('[data-personalization-deterministic-overlay]');
   const deterministicLastName = modal.querySelector('[data-personalization-deterministic-last-name]');
   const deterministicDate = modal.querySelector('[data-personalization-deterministic-date]');
-  const deterministicIcon = modal.querySelector('[data-personalization-deterministic-icon]');
-  const deterministicIconImage = modal.querySelector('[data-personalization-deterministic-icon-image]');
-  const iconResizeHandle = modal.querySelector('[data-personalization-icon-resize]');
+  const iconLayer = modal.querySelector('[data-personalization-icon-layer]');
   const removeIconButton = modal.querySelector('[data-personalization-remove-icon]');
   const safeAreaWarning = modal.querySelector('[data-personalization-safe-area-warning]');
   const safeAreaBoundary = modal.querySelector('[data-personalization-safe-area-boundary]');
@@ -313,9 +311,7 @@
     !deterministicOverlay ||
     !deterministicLastName ||
     !deterministicDate ||
-    !deterministicIcon ||
-    !deterministicIconImage ||
-    !iconResizeHandle ||
+    !iconLayer ||
     !removeIconButton ||
     !safeAreaWarning ||
     !safeAreaBoundary ||
@@ -352,14 +348,15 @@
   let activeTextLayout = createDefaultTextLayout();
   let renderedTextLayout = cloneTextLayout(activeTextLayout);
   let initialTextLayout = cloneTextLayout(activeTextLayout);
-  let activeIconLayout = createDefaultIconLayout(activeTextLayout);
-  let initialIconLayout = { ...activeIconLayout };
+  let activeIcons = [];
   let pendingFlowerIconValue = '';
   let boxInteraction = null;
   let iconInteraction = null;
   let selectedTextboxKey = '';
-  let isIconSelected = false;
+  let selectedIconId = '';
   let isIconDropdownOpen = false;
+  let nextIconInstanceId = 1;
+  let suppressFlowerIconSelectChange = false;
   let activeEditorSessionId = 0;
   let shouldValidateEngravingBounds = false;
   let hasUserMovedTextInCurrentSession = false;
@@ -452,6 +449,75 @@
       y: Number(clampNumber(normalized.y, minY, Math.max(minY, maxY)).toFixed(3)),
       size: Number(size.toFixed(3)),
     };
+  }
+
+  function createIconInstanceId() {
+    const id = `icon-${nextIconInstanceId}`;
+    nextIconInstanceId += 1;
+    return id;
+  }
+
+  function cloneIconEntries(entries) {
+    const sourceEntries = Array.isArray(entries) ? entries : [];
+    return sourceEntries
+      .map((entry) => ({
+        id: String(entry?.id || createIconInstanceId()),
+        value: normalizeFlowerIcon(entry?.value),
+        layout: sanitizeIconLayout(entry?.layout),
+      }))
+      .filter((entry) => entry.value);
+  }
+
+  function normalizeIconEntries(entries, textLayout, fallbackIconValue, fallbackIconLayout) {
+    const normalizedTextLayout = sanitizeTextLayout(textLayout || activeTextLayout || createDefaultTextLayout());
+    const sourceEntries = Array.isArray(entries) ? entries : [];
+    const normalizedEntries = [];
+
+    sourceEntries.forEach((entry) => {
+      if (!entry || typeof entry !== 'object') return;
+      const value = normalizeFlowerIcon(entry.value);
+      if (!value) return;
+      const resolvedLayout = clampIconLayoutToSafeArea(
+        sanitizeIconLayout(entry.layout || createDefaultIconLayout(normalizedTextLayout))
+      );
+      normalizedEntries.push({
+        id: String(entry.id || createIconInstanceId()),
+        value,
+        layout: resolvedLayout,
+      });
+    });
+
+    if (normalizedEntries.length) {
+      return normalizedEntries;
+    }
+
+    const fallbackValue = normalizeFlowerIcon(fallbackIconValue);
+    if (!fallbackValue) return [];
+
+    return [
+      {
+        id: createIconInstanceId(),
+        value: fallbackValue,
+        layout: clampIconLayoutToSafeArea(
+          sanitizeIconLayout(fallbackIconLayout || createDefaultIconLayout(normalizedTextLayout))
+        ),
+      },
+    ];
+  }
+
+  function getIconEntryById(iconId) {
+    const normalizedId = String(iconId || '').trim();
+    if (!normalizedId) return null;
+    return activeIcons.find((entry) => entry.id === normalizedId) || null;
+  }
+
+  function getSelectedIconEntry() {
+    return getIconEntryById(selectedIconId);
+  }
+
+  function getPrimaryIconEntry(entries) {
+    const sourceEntries = Array.isArray(entries) ? entries : [];
+    return sourceEntries.length ? sourceEntries[0] : null;
   }
 
   function parseMaxLength(value, fallback) {
@@ -654,7 +720,8 @@
 
   function syncPreviewLayoutForInitialPlacement() {
     const shouldResetTextLayout = isTextLayoutAtDefault(activeTextLayout);
-    const shouldResetIconLayout = getSelectedFlowerIconValue() && isIconLayoutAtDefault(activeIconLayout, activeTextLayout);
+    const shouldResetIconLayout =
+      activeIcons.length === 1 && isIconLayoutAtDefault(activeIcons[0].layout, activeTextLayout);
     if (!shouldResetTextLayout && !shouldResetIconLayout) return false;
 
     if (shouldResetTextLayout) {
@@ -664,8 +731,16 @@
     }
 
     if (shouldResetIconLayout) {
-      activeIconLayout = sanitizeIconLayout(createDefaultIconLayout(activeTextLayout));
-      initialIconLayout = { ...activeIconLayout };
+      const currentIcon = activeIcons[0];
+      if (currentIcon) {
+        const resetLayout = clampIconLayoutToSafeArea(sanitizeIconLayout(createDefaultIconLayout(activeTextLayout)));
+        activeIcons = [
+          {
+            ...currentIcon,
+            layout: resetLayout,
+          },
+        ];
+      }
     }
 
     return true;
@@ -779,7 +854,8 @@
     }
     if (iconRegistryUrl) {
       try {
-        return new URL(normalizedAssetPath, iconRegistryUrl).toString();
+        const absoluteRegistryUrl = new URL(iconRegistryUrl, window.location.href).toString();
+        return new URL(normalizedAssetPath, absoluteRegistryUrl).toString();
       } catch (error) {
         return normalizedAssetPath;
       }
@@ -814,19 +890,21 @@
     return `${((safeStart / travel) * 100).toFixed(3)}%`;
   }
 
-  function applyIconTrimBounds(trimBounds) {
+  function applyIconTrimBounds(iconElement, trimBounds) {
+    if (!(iconElement instanceof HTMLElement)) return;
     const normalizedBounds = normalizeIconTrimBounds(trimBounds);
-    deterministicIcon.style.setProperty('--icon-mask-size-x', `${(100 / normalizedBounds.w).toFixed(3)}%`);
-    deterministicIcon.style.setProperty('--icon-mask-size-y', `${(100 / normalizedBounds.h).toFixed(3)}%`);
-    deterministicIcon.style.setProperty('--icon-mask-pos-x', getIconMaskPositionPercent(normalizedBounds.x, normalizedBounds.w));
-    deterministicIcon.style.setProperty('--icon-mask-pos-y', getIconMaskPositionPercent(normalizedBounds.y, normalizedBounds.h));
+    iconElement.style.setProperty('--icon-mask-size-x', `${(100 / normalizedBounds.w).toFixed(3)}%`);
+    iconElement.style.setProperty('--icon-mask-size-y', `${(100 / normalizedBounds.h).toFixed(3)}%`);
+    iconElement.style.setProperty('--icon-mask-pos-x', getIconMaskPositionPercent(normalizedBounds.x, normalizedBounds.w));
+    iconElement.style.setProperty('--icon-mask-pos-y', getIconMaskPositionPercent(normalizedBounds.y, normalizedBounds.h));
   }
 
-  function clearIconTrimBounds() {
-    deterministicIcon.style.removeProperty('--icon-mask-size-x');
-    deterministicIcon.style.removeProperty('--icon-mask-size-y');
-    deterministicIcon.style.removeProperty('--icon-mask-pos-x');
-    deterministicIcon.style.removeProperty('--icon-mask-pos-y');
+  function clearIconTrimBounds(iconElement) {
+    if (!(iconElement instanceof HTMLElement)) return;
+    iconElement.style.removeProperty('--icon-mask-size-x');
+    iconElement.style.removeProperty('--icon-mask-size-y');
+    iconElement.style.removeProperty('--icon-mask-pos-x');
+    iconElement.style.removeProperty('--icon-mask-pos-y');
   }
 
   function resolveImageTrimBounds(imageElement) {
@@ -988,6 +1066,7 @@
       optionButton.dataset.personalizationIconOptionValue = entry.value;
       optionButton.setAttribute('role', 'option');
       optionButton.setAttribute('aria-selected', 'false');
+      optionButton.draggable = Boolean(entry.value && entry.url);
 
       if (entry.url) {
         const iconImage = document.createElement('img');
@@ -1113,7 +1192,8 @@
   }
 
   function getSelectedFlowerIconValue() {
-    return normalizeFlowerIcon(flowerIconSelect.value);
+    const selectedIcon = getSelectedIconEntry();
+    return selectedIcon ? selectedIcon.value : '';
   }
 
   function getSelectedFlowerIconUrl(value) {
@@ -1121,73 +1201,177 @@
     return selectedIcon ? selectedIcon.url : '';
   }
 
-  function applyIconLayout(layoutOverride) {
-    const layout = sanitizeIconLayout(layoutOverride || activeIconLayout);
-    activeIconLayout = layout;
-    deterministicIcon.style.setProperty('--icon-x', `${layout.x}%`);
-    deterministicIcon.style.setProperty('--icon-y', `${layout.y}%`);
-    deterministicIcon.style.setProperty('--icon-size', `${layout.size}%`);
+  function syncFlowerIconPickerValue() {
+    const selectedValue = getSelectedFlowerIconValue();
+    suppressFlowerIconSelectChange = true;
+    setFlowerIconValue(selectedValue);
+    suppressFlowerIconSelectChange = false;
   }
 
   function syncIconSelectionState() {
-    deterministicIcon.classList.toggle('is-selected', isIconSelected);
+    const normalizedSelectedId = String(selectedIconId || '').trim();
+    iconLayer.querySelectorAll('[data-personalization-icon-id]').forEach((iconElement) => {
+      if (!(iconElement instanceof HTMLElement)) return;
+      const iconId = String(iconElement.dataset.personalizationIconId || '').trim();
+      iconElement.classList.toggle('is-selected', Boolean(normalizedSelectedId) && iconId === normalizedSelectedId);
+    });
   }
 
   function setIconSelected(selected) {
-    const nextValue = Boolean(selected);
-    if (isIconSelected === nextValue) return;
-    isIconSelected = nextValue;
+    if (selected) {
+      if (!selectedIconId) {
+        const fallbackIcon = activeIcons[activeIcons.length - 1] || null;
+        selectedIconId = fallbackIcon ? fallbackIcon.id : '';
+      }
+    } else {
+      selectedIconId = '';
+    }
     syncIconSelectionState();
+    syncFlowerIconPickerValue();
+    syncRemoveIconButton();
   }
 
   function syncRemoveIconButton() {
-    removeIconButton.toggleAttribute('hidden', !getSelectedFlowerIconValue());
+    removeIconButton.toggleAttribute('hidden', !selectedIconId);
   }
 
   function clearSelectedFlowerIcon() {
+    if (!selectedIconId) return;
     onIconPointerUp();
     setIconDropdownOpen(false);
     invalidateGeneratedPreview();
-    setFlowerIconValue('');
-    setIconSelected(false);
+    activeIcons = activeIcons.filter((entry) => entry.id !== selectedIconId);
+    selectedIconId = '';
+    setIconSelected(Boolean(activeIcons.length));
     setGenerationError('');
     renderEditorState();
   }
 
+  function updateIconEntryLayout(iconId, nextLayout) {
+    const normalizedId = String(iconId || '').trim();
+    if (!normalizedId) return false;
+    let didUpdate = false;
+    activeIcons = activeIcons.map((entry) => {
+      if (entry.id !== normalizedId) return entry;
+      didUpdate = true;
+      return {
+        ...entry,
+        layout: clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout)),
+      };
+    });
+    return didUpdate;
+  }
+
+  function addIconToClip(iconValue, layoutOverride) {
+    const normalizedValue = normalizeFlowerIcon(iconValue);
+    const iconUrl = getSelectedFlowerIconUrl(normalizedValue);
+    if (!normalizedValue || !iconUrl) return false;
+    const defaultLayout = createDefaultIconLayout(activeTextLayout);
+    const normalizedLayout = clampIconLayoutToSafeArea(
+      sanitizeIconLayout({
+        ...defaultLayout,
+        ...(layoutOverride || {}),
+      })
+    );
+    const iconEntry = {
+      id: createIconInstanceId(),
+      value: normalizedValue,
+      layout: normalizedLayout,
+    };
+    activeIcons = [...activeIcons, iconEntry];
+    selectedIconId = iconEntry.id;
+    setSelectedTextbox('');
+    invalidateGeneratedPreview();
+    armEngravingWarningState();
+    syncFlowerIconPickerValue();
+    setGenerationError('');
+    renderEditorState();
+    return true;
+  }
+
+  function getRenderableIconEntries(iconEntriesOverride) {
+    const sourceEntries = normalizeIconEntries(iconEntriesOverride ?? activeIcons, activeTextLayout);
+    return sourceEntries
+      .map((entry) => ({
+        id: entry.id,
+        value: entry.value,
+        url: getSelectedFlowerIconUrl(entry.value),
+        layout: sanitizeIconLayout(entry.layout),
+      }))
+      .filter((entry) => entry.url);
+  }
+
   function renderFlowerIcon() {
-    const flowerIconValue = getSelectedFlowerIconValue();
-    const flowerIconUrl = getSelectedFlowerIconUrl(flowerIconValue);
-    if (!flowerIconValue || !flowerIconUrl) {
-      deterministicIcon.setAttribute('hidden', '');
-      deterministicIconImage.removeAttribute('src');
-      deterministicIcon.style.removeProperty('--icon-mask-image');
-      deterministicIcon.style.removeProperty('--icon-color');
-      clearIconTrimBounds();
-      setIconSelected(false);
+    const normalizedIcons = normalizeIconEntries(activeIcons, activeTextLayout);
+    activeIcons = normalizedIcons;
+    iconLayer.innerHTML = '';
+    const stylePreset = getStylePreset(getSelectedStyle());
+    if (!activeIcons.length) {
+      selectedIconId = '';
+      syncFlowerIconPickerValue();
       syncRemoveIconButton();
       return;
     }
 
-    const stylePreset = getStylePreset(getSelectedStyle());
-    deterministicIcon.style.setProperty('--icon-mask-image', `url("${flowerIconUrl.replace(/"/g, '\\"')}")`);
-    deterministicIcon.style.setProperty('--icon-color', stylePreset.color || BASE_STYLE_PRESET.color);
-
-    const cachedIconPayload = iconImagePayloadCache.get(flowerIconUrl) || null;
-    if (cachedIconPayload && cachedIconPayload.trimBounds) {
-      applyIconTrimBounds(cachedIconPayload.trimBounds);
-    } else {
-      clearIconTrimBounds();
-      void getIconImagePayload(flowerIconUrl).then((iconPayload) => {
-        if (!iconPayload || !iconPayload.trimBounds) return;
-        const activeIconUrl = getSelectedFlowerIconUrl(getSelectedFlowerIconValue());
-        if (activeIconUrl !== flowerIconUrl) return;
-        applyIconTrimBounds(iconPayload.trimBounds);
-      });
+    if (selectedIconId && !getIconEntryById(selectedIconId)) {
+      selectedIconId = '';
+    }
+    if (!selectedIconId) {
+      selectedIconId = activeIcons[activeIcons.length - 1].id;
     }
 
-    applyIconLayout(activeIconLayout);
-    deterministicIconImage.src = flowerIconUrl;
-    deterministicIcon.removeAttribute('hidden');
+    activeIcons.forEach((iconEntry) => {
+      const iconUrl = getSelectedFlowerIconUrl(iconEntry.value);
+      if (!iconUrl) return;
+
+      const iconElement = document.createElement('div');
+      iconElement.className = 'personalization-preview-modal__deterministic-icon';
+      iconElement.dataset.personalizationIconId = iconEntry.id;
+      iconElement.style.setProperty('--icon-x', `${iconEntry.layout.x}%`);
+      iconElement.style.setProperty('--icon-y', `${iconEntry.layout.y}%`);
+      iconElement.style.setProperty('--icon-size', `${iconEntry.layout.size}%`);
+      iconElement.style.setProperty('--icon-mask-image', `url("${iconUrl.replace(/"/g, '\\"')}")`);
+      iconElement.style.setProperty('--icon-color', stylePreset.color || BASE_STYLE_PRESET.color);
+
+      if (iconEntry.id === selectedIconId) {
+        iconElement.classList.add('is-selected');
+      }
+      if (iconInteraction && iconInteraction.iconId === iconEntry.id) {
+        iconElement.classList.add('is-active');
+      }
+
+      const iconImage = document.createElement('img');
+      iconImage.className = 'personalization-preview-modal__deterministic-icon-image';
+      iconImage.src = iconUrl;
+      iconImage.alt = 'Selected icon';
+      iconImage.loading = 'lazy';
+      iconElement.appendChild(iconImage);
+
+      const resizeHandle = document.createElement('button');
+      resizeHandle.type = 'button';
+      resizeHandle.className = 'personalization-preview-modal__icon-resize-handle';
+      resizeHandle.dataset.personalizationIconResize = iconEntry.id;
+      resizeHandle.setAttribute('aria-label', 'Resize icon');
+      iconElement.appendChild(resizeHandle);
+
+      const cachedIconPayload = iconImagePayloadCache.get(iconUrl) || null;
+      if (cachedIconPayload && cachedIconPayload.trimBounds) {
+        applyIconTrimBounds(iconElement, cachedIconPayload.trimBounds);
+      } else {
+        clearIconTrimBounds(iconElement);
+        void getIconImagePayload(iconUrl).then((iconPayload) => {
+          if (!iconPayload || !iconPayload.trimBounds) return;
+          const currentIcon = getIconEntryById(iconEntry.id);
+          if (!currentIcon) return;
+          if (getSelectedFlowerIconUrl(currentIcon.value) !== iconUrl) return;
+          applyIconTrimBounds(iconElement, iconPayload.trimBounds);
+        });
+      }
+
+      iconLayer.appendChild(iconElement);
+    });
+
+    syncIconSelectionState();
     syncRemoveIconButton();
   }
 
@@ -1487,6 +1671,7 @@
 
   function createDefaultState() {
     const defaultPreset = getStylePreset(DEFAULT_STYLE);
+    const defaultTextLayout = createDefaultTextLayout();
     return {
       style: DEFAULT_STYLE,
       lastName: DEFAULT_LAST_NAME_VALUE,
@@ -1494,8 +1679,9 @@
       lastNameFont: defaultPreset.nameFamily,
       dateFont: defaultPreset.dateFamily,
       flowerIcon: '',
-      textLayout: createDefaultTextLayout(),
-      iconLayout: createDefaultIconLayout(createDefaultTextLayout()),
+      icons: [],
+      textLayout: defaultTextLayout,
+      iconLayout: createDefaultIconLayout(defaultTextLayout),
       geminiSummary: '',
       generatedImage: '',
       stagePreviewDataUrl: '',
@@ -1514,6 +1700,15 @@
   function setScopeState(scope, nextState) {
     if (!scope) return;
     const currentState = getScopeState(scope) || createDefaultState();
+    const hasExplicitIcons = Object.prototype.hasOwnProperty.call(nextState || {}, 'icons');
+    const normalizedTextLayout = sanitizeTextLayout(nextState.textLayout ?? currentState.textLayout);
+    const normalizedIcons = normalizeIconEntries(
+      nextState.icons ?? currentState.icons,
+      normalizedTextLayout,
+      hasExplicitIcons ? '' : nextState.flowerIcon ?? currentState.flowerIcon,
+      hasExplicitIcons ? null : nextState.iconLayout ?? currentState.iconLayout
+    );
+    const primaryIcon = getPrimaryIconEntry(normalizedIcons);
 
     stateByScope.set(scope, {
       style: normalizeStyle(nextState.style || currentState.style),
@@ -1521,11 +1716,12 @@
       date: String(nextState.date ?? currentState.date ?? '').trim(),
       lastNameFont: String(nextState.lastNameFont ?? currentState.lastNameFont ?? '').trim(),
       dateFont: String(nextState.dateFont ?? currentState.dateFont ?? '').trim(),
-      flowerIcon: normalizeFlowerIcon(nextState.flowerIcon ?? currentState.flowerIcon),
-      textLayout: sanitizeTextLayout(nextState.textLayout ?? currentState.textLayout),
-      iconLayout: sanitizeIconLayout(
-        nextState.iconLayout ?? currentState.iconLayout ?? createDefaultIconLayout(nextState.textLayout ?? currentState.textLayout)
-      ),
+      flowerIcon: primaryIcon ? primaryIcon.value : '',
+      icons: cloneIconEntries(normalizedIcons),
+      textLayout: normalizedTextLayout,
+      iconLayout: primaryIcon
+        ? sanitizeIconLayout(primaryIcon.layout)
+        : sanitizeIconLayout(nextState.iconLayout ?? currentState.iconLayout ?? createDefaultIconLayout(normalizedTextLayout)),
       geminiSummary: String(nextState.geminiSummary ?? currentState.geminiSummary ?? '').trim(),
       generatedImage: String(nextState.generatedImage ?? currentState.generatedImage ?? '').trim(),
       stagePreviewDataUrl: String(nextState.stagePreviewDataUrl ?? currentState.stagePreviewDataUrl ?? '').trim(),
@@ -2131,8 +2327,7 @@
     dateValue,
     textLayout,
     fontFamilies,
-    flowerIconConfig,
-    iconLayout
+    iconEntriesConfig
   ) {
     if (!styleImagePayload || !styleImagePayload.dataUrl) return null;
     const stylePreset = getStylePreset(styleValue);
@@ -2236,45 +2431,48 @@
       fontWeight: stylePreset.dateWeight || '600',
     });
 
-    const flowerIconValue = normalizeFlowerIcon(flowerIconConfig?.value);
-    const flowerIconUrl = String(flowerIconConfig?.url || '').trim();
-    if (flowerIconValue && flowerIconUrl) {
-      const resolvedIconLayout = sanitizeIconLayout(iconLayout || createDefaultIconLayout(layout));
+    const iconEntries = Array.isArray(iconEntriesConfig) ? iconEntriesConfig : [];
+    for (const iconEntry of iconEntries) {
+      const flowerIconValue = normalizeFlowerIcon(iconEntry?.value);
+      const flowerIconUrl = String(iconEntry?.url || '').trim();
+      if (!flowerIconValue || !flowerIconUrl) continue;
+
+      const resolvedIconLayout = sanitizeIconLayout(iconEntry?.layout || createDefaultIconLayout(layout));
       const iconPayload = await getIconImagePayload(flowerIconUrl);
-      if (resolvedIconLayout && iconPayload && iconPayload.dataUrl) {
-        try {
-          const iconImage = await loadImage(iconPayload.dataUrl);
-          const tintedIconCanvas = await buildTintedIconCanvas(iconImage, stylePreset.color);
-          const iconSource = tintedIconCanvas || iconImage;
-          const sourceWidth =
-            iconSource instanceof HTMLImageElement
-              ? iconSource.naturalWidth || iconSource.width || 0
-              : Number(iconSource.width || 0);
-          const sourceHeight =
-            iconSource instanceof HTMLImageElement
-              ? iconSource.naturalHeight || iconSource.height || 0
-              : Number(iconSource.height || 0);
-          const iconBox = boxToPixels({
-            x: resolvedIconLayout.x - resolvedIconLayout.size / 2,
-            y: resolvedIconLayout.y - resolvedIconLayout.size / 2,
-            w: resolvedIconLayout.size,
-            h: resolvedIconLayout.size,
-          });
-          const iconSourceRect = resolveTrimmedIconSourceRect(iconPayload.trimBounds, sourceWidth, sourceHeight);
-          ctx.drawImage(
-            iconSource,
-            iconSourceRect.x,
-            iconSourceRect.y,
-            iconSourceRect.w,
-            iconSourceRect.h,
-            iconBox.x,
-            iconBox.y,
-            iconBox.w,
-            iconBox.h
-          );
-        } catch (error) {
-          // Ignore icon rendering failure and continue rendering text context.
-        }
+      if (!resolvedIconLayout || !iconPayload || !iconPayload.dataUrl) continue;
+
+      try {
+        const iconImage = await loadImage(iconPayload.dataUrl);
+        const tintedIconCanvas = await buildTintedIconCanvas(iconImage, stylePreset.color);
+        const iconSource = tintedIconCanvas || iconImage;
+        const sourceWidth =
+          iconSource instanceof HTMLImageElement
+            ? iconSource.naturalWidth || iconSource.width || 0
+            : Number(iconSource.width || 0);
+        const sourceHeight =
+          iconSource instanceof HTMLImageElement
+            ? iconSource.naturalHeight || iconSource.height || 0
+            : Number(iconSource.height || 0);
+        const iconBox = boxToPixels({
+          x: resolvedIconLayout.x - resolvedIconLayout.size / 2,
+          y: resolvedIconLayout.y - resolvedIconLayout.size / 2,
+          w: resolvedIconLayout.size,
+          h: resolvedIconLayout.size,
+        });
+        const iconSourceRect = resolveTrimmedIconSourceRect(iconPayload.trimBounds, sourceWidth, sourceHeight);
+        ctx.drawImage(
+          iconSource,
+          iconSourceRect.x,
+          iconSourceRect.y,
+          iconSourceRect.w,
+          iconSourceRect.h,
+          iconBox.x,
+          iconBox.y,
+          iconBox.w,
+          iconBox.h
+        );
+      } catch (error) {
+        // Ignore icon rendering failure and continue rendering text context.
       }
     }
 
@@ -2313,10 +2511,20 @@
     if (!styleImagePayload) return '';
 
     const layout = sanitizeTextLayout(state.textLayout || createDefaultTextLayout());
-    const iconLayout = sanitizeIconLayout(state.iconLayout || createDefaultIconLayout(layout));
+    const normalizedIcons = normalizeIconEntries(
+      state.icons,
+      layout,
+      state.flowerIcon,
+      state.iconLayout || createDefaultIconLayout(layout)
+    );
+    const renderableIcons = normalizedIcons
+      .map((entry) => ({
+        value: entry.value,
+        url: getSelectedFlowerIconUrl(entry.value),
+        layout: sanitizeIconLayout(entry.layout),
+      }))
+      .filter((entry) => entry.url);
     const fonts = getStateFontFamilies({ ...state, style });
-    const flowerIconValue = normalizeFlowerIcon(state.flowerIcon);
-    const flowerIconUrl = getSelectedFlowerIconUrl(flowerIconValue);
     const contextPayload = await buildDeterministicContextImagePayload(
       style,
       styleImagePayload,
@@ -2324,8 +2532,7 @@
       String(state.date || '').trim(),
       layout,
       fonts,
-      { value: flowerIconValue, url: flowerIconUrl },
-      iconLayout
+      renderableIcons
     );
 
     return resolveStagePreviewDataUrl(contextPayload?.dataUrl || '');
@@ -2613,7 +2820,6 @@
     clipSurface.classList.remove('is-out-of-bounds');
     setTextboxCenterSnapState('lastName', false);
     setTextboxCenterSnapState('date', false);
-    deterministicIcon.classList.remove('is-active');
   }
 
   function armEngravingWarningState() {
@@ -2777,17 +2983,6 @@
     const candidateLayout = sanitizeTextLayout(currentLayout);
     return ['lastName', 'date'].some((boxKey) =>
       hasLayoutChangedSignificantly(baselineLayout[boxKey], candidateLayout[boxKey])
-    );
-  }
-
-  function hasIconLayoutChangedFromInitial(currentLayout) {
-    if (!initialIconLayout || !currentLayout) return false;
-    const baselineLayout = sanitizeIconLayout(initialIconLayout);
-    const candidateLayout = sanitizeIconLayout(currentLayout);
-    return (
-      Math.abs(baselineLayout.x - candidateLayout.x) > ICON_LAYOUT_CHANGE_EPSILON ||
-      Math.abs(baselineLayout.y - candidateLayout.y) > ICON_LAYOUT_CHANGE_EPSILON ||
-      Math.abs(baselineLayout.size - candidateLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
     );
   }
 
@@ -2978,7 +3173,6 @@
 
   function endIconInteraction() {
     if (!iconInteraction) return;
-    deterministicIcon.classList.remove('is-active');
     iconInteraction = null;
   }
 
@@ -3003,6 +3197,11 @@
     const frameHeight = Math.max(1, clipSurface.clientHeight || 1);
     const deltaXPct = (pointerDeltaX / frameWidth) * 100;
     const deltaYPct = (pointerDeltaY / frameHeight) * 100;
+    const iconEntry = getIconEntryById(iconInteraction.iconId);
+    if (!iconEntry) {
+      onIconPointerUp();
+      return;
+    }
     const nextLayout = { ...iconInteraction.startLayout };
 
     if (iconInteraction.mode === 'resize') {
@@ -3013,11 +3212,12 @@
       nextLayout.y = iconInteraction.startLayout.y + deltaYPct;
     }
 
-    activeIconLayout = sanitizeIconLayout(nextLayout);
+    const sanitizedNextLayout = clampIconLayoutToSafeArea(sanitizeIconLayout(nextLayout));
+    updateIconEntryLayout(iconInteraction.iconId, sanitizedNextLayout);
     if (
-      Math.abs(activeIconLayout.x - iconInteraction.startLayout.x) > ICON_LAYOUT_CHANGE_EPSILON ||
-      Math.abs(activeIconLayout.y - iconInteraction.startLayout.y) > ICON_LAYOUT_CHANGE_EPSILON ||
-      Math.abs(activeIconLayout.size - iconInteraction.startLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
+      Math.abs(sanitizedNextLayout.x - iconInteraction.startLayout.x) > ICON_LAYOUT_CHANGE_EPSILON ||
+      Math.abs(sanitizedNextLayout.y - iconInteraction.startLayout.y) > ICON_LAYOUT_CHANGE_EPSILON ||
+      Math.abs(sanitizedNextLayout.size - iconInteraction.startLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
     ) {
       iconInteraction.layoutChanged = true;
       invalidateGeneratedPreview();
@@ -3043,27 +3243,30 @@
     renderValidationState();
   }
 
-  function beginIconInteraction(event, mode) {
+  function beginIconInteraction(event, mode, iconId) {
     if (isGenerating) return;
     if (event.button !== 0) return;
-    if (!getSelectedFlowerIconValue()) return;
+    const iconEntry = getIconEntryById(iconId) || getSelectedIconEntry();
+    if (!iconEntry) return;
     onBoxPointerUp();
 
     setSelectedTextbox('');
+    selectedIconId = iconEntry.id;
     setIconSelected(true);
     iconInteraction = {
+      iconId: iconEntry.id,
       mode,
       startX: event.clientX,
       startY: event.clientY,
-      startLayout: { ...sanitizeIconLayout(activeIconLayout) },
+      startLayout: { ...sanitizeIconLayout(iconEntry.layout) },
       dragActivated: false,
       layoutChanged: false,
       sessionId: activeEditorSessionId,
     };
-    deterministicIcon.classList.add('is-active');
     window.addEventListener('pointermove', onIconPointerMove);
     window.addEventListener('pointerup', onIconPointerUp);
     window.addEventListener('pointercancel', onIconPointerUp);
+    renderDeterministicOverlay();
     event.preventDefault();
   }
 
@@ -3122,6 +3325,43 @@
     renderValidationState();
   }
 
+  function serializeIconsPropertyValue(iconEntries, textLayout) {
+    const normalizedEntries = normalizeIconEntries(iconEntries, textLayout || activeTextLayout);
+    if (!normalizedEntries.length) return '';
+    return JSON.stringify(
+      normalizedEntries.map((entry) => ({
+        value: entry.value,
+        x: Number(entry.layout.x.toFixed(3)),
+        y: Number(entry.layout.y.toFixed(3)),
+        size: Number(entry.layout.size.toFixed(3)),
+      }))
+    );
+  }
+
+  function parseIconsPropertyValue(rawValue, textLayout, fallbackIconValue, fallbackIconLayout) {
+    const normalizedRawValue = String(rawValue || '').trim();
+    if (!normalizedRawValue) {
+      return normalizeIconEntries([], textLayout, fallbackIconValue, fallbackIconLayout);
+    }
+    try {
+      const parsed = JSON.parse(normalizedRawValue);
+      if (!Array.isArray(parsed)) {
+        return normalizeIconEntries([], textLayout, fallbackIconValue, fallbackIconLayout);
+      }
+      const parsedEntries = parsed.map((entry) => ({
+        value: entry?.value,
+        layout: {
+          x: entry?.x,
+          y: entry?.y,
+          size: entry?.size,
+        },
+      }));
+      return normalizeIconEntries(parsedEntries, textLayout, fallbackIconValue, fallbackIconLayout);
+    } catch (error) {
+      return normalizeIconEntries([], textLayout, fallbackIconValue, fallbackIconLayout);
+    }
+  }
+
   function applyStateToContext(context, state) {
     const primaryProperty = context.querySelector('[data-personalization-property="primary"]');
     const secondaryProperty = context.querySelector('[data-personalization-property="secondary"]');
@@ -3130,8 +3370,11 @@
     const name2Property = context.querySelector('[data-personalization-property="name2"]');
     const dateProperty = context.querySelector('[data-personalization-property="date"]');
     const iconProperty = context.querySelector('[data-personalization-property="icon"]');
+    const iconsProperty = context.querySelector('[data-personalization-property="icons"]');
     const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
+    const normalizedIcons = normalizeIconEntries(state?.icons, state?.textLayout, state?.flowerIcon, state?.iconLayout);
+    const primaryIcon = getPrimaryIconEntry(normalizedIcons);
 
     if (primaryProperty) primaryProperty.value = state.lastName || '';
     if (secondaryProperty) secondaryProperty.value = '';
@@ -3139,14 +3382,21 @@
     if (name1Property) name1Property.value = state.lastName || '';
     if (name2Property) name2Property.value = '';
     if (dateProperty) dateProperty.value = state.date || '';
-    if (iconProperty) iconProperty.value = normalizeFlowerIcon(state.flowerIcon);
+    if (iconProperty) iconProperty.value = primaryIcon ? primaryIcon.value : '';
+    if (iconsProperty) iconsProperty.value = serializeIconsPropertyValue(normalizedIcons, state?.textLayout);
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
   }
 
   function isConfiguredState(state) {
     if (!state) return false;
-    return Boolean(state.lastName || state.date || state.flowerIcon || state.geminiSummary || state.generatedImage);
+    return Boolean(
+      state.lastName ||
+        state.date ||
+        normalizeIconEntries(state.icons, state.textLayout, state.flowerIcon, state.iconLayout).length ||
+        state.geminiSummary ||
+        state.generatedImage
+    );
   }
 
   function isSavedState(state) {
@@ -3313,12 +3563,19 @@
         '';
       const contextDateValue = (context.querySelector('[data-personalization-property="date"]') || {}).value || '';
       const contextIconValue = (context.querySelector('[data-personalization-property="icon"]') || {}).value || '';
+      const contextIconsValue = (context.querySelector('[data-personalization-property="icons"]') || {}).value || '';
       const contextGeminiSummary =
         (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '';
+      const contextIcons = parseIconsPropertyValue(
+        contextIconsValue,
+        defaultState.textLayout,
+        contextIconValue || defaultState.flowerIcon,
+        defaultState.iconLayout
+      );
       const hasPersistedPersonalization = Boolean(
         String(contextNameValue).trim() ||
           String(contextDateValue).trim() ||
-          String(contextIconValue).trim() ||
+          contextIcons.length ||
           String(contextGeminiSummary).trim()
       );
       setScopeState(scope, {
@@ -3331,7 +3588,7 @@
         dateFont: getStylePreset(
           initialStyle
         ).dateFamily,
-        flowerIcon: contextIconValue || defaultState.flowerIcon,
+        icons: contextIcons,
         textLayout: defaultState.textLayout,
         geminiSummary: contextGeminiSummary,
         generatedImage: '',
@@ -3393,15 +3650,19 @@
     const stylePreset = getStylePreset(normalizedStyle);
     setSelectValue(lastNameFontSelect, existingState.lastNameFont, stylePreset.nameFamily);
     setSelectValue(dateFontSelect, existingState.dateFont, stylePreset.dateFamily);
-    setFlowerIconValue(existingState.flowerIcon);
     activeTextLayout = sanitizeTextLayout(existingState.textLayout);
     initialTextLayout = cloneTextLayout(activeTextLayout);
-    activeIconLayout = sanitizeIconLayout(existingState.iconLayout || createDefaultIconLayout(activeTextLayout));
-    initialIconLayout = { ...activeIconLayout };
+    activeIcons = normalizeIconEntries(
+      existingState.icons,
+      activeTextLayout,
+      existingState.flowerIcon,
+      existingState.iconLayout || createDefaultIconLayout(activeTextLayout)
+    );
     resetEngravingWarningState();
     selectedTextboxKey = '';
     syncTextboxSelectionState();
     setIconSelected(false);
+    syncFlowerIconPickerValue();
     setGeneratedImage(existingState.generatedImage || '');
     setPickedPanelVisible(true);
     setGenerationError('');
@@ -3578,24 +3839,12 @@
     });
   });
   flowerIconSelect.addEventListener('change', () => {
+    if (suppressFlowerIconSelectChange) return;
     onIconPointerUp();
     setIconDropdownOpen(false);
-    invalidateGeneratedPreview();
-    const previousIconValue = getSelectedFlowerIconValue();
-    setFlowerIconValue(flowerIconSelect.value);
-    const nextIconValue = getSelectedFlowerIconValue();
-    if (!previousIconValue && nextIconValue) {
-      activeIconLayout = sanitizeIconLayout(createDefaultIconLayout(activeTextLayout));
-      initialIconLayout = { ...activeIconLayout };
-    }
-    if (!nextIconValue) {
-      setIconSelected(false);
-    } else {
-      setSelectedTextbox('');
-      setIconSelected(true);
-    }
-    setGenerationError('');
-    renderEditorState();
+    const nextValue = normalizeFlowerIcon(flowerIconSelect.value);
+    if (!nextValue) return;
+    addIconToClip(nextValue);
   });
   iconDropdownToggle.addEventListener('click', () => {
     if (!isIconDropdownOpen) {
@@ -3609,9 +3858,49 @@
     const optionButton = target.closest('[data-personalization-icon-option-value]');
     if (!(optionButton instanceof HTMLButtonElement)) return;
     const nextValue = normalizeIconValue(optionButton.dataset.personalizationIconOptionValue);
-    flowerIconSelect.value = nextValue || '';
-    flowerIconSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    if (!nextValue) return;
+    addIconToClip(nextValue);
+    setIconDropdownOpen(false);
     iconDropdownToggle.focus();
+  });
+  iconDropdownMenu.addEventListener('dragstart', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const optionButton = target.closest('[data-personalization-icon-option-value]');
+    if (!(optionButton instanceof HTMLButtonElement)) return;
+    const iconValue = normalizeIconValue(optionButton.dataset.personalizationIconOptionValue);
+    if (!iconValue || !event.dataTransfer) return;
+    event.dataTransfer.setData('text/plain', iconValue);
+    event.dataTransfer.effectAllowed = 'copy';
+    setIconDropdownOpen(false);
+  });
+  clipSurface.addEventListener('dragover', (event) => {
+    if (isGenerating) return;
+    const draggedValue = event.dataTransfer?.getData('text/plain');
+    if (!normalizeFlowerIcon(draggedValue)) return;
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  });
+  clipSurface.addEventListener('drop', (event) => {
+    if (isGenerating) return;
+    const draggedValue = normalizeFlowerIcon(event.dataTransfer?.getData('text/plain'));
+    if (!draggedValue) return;
+    event.preventDefault();
+    const clipBounds = clipSurface.getBoundingClientRect();
+    const defaultLayout = createDefaultIconLayout(activeTextLayout);
+    let nextLayout = { ...defaultLayout };
+    if (clipBounds.width > 0 && clipBounds.height > 0) {
+      const relativeX = ((event.clientX - clipBounds.left) / clipBounds.width) * 100;
+      const relativeY = ((event.clientY - clipBounds.top) / clipBounds.height) * 100;
+      nextLayout = {
+        ...nextLayout,
+        x: relativeX,
+        y: relativeY,
+      };
+    }
+    addIconToClip(draggedValue, nextLayout);
   });
   document.addEventListener('pointerdown', (event) => {
     if (!isIconDropdownOpen) return;
@@ -3647,23 +3936,25 @@
       event.stopPropagation();
     });
   });
-
-  deterministicIcon.addEventListener('pointerdown', (event) => {
-    if (event.target && event.target.closest('[data-personalization-icon-resize]')) {
+  iconLayer.addEventListener('pointerdown', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const iconElement = target.closest('[data-personalization-icon-id]');
+    if (!(iconElement instanceof HTMLElement)) return;
+    const iconId = String(iconElement.dataset.personalizationIconId || '').trim();
+    if (!iconId) return;
+    if (target.closest('[data-personalization-icon-resize]')) {
+      beginIconInteraction(event, 'resize', iconId);
+      event.stopPropagation();
       return;
     }
-    beginIconInteraction(event, 'drag');
-  });
-
-  iconResizeHandle.addEventListener('pointerdown', (event) => {
-    beginIconInteraction(event, 'resize');
-    event.stopPropagation();
+    beginIconInteraction(event, 'drag', iconId);
   });
 
   modal.addEventListener('pointerdown', (event) => {
     if (event.target.closest('[data-personalization-textbox]')) return;
     if (event.target.closest('[data-personalization-resize]')) return;
-    if (event.target.closest('[data-personalization-deterministic-icon]')) return;
+    if (event.target.closest('[data-personalization-icon-id]')) return;
     if (event.target.closest('[data-personalization-icon-resize]')) return;
     setSelectedTextbox('');
     setIconSelected(false);
@@ -3677,7 +3968,7 @@
     }
 
     if (event.key !== 'Backspace' && event.key !== 'Delete') return;
-    if (!getSelectedFlowerIconValue()) return;
+    if (!selectedIconId) return;
     if (
       event.target instanceof HTMLInputElement ||
       event.target instanceof HTMLTextAreaElement ||
@@ -3730,9 +4021,8 @@
       date: dateInput.value.trim(),
       lastNameFont: lastNameFontSelect.value,
       dateFont: dateFontSelect.value,
-      flowerIcon: getSelectedFlowerIconValue(),
+      icons: cloneIconEntries(activeIcons),
       textLayout: cloneTextLayout(activeTextLayout),
-      iconLayout: { ...activeIconLayout },
       geminiSummary: getGeneratedSummary(),
       generatedImage: getGeneratedImageData(),
       stagePreviewDataUrl: resolveStagePreviewDataUrl(getGeneratedImageData()),
@@ -3769,8 +4059,8 @@
 
     const selectedStyle = getSelectedStyle();
     const activeFonts = getActiveFontFamilies(selectedStyle);
-    const selectedFlowerIcon = getSelectedFlowerIconValue();
-    const selectedFlowerIconUrl = getSelectedFlowerIconUrl(selectedFlowerIcon);
+    const renderableIcons = getRenderableIconEntries(activeIcons);
+    const selectedFlowerIcon = renderableIcons.length ? renderableIcons[0].value : '';
     const payload = {
       style: selectedStyle,
       lastName: lastNameInput.value.trim(),
@@ -3778,6 +4068,7 @@
       lastNameFont: activeFonts.lastName,
       dateFont: activeFonts.date,
       flowerIcon: selectedFlowerIcon,
+      flowerIcons: renderableIcons.map((entry) => entry.value),
     };
 
     try {
@@ -3796,11 +4087,7 @@
           lastName: payload.lastNameFont,
           date: payload.dateFont,
         },
-        {
-          value: payload.flowerIcon,
-          url: selectedFlowerIconUrl,
-        },
-        activeIconLayout
+        renderableIcons
       );
 
       if (!contextImagePayload) {
@@ -3833,9 +4120,8 @@
         date: payload.date,
         lastNameFont: payload.lastNameFont,
         dateFont: payload.dateFont,
-        flowerIcon: payload.flowerIcon,
+        icons: cloneIconEntries(activeIcons),
         textLayout: cloneTextLayout(activeTextLayout),
-        iconLayout: { ...activeIconLayout },
         geminiSummary: '',
         generatedImage: generatedImageData,
         stagePreviewDataUrl: generatedImageData,
@@ -4025,7 +4311,7 @@
   syncAllScopePersonalizationEligibility();
   ensureSafeAreaBounds().then(() => {
     activeTextLayout = sanitizeTextLayout(activeTextLayout);
-    activeIconLayout = sanitizeIconLayout(activeIconLayout);
+    activeIcons = normalizeIconEntries(activeIcons, activeTextLayout);
     if (activeScope) {
       renderEditorState();
     }
