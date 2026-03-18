@@ -1,0 +1,649 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "image_banner_wVWLwA": {
+      "type": "image-banner",
+      "blocks": {
+        "heading_V97eeq": {
+          "type": "heading",
+          "settings": {
+            "heading": "Crafted for Florists. Loved by Clients.",
+            "heading_size": "h1"
+          }
+        },
+        "text_xMee8F": {
+          "type": "text",
+          "settings": {
+            "text": "The smarter, sleeker way to secure florals — <em>and </em>build your brand.",
+            "text_style": "subtitle"
+          }
+        },
+        "buttons_zMMrKt": {
+          "type": "buttons",
+          "settings": {
+            "button_label_1": "🛒 Shop QuickClips",
+            "button_link_1": "shopify://collections/magnetic-clips",
+            "button_style_secondary_1": false,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_V97eeq",
+        "text_xMee8F",
+        "buttons_zMMrKt"
+      ],
+      "name": "t:sections.image-banner.presets.name",
+      "settings": {
+        "image": "shopify://shop_images/Hero_Banner_7bcf1c52-57d0-4ca9-9a84-9add413864d0.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "adapt",
+        "desktop_content_position": "middle-left",
+        "show_text_box": true,
+        "desktop_content_alignment": "left",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": true
+      }
+    },
+    "image_banner_FdkJr7": {
+      "type": "image-banner",
+      "name": "t:sections.image-banner.presets.name",
+      "settings": {
+        "image": "shopify://shop_images/Banner_098c54d1-cab4-43f2-96f6-d824b947be27.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "adapt",
+        "desktop_content_position": "middle-center",
+        "show_text_box": true,
+        "desktop_content_alignment": "center",
+        "color_scheme": "",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": true
+      }
+    },
+    "image_with_text_G6kGDV": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_UEa4wT": {
+          "type": "heading",
+          "settings": {
+            "heading": "Meet the QuickClip MINI!",
+            "heading_size": "h1"
+          }
+        },
+        "text_Lj8QtY": {
+          "type": "text",
+          "settings": {
+            "text": "<p>The smallest, strongest, and most cost-effective QuickClip we’ve ever made — proof that less really <em>is</em> more.</p>",
+            "text_style": "body"
+          }
+        },
+        "button_ikYjka": {
+          "type": "button",
+          "settings": {
+            "button_label": "Shop the MINIS",
+            "button_link": "shopify://products/retail-quickclip-minis-magnetic-boutonniere-clip",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_UEa4wT",
+        "text_Lj8QtY",
+        "button_ikYjka"
+      ],
+      "name": "t:sections.image-with-text.presets.name",
+      "settings": {
+        "image": "shopify://shop_images/QuickClip_MINIS_66f07ae2-8ac5-45d3-aae2-c1d175f3d2ba.jpg",
+        "height": "adapt",
+        "desktop_image_width": "medium",
+        "layout": "text_first",
+        "desktop_content_position": "top",
+        "desktop_content_alignment": "left",
+        "content_layout": "no-overlap",
+        "section_color_scheme": "scheme-634ad802-12e6-4ce6-a1cb-88ad36d11e7f",
+        "color_scheme": "scheme-634ad802-12e6-4ce6-a1cb-88ad36d11e7f",
+        "image_behavior": "none",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "image_with_text_kdENE4": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_9njGRX": {
+          "type": "heading",
+          "settings": {
+            "heading": "See Why Florists Are Switching to QuickClips",
+            "heading_size": "h1"
+          }
+        },
+        "text_Pm9f7e": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Because your designs deserve more than a pin. <a href=\"/blogs/florists-3/why-florists-are-switching-to-quickclips\" title=\"Why Florists are Switching to QuickClips\">&gt;&gt;</a></p>",
+            "text_style": "subtitle"
+          }
+        }
+      },
+      "block_order": [
+        "heading_9njGRX",
+        "text_Pm9f7e"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/7_48e4146e-f386-4fda-b02b-908b8491f9e4.jpg",
+        "height": "adapt",
+        "desktop_image_width": "medium",
+        "layout": "image_first",
+        "desktop_content_position": "top",
+        "desktop_content_alignment": "left",
+        "content_layout": "overlap",
+        "section_color_scheme": "scheme-3",
+        "color_scheme": "scheme-2",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_TLgaRL": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_rLVtAq": {
+          "type": "heading",
+          "settings": {
+            "heading": "How QuickClips Work 🎬",
+            "heading_size": "h0"
+          }
+        }
+      },
+      "block_order": [
+        "heading_rLVtAq"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-2",
+        "full_width": true,
+        "padding_top": 48,
+        "padding_bottom": 0
+      }
+    },
+    "video_VyGMyc": {
+      "type": "video",
+      "name": "t:sections.video.presets.name",
+      "settings": {
+        "heading": "",
+        "heading_size": "h1",
+        "enable_video_looping": false,
+        "video": "shopify://files/videos/QuickClip Tutorial with Music.mov",
+        "video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+        "description": "",
+        "full_width": false,
+        "color_scheme": "scheme-2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "collage_pM7Rtr": {
+      "type": "collage",
+      "blocks": {
+        "image_9g9zxN": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Secure_in_simple_steps_bc562fbf-e6b6-4a02-a133-f660391deeef.png"
+          }
+        },
+        "image_hYXYgX": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Instructions_f956cab3-046c-4dd5-b595-89619ca427bd.png"
+          }
+        }
+      },
+      "block_order": [
+        "image_9g9zxN",
+        "image_hYXYgX"
+      ],
+      "disabled": true,
+      "name": "t:sections.collage.presets.name",
+      "settings": {
+        "heading": "",
+        "heading_size": "h2",
+        "desktop_layout": "left",
+        "mobile_layout": "column",
+        "card_styles": "none",
+        "color_scheme": "scheme-2",
+        "padding_top": 16,
+        "padding_bottom": 80
+      }
+    },
+    "rich_text_jdJCqh": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_FQCB3f": {
+          "type": "heading",
+          "settings": {
+            "heading": "Over 10,000 Sold — and Florists Keep Coming Back.",
+            "heading_size": "h0"
+          }
+        },
+        "text_fATzrb": {
+          "type": "text",
+          "settings": {
+            "text": "<p><br/>Designed for florists, trusted by pros, and loved by clients — QuickClips are changing the boutonniere game.<br/><br/></p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_FQCB3f",
+        "text_fATzrb"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-4",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 0
+      }
+    },
+    "multirow_aQNxW7": {
+      "type": "multirow",
+      "blocks": {
+        "row_YL3G3Q": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/centered_697ed273-2f7d-4649-81cb-32c8de6b4210.jpg",
+            "caption": "Becca",
+            "heading": "<a href=\"https://www.instagram.com/fernridgefloral/\" target=\"_blank\" title=\"https://www.instagram.com/fernridgefloral/\"><em>Fern Ridge Floral</em></a>",
+            "text": "<p>\"I've booked 2 orders just this week from moms that said \"I saw the magnet on my friend's fridge and wrote down the number.\" I would say that it is already showing an excellent return on the investment for them! It's a great product that is also a marketing tool for businesses. Or, a souvenir for wedding parties.\"<br/></p>",
+            "button_label": "Shop Branded QuickClips",
+            "button_link": "shopify://products/retail-quickclips"
+          }
+        },
+        "row_qihNTT": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Try_It_Out.jpg",
+            "caption": "Christina",
+            "heading": "<a href=\"https://www.instagram.com/kartechnerandgirlsflowerco/\" target=\"_blank\" title=\"https://www.instagram.com/kartechnerandgirlsflowerco/\"><em>Kartechner Girls Flower Co.</em></a>",
+            "text": "<p>\"The magnet is super strong! That was the one thing I was hesitant about! I will be placing an order for more—this is the way to go for boutonnières!\"<br/></p>",
+            "button_label": "Try a QuickClips Starter Pack",
+            "button_link": "shopify://products/magnetic-boutonniere-clip-sample"
+          }
+        },
+        "row_apkeC6": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Best_Value.jpg",
+            "caption": "kristin",
+            "heading": "<a href=\"https://www.instagram.com/bloomflorals__/\" target=\"_blank\" title=\"https://www.instagram.com/bloomflorals__/\"><em>Bloom Florals</em></a>",
+            "text": "<p>\"Wow I have had an overwhelming response to orders. Can I order more boutonnière magnets? How much would 200 cost?\"<br/></p>",
+            "button_label": "Discounted Wholesale QuickClips",
+            "button_link": "shopify://pages/place-an-order"
+          }
+        }
+      },
+      "block_order": [
+        "row_YL3G3Q",
+        "row_qihNTT",
+        "row_apkeC6"
+      ],
+      "name": "t:sections.multirow.presets.name",
+      "settings": {
+        "image_height": "medium",
+        "desktop_image_width": "medium",
+        "heading_size": "h1",
+        "text_style": "body",
+        "button_style": "secondary",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "image_layout": "alternate-left",
+        "section_color_scheme": "scheme-2",
+        "row_color_scheme": "scheme-2",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text": {
+      "type": "rich-text",
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Professional-Grade Clips for <em>Every</em> Floral Studio",
+            "heading_size": "h1"
+          }
+        }
+      },
+      "block_order": [
+        "heading"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-3",
+        "full_width": true,
+        "padding_top": 52,
+        "padding_bottom": 12
+      }
+    },
+    "collage-0": {
+      "type": "collage",
+      "blocks": {
+        "collection-0": {
+          "type": "collection",
+          "settings": {
+            "collection": "quickclips"
+          }
+        },
+        "collection_AaDwCe": {
+          "type": "collection",
+          "settings": {
+            "collection": "starter-packs"
+          }
+        },
+        "collection-1": {
+          "type": "collection",
+          "settings": {
+            "collection": "wholesale-order"
+          }
+        }
+      },
+      "block_order": [
+        "collection-0",
+        "collection_AaDwCe",
+        "collection-1"
+      ],
+      "settings": {
+        "heading": "",
+        "heading_size": "h2",
+        "desktop_layout": "left",
+        "mobile_layout": "column",
+        "card_styles": "none",
+        "color_scheme": "scheme-3",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "image_with_text_HLKTPN": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_PChNxh": {
+          "type": "heading",
+          "settings": {
+            "heading": "We know there is nothing more frustrating than trying to pin on a boutonniere...",
+            "heading_size": "h2"
+          }
+        },
+        "text_RDhNyb": {
+          "type": "text",
+          "settings": {
+            "text": "<p></p><p></p><p>That is why we designed QuickClips! </p><p></p><p>Our Magnetic Boutonniere Clips will ensure your flowers stay in place the whole night and are easy to secure and remove. The magnets can even go through thick suit material without a problem!</p>",
+            "text_style": "body"
+          }
+        },
+        "button_JmNAJn": {
+          "type": "button",
+          "settings": {
+            "button_label": "Shop Now",
+            "button_link": "shopify://collections/magnetic-clips",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_PChNxh",
+        "text_RDhNyb",
+        "button_JmNAJn"
+      ],
+      "disabled": true,
+      "settings": {
+        "image": "shopify://shop_images/Tezza-6806_b6073435-780c-4c28-a85c-4fa718979315.jpg",
+        "height": "adapt",
+        "desktop_image_width": "medium",
+        "layout": "image_first",
+        "desktop_content_position": "top",
+        "desktop_content_alignment": "left",
+        "content_layout": "no-overlap",
+        "section_color_scheme": "scheme-2",
+        "color_scheme": "scheme-3",
+        "image_behavior": "none",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "slideshow_EVwnMD": {
+      "type": "slideshow",
+      "blocks": {
+        "slide_xGXjAd": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/First_Image.png",
+            "heading": "Easier Placement",
+            "heading_size": "h1",
+            "subheading": "No more struggling with pins! Simply clip-on the boutonniere and you are ready to go!",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "box_align": "middle-left",
+            "show_text_box": true,
+            "text_alignment": "center",
+            "image_overlay_opacity": 10,
+            "color_scheme": "",
+            "text_alignment_mobile": "left"
+          }
+        },
+        "slide_46hrhi": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/Crop_of_Custom_Engraving.jpg",
+            "heading": "More Beautiful and Unique",
+            "heading_size": "h1",
+            "subheading": "With custom engraving, your boutonnieres can become a stunning, one-of-a-kind statement piece.",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "box_align": "top-left",
+            "show_text_box": true,
+            "text_alignment": "center",
+            "image_overlay_opacity": 10,
+            "color_scheme": "scheme-1",
+            "text_alignment_mobile": "left"
+          }
+        },
+        "slide_ixhq4P": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/beautiful-shot-groom-with-white-flower-suit-2.jpg",
+            "heading": "No Damage to Suit",
+            "heading_size": "h1",
+            "subheading": "No more holes left behind from pins!",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "box_align": "middle-left",
+            "show_text_box": true,
+            "text_alignment": "center",
+            "image_overlay_opacity": 10,
+            "color_scheme": "",
+            "text_alignment_mobile": "left"
+          }
+        },
+        "slide_nfig3R": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/businessman.jpg",
+            "heading": "More Adjustable",
+            "heading_size": "h1",
+            "subheading": "If you want to take your suit off to go to the dance floor, you can move the boutonniere to your shirt in seconds!",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "box_align": "top-right",
+            "show_text_box": true,
+            "text_alignment": "center",
+            "image_overlay_opacity": 10,
+            "color_scheme": "scheme-1",
+            "text_alignment_mobile": "left"
+          }
+        },
+        "slide_AAFVEV": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/RESIZE_red-boutonnieres-pinned-jackets-groomsmen-2.jpg",
+            "heading": "Ensure Flowers Stay Upright",
+            "heading_size": "h1",
+            "subheading": "Our Magnetic Clips are designed to provide support where needed most, ensuring your boutonniere sits securely and does not become lopsided.",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "box_align": "bottom-left",
+            "show_text_box": true,
+            "text_alignment": "center",
+            "image_overlay_opacity": 10,
+            "color_scheme": "scheme-1",
+            "text_alignment_mobile": "left"
+          }
+        }
+      },
+      "block_order": [
+        "slide_xGXjAd",
+        "slide_46hrhi",
+        "slide_ixhq4P",
+        "slide_nfig3R",
+        "slide_AAFVEV"
+      ],
+      "disabled": true,
+      "settings": {
+        "layout": "full_bleed",
+        "slide_height": "adapt_image",
+        "slider_visual": "counter",
+        "auto_rotate": true,
+        "change_slides_speed": 7,
+        "image_behavior": "none",
+        "show_text_below": true,
+        "accessibility_info": "Benefits of using Magnetic Boutonnieres"
+      }
+    },
+    "image_with_text_cNdihJ": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_Txt6UR": {
+          "type": "heading",
+          "settings": {
+            "heading": "Have Questions?",
+            "heading_size": "h1"
+          }
+        },
+        "text_6HeA6E": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Want to learn more about QuickClips? Reach out to us using the link below and we would be happy to help with any questions or concerns you have about our products!</p>",
+            "text_style": "body"
+          }
+        },
+        "button_VDpWwf": {
+          "type": "button",
+          "settings": {
+            "button_label": "Ask Away!",
+            "button_link": "shopify://pages/questions-contact-us",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_Txt6UR",
+        "text_6HeA6E",
+        "button_VDpWwf"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/18.jpg",
+        "height": "adapt",
+        "desktop_image_width": "medium",
+        "layout": "text_first",
+        "desktop_content_position": "top",
+        "desktop_content_alignment": "left",
+        "content_layout": "no-overlap",
+        "section_color_scheme": "scheme-2",
+        "color_scheme": "scheme-4",
+        "image_behavior": "none",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "featured-collection": {
+      "type": "featured-collection",
+      "disabled": true,
+      "settings": {
+        "title": "View All Magnetic Boutonnieres",
+        "heading_size": "h2",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "collection": "magnetic-boutonnieres",
+        "products_to_show": 4,
+        "columns_desktop": 4,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "solid",
+        "enable_desktop_slider": true,
+        "color_scheme": "scheme-1",
+        "image_ratio": "portrait",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_quick_add": false,
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 40,
+        "padding_bottom": 36
+      }
+    },
+    "170862326172a9643a": {
+      "type": "apps",
+      "settings": {
+        "include_margins": true
+      }
+    }
+  },
+  "order": [
+    "image_banner_wVWLwA",
+    "image_banner_FdkJr7",
+    "image_with_text_G6kGDV",
+    "image_with_text_kdENE4",
+    "rich_text_TLgaRL",
+    "video_VyGMyc",
+    "collage_pM7Rtr",
+    "rich_text_jdJCqh",
+    "multirow_aQNxW7",
+    "rich_text",
+    "collage-0",
+    "image_with_text_HLKTPN",
+    "slideshow_EVwnMD",
+    "image_with_text_cNdihJ",
+    "featured-collection",
+    "170862326172a9643a"
+  ]
+}

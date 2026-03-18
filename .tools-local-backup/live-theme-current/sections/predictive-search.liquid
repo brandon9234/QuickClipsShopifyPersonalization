@@ -1,0 +1,774 @@
+{% comment %}theme-check-disable ImgLazyLoading{% endcomment %}
+{%- if predictive_search.performed -%}
+  {% assign first_column_results_size = predictive_search.resources.queries.size
+    | plus: predictive_search.resources.collections.size
+    | plus: predictive_search.resources.pages.size
+    | plus: predictive_search.resources.articles.size
+  %}
+  <div id="predictive-search-results" role="listbox">
+    {%- if first_column_results_size > 0 or predictive_search.resources.products.size > 0 -%}
+      <div
+        id="predictive-search-results-groups-wrapper"
+        class="predictive-search__results-groups-wrapper{% unless predictive_search.resources.products.size > 0 %} predictive-search__results-groups-wrapper--no-products{% endunless %}{% unless predictive_search.resources.queries.size > 0 or predictive_search.resources.collections.size > 0 %} predictive-search__results-groups-wrapper--no-suggestions{% endunless %}"
+      >
+    {%- endif -%}
+    {%- if first_column_results_size > 0 -%}
+      <div class="predictive-search__result-group">
+    {%- endif -%}
+    {%- if predictive_search.resources.queries.size > 0 or predictive_search.resources.collections.size > 0 -%}
+      <div>
+        <h2 id="predictive-search-queries" class="predictive-search__heading text-body caption-with-letter-spacing">
+          {{- 'templates.search.suggestions' | t -}}
+        </h2>
+        <ul
+          id="predictive-search-results-queries-list"
+          class="predictive-search__results-list list-unstyled"
+          role="group"
+          aria-labelledby="predictive-search-queries"
+        >
+          {%- for query in predictive_search.resources.queries -%}
+            <li
+              id="predictive-search-option-query-{{ forloop.index }}"
+              class="predictive-search__list-item"
+              role="option"
+              aria-selected="false"
+            >
+              <a href="{{ query.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                <div class="predictive-search__item-content predictive-search__item-content--centered">
+                  <p
+                    class="predictive-search__item-heading predictive-search__item-query-result h5"
+                    aria-label="{{ query.text }}"
+                  >
+                    {{ query.styled_text }}
+                  </p>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+          {%- for collection in predictive_search.resources.collections -%}
+            <li
+              id="predictive-search-option-collection-{{ forloop.index }}"
+              class="predictive-search__list-item"
+              role="option"
+              aria-selected="false"
+            >
+              <a href="{{ collection.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                <div class="predictive-search__item-content predictive-search__item-content--centered">
+                  <p class="predictive-search__item-heading h5">{{ collection.title | escape }}</p>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+    {%- if predictive_search.resources.articles.size > 0 or predictive_search.resources.pages.size > 0 -%}
+      <div class="predictive-search__pages-wrapper">
+        <h2
+          id="predictive-search-pages-desktop"
+          class="predictive-search__heading text-body caption-with-letter-spacing"
+        >
+          {{- 'templates.search.pages' | t -}}
+        </h2>
+        <ul
+          id="predictive-search-results-pages-list-desktop"
+          class="predictive-search__results-list list-unstyled"
+          role="group"
+          aria-labelledby="predictive-search-pages-desktop"
+        >
+          {%- for page in predictive_search.resources.pages -%}
+            <li
+              id="predictive-search-option-page-desktop-{{ forloop.index }}"
+              class="predictive-search__list-item"
+              role="option"
+              aria-selected="false"
+            >
+              <a href="{{ page.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                <div class="predictive-search__item-content predictive-search__item-content--centered">
+                  <p class="predictive-search__item-heading h5">{{ page.title | escape }}</p>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+          {%- for article in predictive_search.resources.articles -%}
+            <li
+              id="predictive-search-option-article-desktop-{{ forloop.index }}"
+              class="predictive-search__list-item"
+              role="option"
+              aria-selected="false"
+            >
+              <a href="{{ article.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                <div class="predictive-search__item-content predictive-search__item-content--centered">
+                  <p class="predictive-search__item-heading h5">{{ article.title | escape }}</p>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+    {%- if first_column_results_size > 0 -%}
+      </div>
+    {%- endif -%}
+    {%- if predictive_search.resources.products.size > 0
+      or predictive_search.resources.articles.size > 0
+      or predictive_search.resources.pages.size > 0
+    -%}
+      <div class="predictive-search__result-group">
+        {%- if predictive_search.resources.products.size > 0 -%}
+          <div>
+            <h2
+              id="predictive-search-products"
+              class="predictive-search__heading text-body caption-with-letter-spacing"
+            >
+              {{- 'templates.search.products' | t -}}
+            </h2>
+            <ul
+              id="predictive-search-results-products-list"
+              class="predictive-search__results-list list-unstyled"
+              role="group"
+              aria-labelledby="predictive-search-products"
+            >
+              {%- for product in predictive_search.resources.products -%}
+
+
+                {% assign samitaLock = shop.metafields.lockAccess.listLocks.value %}
+
+  {% assign samiProductID = product.id | append: "" %}
+  {% assign productCollections = product.collections %}
+  
+  {% assign samitaLimitAll = "" %}
+  {% assign samitaLimitAllPrice = "" %}
+  {% assign samitaLimitAllAtc = "" %}
+  
+  {% assign samitaManualAll = "" %}
+  {% assign samitaManualPrice = "" %}
+  {% assign samitaManualAtc = "" %}
+  
+  {% assign samitaCollectionAll = "" %}
+  {% assign samitaCollectionPrice = "" %}
+  {% assign samitaCollectionAtc = "" %}
+  
+  {% for item in samitaLock -%}
+    {% if item.status == 1 and item.resources_conditional.type[0] == "secret"  %}
+      {% if item.resources_lock.limitProduct == "all" %}
+              {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaSecAll = "samita_sec_p_all" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaSecPrice = "samita_sec_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaSecAtc = "samita_sec_p_atc" %}
+                {% endif %}
+              {% endfor %}
+             {% assign lockid = 'sami_sec' %}
+            {% endif %}
+         {% if item.resources_lock.products contains samiProductID and item.resources_lock.type == "products" %}
+           {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaSecAll = "samita_sec_p_all" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaSecPrice = "samita_sec_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaSecAtc = "samita_sec_p_atc" %}
+                {% endif %}
+              {% endfor %}
+              {% assign lockid = 'sami_sec' %}
+        {% endif %}
+  
+       {% if item.resources_lock.type == "collections" %}
+          {% if productCollections.size > 0 %}
+            {% for collection in productCollections %}
+              {% assign colectionID = collection.id | append: "" %}
+              {% if item.resources_lock.collections contains colectionID  %}
+                  {% for lockRs in item.resources_lock.setting -%}
+                  {% if lockRs == "all" %}
+                  {% assign samitaSecAll = "samita_sec_p_all" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaSecPrice = "samita_sec_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaSecAtc = "samita_sec_p_atc" %}
+                {% endif %}
+                {% endfor %}
+                 {% assign lockid = 'sami_sec' %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+       {% endif %}
+    {% endif %}
+    {% if item.status == 1 and item.resources_conditional.type[0] == "passcode"  %}
+           
+       {% if item.resources_lock.limitProduct == "all" %}
+              {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaPassAll = "samita_pass_p_all" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaPassPrice = "samita_pass_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaPassAtc = "samita_pass_p_atc" %}
+                {% endif %}
+              {% endfor %}
+             {% assign lockid = 'passcode__' | append: item.id %}
+            {% endif %}
+         {% if item.resources_lock.products contains samiProductID and item.resources_lock.type == "products" %}
+           {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaPassAll = "samita_pass_p_all" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaPassPrice = "samita_pass_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaPassAtc = "samita_pass_p_atc" %}
+                {% endif %}
+              {% endfor %}
+             {% assign lockid = 'passcode__' | append: item.id %}
+        {% endif %}
+  
+       {% if item.resources_lock.type == "collections" %}
+          {% if productCollections.size > 0 %}
+            {% for collection in productCollections %}
+              {% assign colectionID = collection.id | append: "" %}
+              {% if item.resources_lock.collections contains colectionID  %}
+                  {% for lockRs in item.resources_lock.setting -%}
+                  {% if lockRs == "all" %}
+                    {% assign samitaPassCollecAll = "samita_pass_c_all" %}
+                  {% endif %}
+                  {% if lockRs == "price" %}
+                    {% assign samitaPassCollecPrice = "samita_pass_c_price" %}
+                  {% endif %}
+                  {% if lockRs == "atc" %}
+                    {% assign samitaPassCollecAtc = "samita_pass_c_atc" %}
+                  {% endif %}
+                {% endfor %}
+                {% assign lockid = 'passcode__' | append: item.id %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+       {% endif %}
+    {% endif %}
+    {% if item.status == 1 and item.resources_conditional.type[0] == "customers" %}
+      {% if item.access == 0 %}
+        {% if customer %}
+           {% if item.resources_conditional.customer.source == "rules" %}
+             
+              {% assign samitaLimitAll2 = "" %}
+              {% assign samitaLimitAllPrice2 = "" %}
+              {% assign samitaLimitAllAtc2 = "" %}
+              
+              {% assign samitaManualAll2 = "" %}
+              {% assign samitaManualPrice2 = "" %}
+              {% assign samitaManualAtc2 = "" %}
+              
+              {% assign samitaCollectionAll2 = "" %}
+              {% assign samitaCollectionPrice2 = "" %}
+              {% assign samitaCollectionAtc2 = "" %}
+             
+              {% for logic in item.resources_conditional.customer.logic[0] %}
+                {% if logic.type == "tagged_with" %}
+                  {% if customer.tags contains logic.value %}
+                     {% if  item.resources_lock.type == "products"  %}
+                        {% if item.resources_lock.limitProduct == "all" %}
+                          {% for lockRs in item.resources_lock.setting -%}
+                            {% if lockRs == "all" %}
+                              {% assign samitaLimitAll2 = "samita_all_p" %}
+                            {% endif %}
+                            {% if lockRs == "price" %}
+                              {% assign samitaLimitAllPrice2 = "samita_all_p_price" %}
+                            {% endif %}
+                            {% if lockRs == "atc" %}
+                              {% assign samitaLimitAllAtc2 = "samita_all_p_atc" %}
+                            {% endif %}
+                          {% endfor %}
+                          {% else %}
+                            {% if item.resources_lock.products contains samiProductID %}
+                              {% for lockRs in item.resources_lock.setting -%}
+                                {% if lockRs == "all" %}
+                                  {% assign samitaManualAll2 = "samita_manual_p_all" %}
+                                {% endif %}
+                                {% if lockRs == "price" %}
+                                  {% assign samitaManualPrice2 = "samita_manual_p_price" %}
+                                {% endif %}
+                                {% if lockRs == "atc" %}
+                                  {% assign samitaManualAtc2 = "samita_manual_p_atc" %}
+                                {% endif %}
+                              {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                      {% endif %}
+                      {% if  item.resources_lock.type == "collections"  %}
+                         {% if productCollections.size > 0 %}
+                            {% for collection in productCollections %}
+                              {% assign colectionID = collection.id | append: "" %}
+                              {% if item.resources_lock.collections contains colectionID  %}
+                                  {% for lockRs in item.resources_lock.setting -%}
+                                    {% if lockRs == "all" %}
+                                      {% assign samitaCollectionAll2 = "samita_manual_c_all" %}
+                                    {% endif %}
+                                    {% if lockRs == "price" %}
+                                      {% assign samitaCollectionPrice2 = "samita_manual_c_price" %}
+                                    {% endif %}
+                                    {% if lockRs == "atc" %}
+                                        {% assign samitaCollectionAtc2 = "samita_manual_c_atc" %}
+                                    {% endif %}
+                                  {% endfor %}
+                              {% endif %}
+                            {% endfor %}
+                          {% endif %}
+                      {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+             {% endif %}
+        {% endif %}
+      {% endif %}
+      {% if item.access == 1 %}
+        {% if customer %}
+          {% if item.resources_conditional.customer.source == "manual" %}
+            {% if item.resources_lock.type == "collections" %}
+              {% if productCollections.size > 0 %}
+                {% for collection in productCollections %}
+                {% assign colectionID = collection.id | append: "" %}
+                  {% if item.resources_lock.collections contains colectionID  %}
+                    {% assign samitaCus = true %}
+                  {% for cus in item.resources_conditional.customer.listManual %}
+                   {% if cus.id == customer.id %}
+                     {% assign samitaCus = false %}
+                     {% assign samitaLimitAll = "" %}
+                      {% assign samitaLimitAllPrice = "" %}
+                      {% assign samitaLimitAllAtc = "" %}
+                      
+                      {% assign samitaManualAll = "" %}
+                      {% assign samitaManualPrice = "" %}
+                      {% assign samitaManualAtc = "" %}
+                      
+                      {% assign samitaCollectionAll = "" %}
+                      {% assign samitaCollectionPrice = "" %}
+                      {% assign samitaCollectionAtc = "" %}
+                   {% endif %}
+                 {% endfor %}
+                  {% if samitaCus %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                      {% if lockRs == "all" %}
+                        {% assign samitaManualAll = "samita_manual_p_all" %}
+                      {% endif %}
+                      {% if lockRs == "price" %}
+                        {% assign samitaManualPrice = "samita_manual_p_price" %}
+                      {% endif %}
+                      {% if lockRs == "atc" %}
+                        {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            {% endif %}
+            {% if  item.resources_lock.type == "products"  %}
+              {% if item.resources_lock.limitProduct == "all" %}
+                {% assign samitaCus = true %}
+                  {% for cus in item.resources_conditional.customer.listManual %}
+                   {% if cus.id == customer.id %}
+                     {% assign samitaCus = false %}
+                     {% assign samitaLimitAll = "" %}
+                      {% assign samitaLimitAllPrice = "" %}
+                      {% assign samitaLimitAllAtc = "" %}
+                      
+                      {% assign samitaManualAll = "" %}
+                      {% assign samitaManualPrice = "" %}
+                      {% assign samitaManualAtc = "" %}
+                      
+                      {% assign samitaCollectionAll = "" %}
+                      {% assign samitaCollectionPrice = "" %}
+                      {% assign samitaCollectionAtc = "" %}
+                   {% endif %}
+                 {% endfor %}
+                  {% if samitaCus %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                      {% if lockRs == "all" %}
+                        {% assign samitaManualAll = "samita_manual_p_all" %}
+                      {% endif %}
+                      {% if lockRs == "price" %}
+                        {% assign samitaManualPrice = "samita_manual_p_price" %}
+                      {% endif %}
+                      {% if lockRs == "atc" %}
+                        {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+              {% else %}
+                {% if item.resources_lock.products contains samiProductID %}
+                  {% assign samitaCus = true %}
+                  {% for cus in item.resources_conditional.customer.listManual %}
+                   {% if cus.id == customer.id %}
+                     {% assign samitaCus = false %}
+                     {% assign samitaLimitAll = "" %}
+                      {% assign samitaLimitAllPrice = "" %}
+                      {% assign samitaLimitAllAtc = "" %}
+                      
+                      {% assign samitaManualAll = "" %}
+                      {% assign samitaManualPrice = "" %}
+                      {% assign samitaManualAtc = "" %}
+                      
+                      {% assign samitaCollectionAll = "" %}
+                      {% assign samitaCollectionPrice = "" %}
+                      {% assign samitaCollectionAtc = "" %}
+                   {% endif %}
+                 {% endfor %}
+                  {% if samitaCus %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                      {% if lockRs == "all" %}
+                        {% assign samitaManualAll = "samita_manual_p_all" %}
+                      {% endif %}
+                      {% if lockRs == "price" %}
+                        {% assign samitaManualPrice = "samita_manual_p_price" %}
+                      {% endif %}
+                      {% if lockRs == "atc" %}
+                        {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endif %}        
+          {% endif %}
+          {% if item.resources_conditional.customer.source == "rules" %}
+            {% assign samitaNoTag = true %}
+            {% for logic in item.resources_conditional.customer.logic[0] %}
+              {% if logic.type == "not_tagged_with" %}
+                {% unless customer.tags contains logic.value %}
+                  {% assign samitaNoTag = false %}
+                  {% assign samitaLimitAll = "" %}
+                  {% assign samitaLimitAllPrice = "" %}
+                  {% assign samitaLimitAllAtc = "" %}
+                  
+                  {% assign samitaManualAll = "" %}
+                  {% assign samitaManualPrice = "" %}
+                  {% assign samitaManualAtc = "" %}
+                  
+                  {% assign samitaCollectionAll = "" %}
+                  {% assign samitaCollectionPrice = "" %}
+                  {% assign samitaCollectionAtc = "" %}
+                {% endunless %}
+              {% endif %}
+              {% if logic.type == "tagged_with" %}
+                {% if customer.tags contains logic.value %}
+                  {% assign samitaNoTag = false %}
+                  {% assign samitaLimitAll = "" %}
+                  {% assign samitaLimitAllPrice = "" %}
+                  {% assign samitaLimitAllAtc = "" %}
+                  
+                  {% assign samitaManualAll = "" %}
+                  {% assign samitaManualPrice = "" %}
+                  {% assign samitaManualAtc = "" %}
+                  
+                  {% assign samitaCollectionAll = "" %}
+                  {% assign samitaCollectionPrice = "" %}
+                  {% assign samitaCollectionAtc = "" %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if samitaNoTag %}
+              {% if  item.resources_lock.type == "products"  %}
+                {% if item.resources_lock.limitProduct == "all" %}
+                  {% for lockRs in item.resources_lock.setting -%}
+                    {% if lockRs == "all" %}
+                      {% assign samitaLimitAll = "samita_all_p" %}
+                    {% endif %}
+                    {% if lockRs == "price" %}
+                      {% assign samitaLimitAllPrice = "samita_all_p_price" %}
+                    {% endif %}
+                    {% if lockRs == "atc" %}
+                      {% assign samitaLimitAllAtc = "samita_all_p_atc" %}
+                    {% endif %}
+                  {% endfor %}
+                  {% else %}
+                    {% if item.resources_lock.products contains samiProductID %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                        {% if lockRs == "all" %}
+                          {% assign samitaManualAll = "samita_manual_p_all" %}
+                        {% endif %}
+                        {% if lockRs == "price" %}
+                          {% assign samitaManualPrice = "samita_manual_p_price" %}
+                        {% endif %}
+                        {% if lockRs == "atc" %}
+                          {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                {% endif %}
+              {% endif %}
+              {% if  item.resources_lock.type == "collections"  %}
+                 {% if productCollections.size > 0 %}
+                    {% for collection in productCollections %}
+                      {% assign colectionID = collection.id | append: "" %}
+                      {% if item.resources_lock.collections contains colectionID  %}
+                          {% for lockRs in item.resources_lock.setting -%}
+                            {% if lockRs == "all" %}
+                              {% assign samitaCollectionAll = "samita_manual_c_all" %}
+                            {% endif %}
+                            {% if lockRs == "price" %}
+                              {% assign samitaCollectionPrice = "samita_manual_c_price" %}
+                            {% endif %}
+                            {% if lockRs == "atc" %}
+                                {% assign samitaCollectionAtc = "samita_manual_c_atc" %}
+                            {% endif %}
+                          {% endfor %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
+        {% unless customer %}
+          {% if  item.resources_lock.type == "products"  %}
+            {% if item.resources_lock.limitProduct == "all" %}
+              {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaLimitAll = "samita_all_p" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaLimitAllPrice = "samita_all_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaLimitAllAtc = "samita_all_p_atc" %}
+                {% endif %}
+              {% endfor %}
+              {% else %}
+                {% if item.resources_lock.products contains samiProductID %}
+                  {% for lockRs in item.resources_lock.setting -%}
+                    {% if lockRs == "all" %}
+                      {% assign samitaManualAll = "samita_manual_p_all" %}
+                    {% endif %}
+                    {% if lockRs == "price" %}
+                      {% assign samitaManualPrice = "samita_manual_p_price" %}
+                    {% endif %}
+                    {% if lockRs == "atc" %}
+                      {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+            {% endif %}
+          {% endif %}
+          {% if  item.resources_lock.type == "collections"  %}
+             {% if productCollections.size > 0 %}
+                {% for collection in productCollections %}
+                  {% assign colectionID = collection.id | append: "" %}
+                  {% if item.resources_lock.collections contains colectionID  %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                        {% if lockRs == "all" %}
+                          {% assign samitaCollectionAll = "samita_manual_c_all" %}
+                        {% endif %}
+                        {% if lockRs == "price" %}
+                          {% assign samitaCollectionPrice = "samita_manual_c_price" %}
+                        {% endif %}
+                        {% if lockRs == "atc" %}
+                            {% assign samitaCollectionAtc = "samita_manual_c_atc" %}
+                        {% endif %}
+                      {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+          {% endif %}
+        {% endunless %}
+      {% endif %}
+    {% endif %}
+    
+    {% if item.status == 1 and item.resources_conditional.type[0] == "logged" %}
+      {% if item.access == 1 %}
+        {% unless customer %}
+          {% if  item.resources_lock.type == "products"  %}
+            {% if item.resources_lock.limitProduct == "all" %}
+              {% for lockRs in item.resources_lock.setting -%}
+                {% if lockRs == "all" %}
+                  {% assign samitaLimitAll = "samita_all_p" %}
+                {% endif %}
+                {% if lockRs == "price" %}
+                  {% assign samitaLimitAllPrice = "samita_all_p_price" %}
+                {% endif %}
+                {% if lockRs == "atc" %}
+                  {% assign samitaLimitAllAtc = "samita_all_p_atc" %}
+                {% endif %}
+              {% endfor %}
+              {% else %}
+                {% if item.resources_lock.products contains samiProductID %}
+                  {% for lockRs in item.resources_lock.setting -%}
+                    {% if lockRs == "all" %}
+                      {% assign samitaManualAll = "samita_manual_p_all" %}
+                    {% endif %}
+                    {% if lockRs == "price" %}
+                      {% assign samitaManualPrice = "samita_manual_p_price" %}
+                    {% endif %}
+                    {% if lockRs == "atc" %}
+                      {% assign samitaManualAtc = "samita_manual_p_atc" %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+            {% endif %}
+          {% endif %}
+          {% if  item.resources_lock.type == "collections"  %}
+             {% if productCollections.size > 0 %}
+                {% for collection in productCollections %}
+                  {% assign colectionID = collection.id | append: "" %}
+                  {% if item.resources_lock.collections contains colectionID  %}
+                      {% for lockRs in item.resources_lock.setting -%}
+                        {% if lockRs == "all" %}
+                          {% assign samitaCollectionAll = "samita_manual_c_all" %}
+                        {% endif %}
+                        {% if lockRs == "price" %}
+                          {% assign samitaCollectionPrice = "samita_manual_c_price" %}
+                        {% endif %}
+                        {% if lockRs == "atc" %}
+                            {% assign samitaCollectionAtc = "samita_manual_c_atc" %}
+                        {% endif %}
+                      {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+          {% endif %}
+        {% endunless %}
+      {% endif %}
+    {% endif %}
+  {%- endfor %}
+
+
+
+                <li
+                  id="predictive-search-option-product-{{ forloop.index }}"
+                  class="predictive-search__list-item"
+                  role="option"
+                  aria-selected="false"
+                  {{ lockid }}  {{ samitaSecAll }} {{ samitaSecPrice }} {{ samitaSecAtc }} {{ samitaCus }} {{ samitaPassAll }} {{ samitaPassPrice }} {{ samitaPassAtc }} {{ samitaPassCollecAll }} {{ samitaPassCollecPrice }} {{ samitaPassCollecAtc }}  {{ samitaLimitAll }} {{ samitaLimitAllPrice }} {{ samitaLimitAllAtc }} {{ samitaManualAll }} {{ samitaManualPrice }} {{ samitaManualAtc }} {{ samitaCollectionAll }} {{ samitaCollectionPrice }} {{ samitaCollectionAtc }} {{ samitaLimitAll2 }} {{ samitaLimitAllPrice2 }} {{ samitaLimitAllAtc2 }} {{ samitaManualAll2 }} {{ samitaManualPrice2 }} {{ samitaManualAtc2 }} {{ samitaCollectionAll2 }} {{ samitaCollectionPrice2 }} {{ samitaCollectionAtc2 }}
+
+                >
+                  <a
+                    href="{{ product.url }}"
+                    class="predictive-search__item predictive-search__item--link-with-thumbnail link link--text"
+                    tabindex="-1"
+                  >
+                    {%- if product.featured_media != blank -%}
+                      <img
+                        class="predictive-search__image"
+                        src="{{ product.featured_media | image_url: width: 150 }}"
+                        alt="{{ product.featured_media.alt }}"
+                        width="50"
+                        height="{{ 50 | divided_by: product.featured_media.preview_image.aspect_ratio }}"
+                      >
+                    {%- endif -%}
+                    <div class="predictive-search__item-content{% unless settings.predictive_search_show_vendor or settings.predictive_search_show_price %} predictive-search__item-content--centered{% endunless %}">
+                      {%- if settings.predictive_search_show_vendor -%}
+                        <span class="visually-hidden">{{ 'accessibility.vendor' | t }}</span>
+                        <div class="predictive-search__item-vendor caption-with-letter-spacing">
+                          {{ product.vendor }}
+                        </div>
+                      {%- endif -%}
+                      <p class="predictive-search__item-heading h5">{{ product.title | escape }}</p>
+                      {%- if settings.predictive_search_show_price -%}
+                        {% render 'price', product: product, use_variant: true, show_badges: false %}
+                      {%- endif -%}
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+        {%- if predictive_search.resources.articles.size > 0 or predictive_search.resources.pages.size > 0 -%}
+          <div class="predictive-search__pages-wrapper">
+            <h2
+              id="predictive-search-pages-mobile"
+              class="predictive-search__heading text-body caption-with-letter-spacing"
+            >
+              {{- 'templates.search.pages' | t -}}
+            </h2>
+            <ul
+              id="predictive-search-results-pages-list-mobile"
+              class="predictive-search__results-list list-unstyled"
+              role="group"
+              aria-labelledby="predictive-search-pages-mobile"
+            >
+              {%- for page in predictive_search.resources.pages -%}
+                <li
+                  id="predictive-search-option-page-mobile-{{ forloop.index }}"
+                  class="predictive-search__list-item"
+                  role="option"
+                  aria-selected="false"
+                >
+                  <a href="{{ page.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                    <div class="predictive-search__item-content predictive-search__item-content--centered">
+                      <p class="predictive-search__item-heading h5">{{ page.title | escape }}</p>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+              {%- for article in predictive_search.resources.articles -%}
+                <li
+                  id="predictive-search-option-article-mobile-{{ forloop.index }}"
+                  class="predictive-search__list-item"
+                  role="option"
+                  aria-selected="false"
+                >
+                  <a href="{{ article.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                    <div class="predictive-search__item-content predictive-search__item-content--centered">
+                      <p class="predictive-search__item-heading h5">{{ article.title | escape }}</p>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+    {%- if first_column_results_size > 0 or predictive_search.resources.products.size > 0 -%}
+      </div>
+    {%- endif -%}
+
+    {%- render 'loading-spinner', class: 'predictive-search__loading-state' -%}
+
+    <div id="predictive-search-option-search-keywords" class="predictive-search__search-for-button">
+      <button
+        class="predictive-search__item predictive-search__item--term link link--text h5 animate-arrow"
+        tabindex="-1"
+        role="option"
+        aria-selected="false"
+      >
+        <span data-predictive-search-search-for-text>
+          {{- 'templates.search.search_for' | t: terms: predictive_search.terms -}}
+        </span>
+        {% render 'icon-arrow' %}
+      </button>
+    </div>
+  </div>
+
+  <span class="hidden" data-predictive-search-live-region-count-value>
+    {% liquid
+      assign total_results = predictive_search.resources.products.size | plus: first_column_results_size
+      if total_results == 0
+        echo 'templates.search.no_results' | t: terms: predictive_search.terms
+      else
+        echo 'templates.search.results_with_count' | t: count: total_results | append: ': '
+        if predictive_search.resources.queries.size > 0
+          assign count = predictive_search.resources.queries.size | plus: predictive_search.resources.collections.size
+          echo 'templates.search.results_suggestions_with_count' | t: count: count | append: ', '
+        endif
+        if predictive_search.resources.pages.size > 0
+          assign count = predictive_search.resources.pages.size | plus: predictive_search.resources.articles.size
+          echo 'templates.search.results_pages_with_count' | t: count: count | append: ', '
+        endif
+        if predictive_search.resources.products.size > 0
+          echo 'templates.search.results_products_with_count' | t: count: predictive_search.resources.products.size
+        endif
+      endif
+    %}
+  </span>
+{%- endif -%}

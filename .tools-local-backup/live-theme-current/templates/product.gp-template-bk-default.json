@@ -1,0 +1,134 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "order": [
+    "main",
+    "related-products"
+  ],
+  "sections": {
+    "main": {
+      "block_order": [
+        "text",
+        "title",
+        "price",
+        "variant_picker",
+        "custom_liquid_9JRwgj",
+        "custom_liquid_8FRn4j",
+        "quantity_selector",
+        "buy_buttons",
+        "custom_liquid_QGXwjr",
+        "description",
+        "share",
+        "trustify_reviews_app_product_block_3QwyDh"
+      ],
+      "blocks": {
+        "buy_buttons": {
+          "settings": {
+            "show_dynamic_checkout": false,
+            "show_gift_card_recipient": true
+          },
+          "type": "buy_buttons"
+        },
+        "custom_liquid_8FRn4j": {
+          "settings": {
+            "custom_liquid": "{% assign field_label = \"If you chose Custom Engraving, select the style you would like:\" %}\n{% assign field_values = \"Style 1, Style 2, Style 3, Style 4 (email design to info@richfloralstudio.com)\" %}\n{% assign field_type = \"dropdown\" %}\n{% assign hide_checkout = false %}\n\n\n{% comment %} \nDo not edit the code below\n{% endcomment %}\n\n{% assign gen_id = field_label | remove: \" \" | strip | downcase %}\n\n{%  assign selection_options = field_values | split: \",\" %}\n{%- if field_type == 'pills' -%}\n    <fieldset class=\"js product-form__input\"\n        data-input-type=\"radio\">\n\n        <legend class=\"form__label\">{{ field_label }}</legend>\n        \n        {%  for radio-button in selection_options %}\n            <input id=\"{{ gen_id }}-{{ forloop.index0 }}\"\n                class=\"radio-buttons\"\n                form=\"product-form-{{ section.id }}\"\n                type=\"radio\"\n                name=\"properties[{% if hide_checkout %}_{% endif %}{{ field_label }}]\"\n                value=\"{{ radio-button | strip | escape }}\"\n                {% if forloop.index0 == 0 %}checked{%  endif %}\n                data-controller-form-label=\"{{ field_label }}\"\n                {{ isRequired }}>\n\n            <label for=\"{{ gen_id }}-{{ forloop.index0 }}\">\n                {{  radio-button | strip | escape }}\n            </label>\n        {%  endfor %}\n    </fieldset>\n{%  else %}\n    <fieldset class=\"product-form__input product-form__input--dropdown\"\n        data-input-type=\"select\">\n        \n        <label for=\"{{ gen_id}}\" class=\"form__label\">{{ field_label }} </label>\n\n        <div class=\"select\">\n            <select id=\"{{ gen_id }}\"\n                class=\"select__select\"\n                form=\"product-form-{{ section.id }}\"\n                name=\"properties[{% if hide_checkout %}_{% endif %}{{ field_label }}]\"\n                data-controller-form-label=\"{{ field_label }}\">\n\n                {%  for option in selection_options %}\n                    <option value=\"{{ option | strip | escape }}\" {% if forloop.index0 == 0 %}selected{% endif %}>\n                        {{ option | strip | escape }}\n                    </option>\n                {% endfor %}\n            </select>\n            {% render 'icon-caret' %}\n        </div>\n    </fieldset>\n{%  endif %}\n\n<style>\n    .product-form__input .select, .form__label {\n        max-width: 37rem;\n        margin-bottom: 0.6rem !important;\n    }\n</style>"
+          },
+          "type": "custom_liquid"
+        },
+        "custom_liquid_9JRwgj": {
+          "settings": {
+            "custom_liquid": "{% assign field_label = 'If you chose Custom Engraving, enter the text you would like here:' %}\n{% assign min_characters = 0 %}\n{% assign max_characters = 80 %}\n{% assign placeholder_text = \"Robert + Caleigh \n04-28-2024\" %}\n{% assign required_field = false %}\n{% assign spellchecker = true %}\n{% assign hide_checkout = false %}\n\n{% assign regular_expression = \"^[^<>\\\\\\{\\\\\\}]*$\" %}\n\n{% assign expression_title = \"The following values are not allowed < > { }\" %}\n\n{% assign validation_type = \"key\" %}\n\n\n{% comment %} \nDo not edit the code below\n{% endcomment %}\n\n{% assign gen_id = field_label | remove: \" \" | strip | downcase %}\n\n<fieldset class=\"product-form__input line-item-property__field text-field\"\n    data-input-type=\"textarea\">\n\n    <label for=\"{{ gen_id }}\"  class=\"form__label\">{{ field_label }}</label>\n    \n    <div class=\"field\">\n    \n        <textarea id=\"{{ gen_id }}\" \n            class=\"select__select text-area custom-text-input required__check {% if required_field %}required__field{% endif %}\" \n            form=\"product-form-{{ section.id }}\" \n            minlength=\"{{ min_characters }}\" \n            {% if max_characters > 0 %}maxlength=\"{{ max_characters }}\"{% endif %}\n            placeholder=\"{{ placeholder_text }}\"\n                        name=\"properties[{% if hide_checkout %}_{% endif %}{{ field_label }}]\" \n            {% unless regular_expression == '' %}pattern=\"{{ regular_expression }}\"{% endunless %}\n            data-controller-form-label=\"{{ field_label }}\"\n            {% if required_field %} required {% endif %}\n            {% if spellchecker %}spellcheck=\"true\"{% endif %}\n            data-validation-type=\"{{  validation_type }}\"></textarea>\n\n        <input id=\"conv-{{ gen_id }}\" type=\"text\" {% unless regular_expression == '' %}pattern=\"{{ regular_expression }}\"{% endunless %} style=\"display: none;\">\n    \n    </div>\n</fieldset>\n\n<style>\n    .form__label {\n        max-width: 37rem;\n        margin-bottom: 0.6rem !important;\n    }\n\n    .product-form__input input[type='text'] {\n        cursor: text;\n    }\n\n    .text-area {\n        padding-top: 1em;\n        padding-bottom: 1em;\n    }\n</style>"
+          },
+          "type": "custom_liquid"
+        },
+        "custom_liquid_QGXwjr": {
+          "settings": {
+            "custom_liquid": "<script>\ndocument.getElementById(\"product-form-{{ section.id }}\").noValidate = false;\n</script>"
+          },
+          "type": "custom_liquid"
+        },
+        "description": {
+          "settings": {},
+          "type": "description"
+        },
+        "price": {
+          "settings": {},
+          "type": "price"
+        },
+        "quantity_selector": {
+          "settings": {},
+          "type": "quantity_selector"
+        },
+        "share": {
+          "settings": {
+            "share_label": "Share"
+          },
+          "type": "share"
+        },
+        "text": {
+          "settings": {
+            "text": "{{ product.vendor }}",
+            "text_style": "body"
+          },
+          "type": "text"
+        },
+        "title": {
+          "settings": {},
+          "type": "title"
+        },
+        "trustify_reviews_app_product_block_3QwyDh": {
+          "settings": {},
+          "type": "shopify://apps/trustify-reviews/blocks/app-product-block/60d505af-e468-47cf-a184-a06ccd6703ac"
+        },
+        "variant_picker": {
+          "settings": {
+            "picker_type": "button",
+            "swatch_shape": "circle"
+          },
+          "type": "variant_picker"
+        }
+      },
+      "settings": {
+        "color_scheme": "scheme-1",
+        "constrain_to_viewport": true,
+        "enable_sticky_info": true,
+        "enable_video_looping": false,
+        "gallery_layout": "stacked",
+        "hide_variants": false,
+        "image_zoom": "lightbox",
+        "media_fit": "contain",
+        "media_position": "left",
+        "media_size": "medium",
+        "mobile_thumbnails": "hide",
+        "padding_bottom": 44,
+        "padding_top": 36
+      },
+      "type": "main-product"
+    },
+    "related-products": {
+      "settings": {
+        "color_scheme": "scheme-1",
+        "columns_desktop": 4,
+        "columns_mobile": "2",
+        "heading": "You may also like",
+        "heading_size": "h2",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "padding_bottom": 68,
+        "padding_top": 36,
+        "products_to_show": 4,
+        "show_rating": false,
+        "show_secondary_image": false,
+        "show_vendor": false
+      },
+      "type": "related-products"
+    }
+  }
+}

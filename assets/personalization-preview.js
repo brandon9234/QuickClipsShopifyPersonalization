@@ -85,7 +85,7 @@
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-17-single-image-stage-preview';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-17-deterministic-stage-only';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -353,7 +353,6 @@
   let activeSafeAreaImageUrl = defaultSafeAreaImageUrl;
   let isGenerating = false;
   let generationErrorMessage = '';
-  let generatedImageData = '';
   let activeSafeAreaBounds = cloneSafeAreaBounds(DEFAULT_SAFE_AREA_BOUNDS);
   let safeAreaBoundsPromise = null;
   let safeAreaBoundsPromiseUrl = '';
@@ -1429,7 +1428,7 @@
   function clearSelectedFlowerIcon() {
     if (!selectedIconId) return;
     onIconPointerUp();
-    invalidateGeneratedPreview();
+    invalidateStagePreview();
     activeIcons = activeIcons.filter((entry) => entry.id !== selectedIconId);
     selectedIconId = '';
     setIconSelected(Boolean(activeIcons.length));
@@ -1474,7 +1473,7 @@
     activeIcons = [...activeIcons, iconEntry];
     selectedIconId = iconEntry.id;
     setSelectedTextbox('');
-    invalidateGeneratedPreview();
+    invalidateStagePreview();
     armEngravingWarningState();
     syncFlowerIconPickerValue();
     setGenerationError('');
@@ -2126,11 +2125,7 @@
     stylePreviewImage.removeAttribute('hidden');
   }
 
-  function setGeneratedImage(dataUrl) {
-    generatedImageData = String(dataUrl || '').trim();
-  }
-
-  function clearUnsavedScopeGeneratedPreview(scope) {
+  function clearUnsavedScopeStagePreview(scope) {
     if (!scope) return;
     const state = getScopeState(scope);
     if (!state || state.isSaved) return;
@@ -2142,39 +2137,31 @@
     });
   }
 
-  function invalidateGeneratedPreview() {
-    const hadGeneratedImage = Boolean(generatedImageData);
-    if (hadGeneratedImage) {
-      setGeneratedImage('');
-    }
-    clearUnsavedScopeGeneratedPreview(activeScope);
+  function invalidateStagePreview() {
+    clearUnsavedScopeStagePreview(activeScope);
   }
 
-  function getGeneratedImageData() {
-    return generatedImageData;
-  }
-
-  function resolveGeneratedImageDataUrl(responseJson) {
+  function hasGeneratedImagePayload(responseJson) {
     const directDataUrl =
       responseJson && typeof responseJson.generatedImageDataUrl === 'string'
         ? responseJson.generatedImageDataUrl.trim()
         : '';
     if (directDataUrl.startsWith('data:image/')) {
-      return directDataUrl;
+      return true;
     }
 
     const generatedImage =
       responseJson && responseJson.generatedImage && typeof responseJson.generatedImage === 'object'
         ? responseJson.generatedImage
         : null;
-    if (!generatedImage) return '';
+    if (!generatedImage) return false;
 
     const mimeType =
       typeof generatedImage.mimeType === 'string' ? generatedImage.mimeType.trim().toLowerCase() : '';
     const data = typeof generatedImage.data === 'string' ? generatedImage.data.trim().replace(/\s+/g, '') : '';
-    if (!mimeType.startsWith('image/') || !data) return '';
+    if (!mimeType.startsWith('image/') || !data) return false;
 
-    return `data:${mimeType};base64,${data}`;
+    return true;
   }
 
   function blobToDataUrl(blob) {
@@ -2889,86 +2876,6 @@
     };
   }
 
-  async function buildMiniStageCleanGeneratedPreviewDataUrl(generatedImageDataUrl, styleImagePayload, safeAreaBounds) {
-    const normalizedGeneratedImageDataUrl = resolveStagePreviewDataUrl(generatedImageDataUrl);
-    if (!normalizedGeneratedImageDataUrl || !styleImagePayload || !styleImagePayload.dataUrl) {
-      return normalizedGeneratedImageDataUrl;
-    }
-    if (!isMiniStageImageUrl(styleImagePayload.url || activeStageImageUrl)) {
-      return normalizedGeneratedImageDataUrl;
-    }
-
-    try {
-      const [stageImage, generatedImage] = await Promise.all([
-        loadImage(styleImagePayload.dataUrl),
-        loadImage(normalizedGeneratedImageDataUrl),
-      ]);
-      const stageWidth = stageImage.naturalWidth || stageImage.width || 0;
-      const stageHeight = stageImage.naturalHeight || stageImage.height || 0;
-      const generatedWidth = generatedImage.naturalWidth || generatedImage.width || 0;
-      const generatedHeight = generatedImage.naturalHeight || generatedImage.height || 0;
-      const width = stageWidth || generatedWidth;
-      const height = stageHeight || generatedHeight;
-      if (!width || !height) {
-        return normalizedGeneratedImageDataUrl;
-      }
-
-      const ctxSafeArea = sanitizeSafeAreaBounds(safeAreaBounds || activeSafeAreaBounds);
-      const paddingPercent = 0.35;
-      const cropBounds = {
-        x: Math.max(0, ctxSafeArea.x - paddingPercent),
-        y: Math.max(0, ctxSafeArea.y - paddingPercent),
-        w: Math.min(100, ctxSafeArea.w + paddingPercent * 2),
-        h: Math.min(100, ctxSafeArea.h + paddingPercent * 2),
-      };
-      if (cropBounds.x + cropBounds.w > 100) {
-        cropBounds.w = Math.max(0.001, 100 - cropBounds.x);
-      }
-      if (cropBounds.y + cropBounds.h > 100) {
-        cropBounds.h = Math.max(0.001, 100 - cropBounds.y);
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        return normalizedGeneratedImageDataUrl;
-      }
-
-      ctx.drawImage(stageImage, 0, 0, width, height);
-
-      const sourceRect = {
-        x: Math.floor((cropBounds.x / 100) * generatedWidth),
-        y: Math.floor((cropBounds.y / 100) * generatedHeight),
-        w: Math.max(1, Math.ceil((cropBounds.w / 100) * generatedWidth)),
-        h: Math.max(1, Math.ceil((cropBounds.h / 100) * generatedHeight)),
-      };
-      const destRect = {
-        x: Math.floor((cropBounds.x / 100) * width),
-        y: Math.floor((cropBounds.y / 100) * height),
-        w: Math.max(1, Math.ceil((cropBounds.w / 100) * width)),
-        h: Math.max(1, Math.ceil((cropBounds.h / 100) * height)),
-      };
-
-      ctx.drawImage(
-        generatedImage,
-        sourceRect.x,
-        sourceRect.y,
-        sourceRect.w,
-        sourceRect.h,
-        destRect.x,
-        destRect.y,
-        destRect.w,
-        destRect.h
-      );
-
-      return canvas.toDataURL('image/png');
-    } catch (error) {
-      return normalizedGeneratedImageDataUrl;
-    }
-  }
-
   function resolveStagePreviewDataUrl(value) {
     const normalized = String(value || '').trim();
     return normalized.startsWith('data:image/') ? normalized : '';
@@ -3038,7 +2945,7 @@
     const stagePreviewDataUrl = await buildStagePreviewDataUrlForState(state);
     if (stagePreviewDataUrl) {
       setScopeState(scope, {
-        generatedImage: state.isSaved ? '' : state.generatedImage,
+        generatedImage: '',
         stagePreviewDataUrl,
       });
       return stagePreviewDataUrl;
@@ -3771,7 +3678,7 @@
     const movedLayout = activeTextLayout[boxInteraction.boxKey];
     if (hasLayoutChangedSignificantly(boxInteraction.startBox, movedLayout)) {
       boxInteraction.layoutChanged = true;
-      invalidateGeneratedPreview();
+      invalidateStagePreview();
       armEngravingWarningState();
     }
     renderDeterministicOverlay();
@@ -3875,7 +3782,7 @@
       Math.abs(sanitizedNextLayout.size - iconInteraction.startLayout.size) > ICON_LAYOUT_CHANGE_EPSILON
     ) {
       iconInteraction.layoutChanged = true;
-      invalidateGeneratedPreview();
+      invalidateStagePreview();
       armEngravingWarningState();
     }
 
@@ -3931,14 +3838,6 @@
     const styleClass = getClipStyleClass(selectedStyle);
     clipSurface.classList.remove(...CLIP_STYLE_CLASSES);
     clipSurface.classList.add(styleClass);
-
-    const existingGeneratedImage = getGeneratedImageData();
-    if (existingGeneratedImage) {
-      stylePreviewImage.src = existingGeneratedImage;
-      stylePreviewImage.removeAttribute('hidden');
-      deterministicOverlay.setAttribute('hidden', '');
-      return;
-    }
 
     setWorkspaceStyleImage(selectedStyle);
     renderDeterministicOverlay();
@@ -4369,10 +4268,6 @@
     syncTextboxSelectionState();
     setIconSelected(false);
     syncFlowerIconPickerValue();
-    const unsavedGeneratedPreview = existingState.isSaved
-      ? ''
-      : resolveStagePreviewDataUrl(existingState.generatedImage);
-    setGeneratedImage(unsavedGeneratedPreview);
     setPickedPanelVisible(true);
     setGenerationError('');
     isGenerating = false;
@@ -4535,7 +4430,6 @@
   }
 
   function handleStyleSelectionChange() {
-    setGeneratedImage('');
     setGenerationError('');
     resetEngravingWarningState();
     applyStyleDefaultFonts(getSelectedStyle());
@@ -4553,18 +4447,18 @@
     handleStyleSelectionChange();
   });
   lastNameInput.addEventListener('input', () => {
-    invalidateGeneratedPreview();
+    invalidateStagePreview();
     setGenerationError('');
     renderEditorState();
   });
   dateInput.addEventListener('input', () => {
-    invalidateGeneratedPreview();
+    invalidateStagePreview();
     setGenerationError('');
     renderEditorState();
   });
   [lastNameFontSelect, dateFontSelect].forEach((selectElement) => {
     selectElement.addEventListener('change', () => {
-      invalidateGeneratedPreview();
+      invalidateStagePreview();
       setGenerationError('');
       void refreshPreviewAfterFontsReady({ syncInitialPlacement: true });
     });
@@ -4757,7 +4651,6 @@
       return;
     }
 
-    const previousGeneratedImage = getGeneratedImageData();
     setPickedPanelVisible(true);
     isGenerating = true;
     setGenerationError('');
@@ -4813,17 +4706,18 @@
       };
 
       const { json } = await requestPreview(payload);
-      const generatedImageData = resolveGeneratedImageDataUrl(json);
-      if (!generatedImageData) {
+      // Generation still validates the Gemini response so backend failures surface,
+      // but the stage preview stays browser-rendered to avoid image-edge artifacts.
+      if (!hasGeneratedImagePayload(json)) {
         throw new Error('Gemini did not return an edited preview image.');
       }
-      const previewImageData = await buildMiniStageCleanGeneratedPreviewDataUrl(
-        generatedImageData,
-        styleImagePayload,
-        activeSafeAreaBounds
-      );
+      let stagePreviewDataUrl = '';
+      try {
+        stagePreviewDataUrl = await buildLiveStagePreviewDataUrl(activeScope);
+      } catch (snapshotError) {
+        stagePreviewDataUrl = '';
+      }
 
-      setGeneratedImage(previewImageData);
       setGenerationError('');
 
       setScopeState(activeScope, {
@@ -4835,15 +4729,14 @@
         icons: cloneIconEntries(activeIcons),
         textLayout: cloneTextLayout(activeTextLayout),
         geminiSummary: '',
-        generatedImage: previewImageData,
-        stagePreviewDataUrl: '',
+        generatedImage: '',
+        stagePreviewDataUrl,
         previewOpened: true,
         maxLastName: activeLastNameMax,
         maxDate: activeDateMax,
       });
       syncScope(activeScope);
     } catch (error) {
-      setGeneratedImage(previousGeneratedImage);
       const errorMessage = error instanceof Error ? error.message : 'Could not generate preview.';
       const normalizedErrorMessage = errorMessage.toLowerCase();
       const singleFailure = !normalizedErrorMessage.includes(' | ');

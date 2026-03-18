@@ -1,0 +1,128 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_RnM8Ec": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_hYNkX9": {
+          "type": "heading",
+          "settings": {
+            "heading": "Welcome to QuickClips!",
+            "heading_size": "h1"
+          }
+        },
+        "text_VAcKDQ": {
+          "type": "text",
+          "settings": {
+            "text": "<h2>We are excited to work with you!</h2><h2>Use the code: <span style=\"text-decoration:underline\"><em>PROFITBLAST</em></span> for <strong>10% off</strong> any order - <strong>today only!</strong></h2><h2>Scan the QR Code or use this iPad to order now!</h2>"
+          }
+        },
+        "button_gGHnte": {
+          "type": "button",
+          "settings": {
+            "button_label": "Finished!",
+            "button_link": "shopify://pages/convention-sign-up-form",
+            "button_style_secondary": true,
+            "button_label_2": "Login to Order Now",
+            "button_link_2": "https://quickclipsfloral.com/account/login?return_url=/collections/florist-order",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_hYNkX9",
+        "text_VAcKDQ",
+        "button_gGHnte"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 0
+      }
+    },
+    "multicolumn_hzeTPE": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_JiMHHJ": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Qr_Code_PNG.png",
+            "title": "",
+            "text": "",
+            "link_label": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "column_JiMHHJ"
+      ],
+      "name": "t:sections.multicolumn.presets.name",
+      "settings": {
+        "title": "",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "columns_desktop": 3,
+        "column_alignment": "center",
+        "background_style": "none",
+        "button_label": "",
+        "button_link": "",
+        "color_scheme": "",
+        "columns_mobile": "1",
+        "swipe_on_mobile": false,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "rich_text_mTYDdt": {
+      "type": "rich-text",
+      "blocks": {
+        "text_DFAxJQ": {
+          "type": "text",
+          "settings": {
+            "text": "<h2>Have a great day!</h2><h2>QuickClips</h2>"
+          }
+        }
+      },
+      "block_order": [
+        "text_DFAxJQ"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 52
+      }
+    }
+  },
+  "order": [
+    "main",
+    "rich_text_RnM8Ec",
+    "multicolumn_hzeTPE",
+    "rich_text_mTYDdt"
+  ]
+}
