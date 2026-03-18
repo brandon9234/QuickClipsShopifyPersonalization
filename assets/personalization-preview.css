@@ -601,7 +601,6 @@
 }
 
 .personalization-preview-modal__blank-clip {
-  --quickclip-style-image: none;
   --quickclip-stage-zoom: 1;
   --quickclip-stage-focus-x: 50%;
   --quickclip-stage-focus-y: 50%;
@@ -610,12 +609,10 @@
   border: 0.1rem dashed rgba(var(--color-foreground), 0.22);
   border-radius: var(--text-boxes-radius);
   background-color: rgba(var(--color-background), 1);
-  background-image:
-    linear-gradient(180deg, rgba(var(--color-background), 0.2), rgba(var(--color-background-contrast), 0.1)),
-    var(--quickclip-style-image);
-  background-size: auto, calc(var(--quickclip-stage-zoom) * 100%) auto;
-  background-position: center, var(--quickclip-stage-focus-x) var(--quickclip-stage-focus-y);
-  background-repeat: no-repeat, no-repeat;
+  background-image: linear-gradient(180deg, rgba(var(--color-background), 0.2), rgba(var(--color-background-contrast), 0.1));
+  background-size: auto;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -643,7 +640,7 @@
   height: 100%;
   object-fit: contain;
   object-position: var(--quickclip-stage-focus-x) var(--quickclip-stage-focus-y);
-  opacity: 0.95;
+  opacity: 1;
   pointer-events: none;
   transform-origin: var(--quickclip-stage-focus-x) var(--quickclip-stage-focus-y);
   transform: scale(var(--quickclip-stage-zoom));
@@ -670,10 +667,11 @@
   top: var(--clip-guide-y, 0%);
   width: var(--clip-guide-w, 100%);
   height: var(--clip-guide-h, 100%);
-  border: 0.2rem solid rgba(44, 124, 98, 0.78);
+  display: none !important;
+  border: 0;
   border-radius: 2.4rem;
-  background: rgba(44, 124, 98, 0.04);
-  box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.34), 0 0 0 0.1rem rgba(44, 124, 98, 0.18);
+  background: transparent;
+  box-shadow: none;
   pointer-events: none;
   z-index: 2;
 }
@@ -693,10 +691,6 @@
 
 .personalization-preview-modal__blank-clip.is-warning-armed.is-out-of-bounds .personalization-preview-modal__safe-area-warning {
   display: flex !important;
-}
-
-.personalization-preview-modal__blank-clip.is-mini-stage .personalization-preview-modal__clip-guide-boundary {
-  display: block;
 }
 
 .personalization-preview-modal__blank-clip.is-warning-armed.is-out-of-bounds .personalization-preview-modal__safe-area-boundary {

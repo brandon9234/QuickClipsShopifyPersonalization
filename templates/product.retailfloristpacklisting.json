@@ -40,16 +40,30 @@
             "swatch_shape": "circle"
           }
         },
+        "custom_liquid_ThMWti": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% unless customer %}\n  <div style=\"display:flex; align-items:center; gap:12px; font-size:14px;\">\n    \n    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50\" height=\"50\" fill=\"#70908B\" viewBox=\"0 0 24 24\">\n      <path d=\"M17 9h-1V7a4 4 0 10-8 0v2H7a2 2 0 00-2 2v9a2 2 0 002 2h10a2 2 0 002-2v-9a2 2 0 00-2-2zm-6 7.73V18a1 1 0 002 0v-1.27a2 2 0 10-2 0zM10 9V7a2 2 0 114 0v2h-4z\"/>\n    </svg>\n\n    <span>\n      If you have a \n      <a href=\"https://quickclipsfloral.com/pages/florist-application\" style=\"text-decoration:underline; font-weight:bold; color:inherit;\">\n        Florist Account\n      </a>\n      with us, please \n      <a href=\"/account/login?return_to={{ request.path | url_encode }}\" style=\"text-decoration:underline; font-weight:bold; color:inherit;\">\n        Log In\n      </a>\n      to access your discounted prices!\n    </span>\n\n  </div>\n{% endunless %}"
+          }
+        },
         "price": {
           "type": "price",
           "settings": {}
         },
+        "custom_liquid_Kek4bm": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n.florist-shine {\n  position: relative !important;\n  overflow: hidden !important;\n}\n\n.florist-shine::after {\n  content: \"\";\n  position: absolute;\n  top: 0;\n  left: -120%;\n  width: 120%;\n  height: 100%;\n  background: linear-gradient(\n    120deg,\n    transparent 0%,\n    rgba(255,255,255,0.7) 45%,\n    rgba(255,255,255,0.9) 50%,\n    rgba(255,255,255,0.7) 55%,\n    transparent 100%\n  );\n  transform: skewX(-25deg);\n  animation: floristShine 1.2s ease-out forwards;\n}\n\n@keyframes floristShine {\n  0% {\n    left: -120%;\n  }\n  100% {\n    left: 120%;\n  }\n}\n</style>\n\n<script>\ndocument.addEventListener(\"DOMContentLoaded\", function() {\n\n  function applyShine(el){\n    if(!el || el.dataset.shined) return;\n    el.dataset.shined = \"true\";\n    el.classList.add(\"florist-shine\");\n  }\n\n  function findBadges(){\n    document.querySelectorAll(\"body *\").forEach(function(el){\n      if(el.children.length === 0 && el.textContent.trim() === \"Florist Pricing\"){\n        applyShine(el);\n      }\n    });\n  }\n\n  findBadges();\n\n  const observer = new MutationObserver(function(){\n    findBadges();\n  });\n\n  observer.observe(document.body,{\n    childList:true,\n    subtree:true\n  });\n\n  setTimeout(function(){\n    observer.disconnect();\n  },10000);\n\n});\n</script>"
+          }
+        },
         "joy_subscription_subscription_widget_HarJhy": {
           "type": "shopify://apps/joy-subscription-app/blocks/subscription-widget/6aa30d9c-ff0b-4f29-a82d-a633d8e04b9a",
+          "disabled": true,
           "settings": {}
         },
         "dealeasy_app_block_96LzVJ": {
           "type": "shopify://apps/dealeasy/blocks/app-block/e47a8634-0496-480d-9e46-6f7fafd34b30",
+          "disabled": true,
           "settings": {
             "lb-product-handle": "",
             "lb-product-id": ""
@@ -141,7 +155,9 @@
         "trustify_reviews_app_stars_block_mppnMA",
         "title",
         "variant_picker",
+        "custom_liquid_ThMWti",
         "price",
+        "custom_liquid_Kek4bm",
         "joy_subscription_subscription_widget_HarJhy",
         "dealeasy_app_block_96LzVJ",
         "quantity_selector",

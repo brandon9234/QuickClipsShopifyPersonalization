@@ -85,7 +85,7 @@
   const DEFAULT_DATE_MAX = 10;
   const DEFAULT_API_PATH = '/apps/quickclips-personalization/preview';
   const CLIP_STYLE_CLASSES = STYLE_VALUES.map((styleValue) => `is-${styleValue.toLowerCase().replace(/\s+/g, '-')}`);
-  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-11-font-weight-preview-persistence';
+  const PERSONALIZATION_PREVIEW_BUILD = '2026-03-17-single-image-stage-preview';
   const DEFAULT_LAST_NAME_VALUE = 'The Johnsons';
   const DEFAULT_DATE_VALUE = '03/09/2026';
   const MIN_TEXTBOX_WIDTH = 18;
@@ -325,7 +325,6 @@
     !deterministicLastName ||
     !deterministicDate ||
     !iconLayer ||
-    !removeIconButton ||
     !safeAreaWarning ||
     !safeAreaBoundary ||
     !clipGuideBoundary ||
@@ -686,6 +685,57 @@
       zoom,
       focusX,
       focusY,
+    };
+  }
+
+  function parsePixelLength(rawValue, fallback = 0) {
+    const parsed = Number.parseFloat(String(rawValue || '').trim());
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function isElementHidden(element) {
+    if (!(element instanceof HTMLElement)) return true;
+    if (element.hasAttribute('hidden')) return true;
+    const computedStyles = window.getComputedStyle(element);
+    return (
+      computedStyles.display === 'none' ||
+      computedStyles.visibility === 'hidden' ||
+      Number.parseFloat(computedStyles.opacity || '1') <= 0
+    );
+  }
+
+  function resolveStageImageRenderMetrics(sourceWidth, sourceHeight, surfaceWidth, surfaceHeight) {
+    const normalizedSourceWidth = Math.max(1, Number(sourceWidth || 1));
+    const normalizedSourceHeight = Math.max(1, Number(sourceHeight || 1));
+    const normalizedSurfaceWidth = Math.max(1, Number(surfaceWidth || 1));
+    const normalizedSurfaceHeight = Math.max(1, Number(surfaceHeight || 1));
+    const imageAspect = normalizedSourceWidth / normalizedSourceHeight;
+    const surfaceAspect = normalizedSurfaceWidth / normalizedSurfaceHeight;
+    let renderedWidth = normalizedSurfaceWidth;
+    let renderedHeight = normalizedSurfaceHeight;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (surfaceAspect > imageAspect) {
+      renderedHeight = normalizedSurfaceHeight;
+      renderedWidth = renderedHeight * imageAspect;
+      offsetX = (normalizedSurfaceWidth - renderedWidth) / 2;
+    } else {
+      renderedWidth = normalizedSurfaceWidth;
+      renderedHeight = renderedWidth / imageAspect;
+      offsetY = (normalizedSurfaceHeight - renderedHeight) / 2;
+    }
+
+    const stagePreviewTransform = getStagePreviewTransform();
+    const zoom = Math.max(0.01, stagePreviewTransform.zoom);
+    const destX = offsetX - renderedWidth * stagePreviewTransform.focusX * (zoom - 1);
+    const destY = offsetY - renderedHeight * stagePreviewTransform.focusY * (zoom - 1);
+
+    return {
+      x: destX,
+      y: destY,
+      w: renderedWidth * zoom,
+      h: renderedHeight * zoom,
     };
   }
 
@@ -1372,6 +1422,7 @@
   }
 
   function syncRemoveIconButton() {
+    if (!removeIconButton) return;
     removeIconButton.toggleAttribute('hidden', !selectedIconId);
   }
 
@@ -1648,6 +1699,25 @@
     });
   }
 
+  function resolveCustomEngravingSelectionForVariantId(formElement, variantId) {
+    const normalizedVariantId = String(variantId || '').trim();
+    if (!normalizedVariantId) return null;
+
+    const variantSelectsCandidates = getVariantSelectsCandidatesForForm(formElement);
+    let matchedVariantId = false;
+
+    for (const variantSelectsElement of variantSelectsCandidates) {
+      const keywordIndex = getVariantKeywordIndex(variantSelectsElement);
+      if (!keywordIndex || !keywordIndex.has(normalizedVariantId)) continue;
+
+      matchedVariantId = true;
+      const variantTokens = keywordIndex.get(normalizedVariantId);
+      return hasCustomEngravingKeyword(variantTokens);
+    }
+
+    return matchedVariantId ? false : null;
+  }
+
   function getSelectedFormOptionValues(formElement) {
     if (!formElement) return [];
     const selectedValues = [];
@@ -1713,20 +1783,23 @@
 
   function isCustomEngravingSelectedForForm(formElement) {
     if (!formElement) return false;
-    const selectedValues = getSelectedFormOptionValues(formElement);
-    if (selectedValues.length) {
-      return selectedValues.some((value) => hasCustomEngravingKeyword(value));
-    }
 
     const variantInput = formElement.querySelector('input[name="id"]');
     if (variantInput) {
-      const variantToken = String(variantInput.dataset.variantTitle || variantInput.value || '').trim();
+      const variantToken = String(variantInput.dataset.variantTitle || '').trim();
       if (hasCustomEngravingKeyword(variantToken)) {
         return true;
       }
-      if (hasCustomEngravingVariantForId(formElement, variantInput.value)) {
-        return true;
+
+      const resolvedVariantSelection = resolveCustomEngravingSelectionForVariantId(formElement, variantInput.value);
+      if (resolvedVariantSelection !== null) {
+        return resolvedVariantSelection;
       }
+    }
+
+    const selectedValues = getSelectedFormOptionValues(formElement);
+    if (selectedValues.length) {
+      return selectedValues.some((value) => hasCustomEngravingKeyword(value));
     }
 
     return false;
@@ -1994,12 +2067,28 @@
     return activeStageImageUrl || '';
   }
 
+  function disableClipGuideBoundary() {
+    if (!clipGuideBoundary) return;
+    clipGuideBoundary.setAttribute('hidden', '');
+    clipGuideBoundary.style.setProperty('display', 'none', 'important');
+    clipGuideBoundary.style.setProperty('border', '0');
+    clipGuideBoundary.style.setProperty('background', 'transparent');
+    clipGuideBoundary.style.setProperty('box-shadow', 'none');
+  }
+
+  function isMiniStageImageUrl(stageImageUrl) {
+    return String(stageImageUrl || '')
+      .trim()
+      .toLowerCase()
+      .includes(MINI_STAGE_IMAGE_KEYWORD);
+  }
+
   function setActiveStageImageUrl(nextUrl) {
     const normalizedUrl = String(nextUrl || '').trim() || defaultStageImageUrl || '';
     activeStageImageUrl = normalizedUrl;
-    const isMiniStage = normalizedUrl.toLowerCase().includes(MINI_STAGE_IMAGE_KEYWORD);
+    const isMiniStage = isMiniStageImageUrl(normalizedUrl);
     clipSurface.classList.toggle('is-mini-stage', isMiniStage);
-    clipGuideBoundary.toggleAttribute('hidden', !isMiniStage);
+    disableClipGuideBoundary();
     if (normalizedUrl) {
       clipSurface.dataset.personalizationStageImageUrl = normalizedUrl;
       return;
@@ -2028,13 +2117,11 @@
   function setWorkspaceStyleImage(styleValue) {
     const styleImageUrl = getStyleImageUrl(styleValue);
     if (!styleImageUrl) {
-      clipSurface.style.setProperty('--quickclip-style-image', 'none');
       stylePreviewImage.setAttribute('hidden', '');
       stylePreviewImage.removeAttribute('src');
       return;
     }
 
-    clipSurface.style.setProperty('--quickclip-style-image', `url("${styleImageUrl.replace(/"/g, '\\"')}")`);
     stylePreviewImage.src = styleImageUrl;
     stylePreviewImage.removeAttribute('hidden');
   }
@@ -2043,9 +2130,24 @@
     generatedImageData = String(dataUrl || '').trim();
   }
 
+  function clearUnsavedScopeGeneratedPreview(scope) {
+    if (!scope) return;
+    const state = getScopeState(scope);
+    if (!state || state.isSaved) return;
+    if (!state.generatedImage && !state.stagePreviewDataUrl) return;
+
+    setScopeState(scope, {
+      generatedImage: '',
+      stagePreviewDataUrl: '',
+    });
+  }
+
   function invalidateGeneratedPreview() {
-    if (!generatedImageData) return;
-    setGeneratedImage('');
+    const hadGeneratedImage = Boolean(generatedImageData);
+    if (hadGeneratedImage) {
+      setGeneratedImage('');
+    }
+    clearUnsavedScopeGeneratedPreview(activeScope);
   }
 
   function getGeneratedImageData() {
@@ -2457,14 +2559,6 @@
     return best;
   }
 
-  function getTextOpticalOffsetPx(metrics) {
-    if (!metrics) return 0;
-    const advanceWidth = Math.max(1, Number(metrics.advanceWidth || metrics.width || 0));
-    const left = Math.max(0, Number(metrics.left || 0));
-    const right = Math.max(0, Number(metrics.right || 0));
-    return ((right - left) - advanceWidth) / 2;
-  }
-
   function drawFittedText(ctx, text, options) {
     const trimmedText = String(text || '').trim();
     if (!trimmedText) return options.minSize || 8;
@@ -2478,9 +2572,148 @@
       fontFamily,
       fontWeight,
     });
-    const opticalOffsetPx = getTextOpticalOffsetPx(metrics);
-    ctx.fillText(trimmedText, options.x - opticalOffsetPx, options.y);
+    void metrics;
+    ctx.fillText(trimmedText, options.x, options.y);
     return fontSize;
+  }
+
+  function drawLiveTextboxSnapshot(ctx, surfaceRect, boxElement, lineElement) {
+    if (!(boxElement instanceof HTMLElement) || !(lineElement instanceof HTMLElement)) return;
+    const value = String(lineElement.textContent || '').trim();
+    if (!value) return;
+
+    const boxRect = boxElement.getBoundingClientRect();
+    if (!boxRect.width || !boxRect.height) return;
+
+    const lineStyles = window.getComputedStyle(lineElement);
+    const fontSize = parsePixelLength(lineStyles.fontSize, 0);
+    if (!fontSize) return;
+
+    const centerX = boxRect.left - surfaceRect.left + boxRect.width / 2;
+    const centerY = boxRect.top - surfaceRect.top + boxRect.height / 2;
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = lineStyles.color || BASE_STYLE_PRESET.color || '#4b341f';
+    ctx.font = `${lineStyles.fontWeight || '600'} ${fontSize}px ${lineStyles.fontFamily || 'sans-serif'}`;
+    ctx.fillText(value, centerX, centerY);
+    ctx.restore();
+  }
+
+  async function drawLiveIconSnapshot(ctx, surfaceRect, iconElement) {
+    if (!(iconElement instanceof HTMLElement)) return;
+    const iconRect = iconElement.getBoundingClientRect();
+    if (!iconRect.width || !iconRect.height) return;
+
+    const iconImageElement = iconElement.querySelector('.personalization-preview-modal__deterministic-icon-image');
+    if (!(iconImageElement instanceof HTMLImageElement)) return;
+
+    const iconUrl = String(iconImageElement.currentSrc || iconImageElement.src || '').trim();
+    if (!iconUrl) return;
+
+    const iconPayload = await getIconImagePayload(iconUrl);
+    if (!iconPayload || !iconPayload.dataUrl) return;
+
+    try {
+      const iconImage = await loadImage(iconPayload.dataUrl);
+      const iconColor = window.getComputedStyle(iconElement).color || BASE_STYLE_PRESET.color || '#4b341f';
+      const tintedIconCanvas = await buildTintedIconCanvas(iconImage, iconColor);
+      const iconSource = tintedIconCanvas || iconImage;
+      const pseudoStyles = window.getComputedStyle(iconElement, '::before');
+      const insetLeft = parsePixelLength(pseudoStyles.left, 0);
+      const insetTop = parsePixelLength(pseudoStyles.top, 0);
+      const insetRight = parsePixelLength(pseudoStyles.right, 0);
+      const insetBottom = parsePixelLength(pseudoStyles.bottom, 0);
+      const destX = iconRect.left - surfaceRect.left + insetLeft;
+      const destY = iconRect.top - surfaceRect.top + insetTop;
+      const destWidth = Math.max(1, iconRect.width - insetLeft - insetRight);
+      const destHeight = Math.max(1, iconRect.height - insetTop - insetBottom);
+      const sourceWidth =
+        iconSource instanceof HTMLImageElement
+          ? iconSource.naturalWidth || iconSource.width || 0
+          : Number(iconSource.width || 0);
+      const sourceHeight =
+        iconSource instanceof HTMLImageElement
+          ? iconSource.naturalHeight || iconSource.height || 0
+          : Number(iconSource.height || 0);
+      const iconSourceRect = resolveTrimmedIconSourceRect(iconPayload.trimBounds, sourceWidth, sourceHeight);
+
+      ctx.drawImage(
+        iconSource,
+        iconSourceRect.x,
+        iconSourceRect.y,
+        iconSourceRect.w,
+        iconSourceRect.h,
+        destX,
+        destY,
+        destWidth,
+        destHeight
+      );
+    } catch (error) {
+      // Ignore icon snapshot failures and continue rendering the preview.
+    }
+  }
+
+  async function buildLiveStagePreviewDataUrl(scope) {
+    if (!scope || scope !== activeScope) return '';
+    if (!modal.hasAttribute('open')) return '';
+
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      try {
+        await document.fonts.ready;
+      } catch (error) {
+        // Continue even if font readiness fails.
+      }
+    }
+
+    const surfaceWidth = Math.max(1, clipSurface.clientWidth || 0);
+    const surfaceHeight = Math.max(1, clipSurface.clientHeight || 0);
+    if (!surfaceWidth || !surfaceHeight) return '';
+
+    const stageImageElement = stylePreviewImage instanceof HTMLImageElement ? stylePreviewImage : null;
+    const sourceWidth = stageImageElement ? stageImageElement.naturalWidth || stageImageElement.width || 0 : 0;
+    const sourceHeight = stageImageElement ? stageImageElement.naturalHeight || stageImageElement.height || 0 : 0;
+    const snapshotScale = Math.max(
+      1,
+      Math.min(
+        3,
+        Math.max(
+          Number(window.devicePixelRatio || 1),
+          sourceWidth && surfaceWidth ? sourceWidth / surfaceWidth : 1
+        )
+      )
+    );
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(surfaceWidth * snapshotScale));
+    canvas.height = Math.max(1, Math.round(surfaceHeight * snapshotScale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    ctx.scale(snapshotScale, snapshotScale);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, surfaceWidth, surfaceHeight);
+
+    if (stageImageElement && sourceWidth && sourceHeight && !isElementHidden(stageImageElement)) {
+      const imageMetrics = resolveStageImageRenderMetrics(sourceWidth, sourceHeight, surfaceWidth, surfaceHeight);
+      ctx.drawImage(stageImageElement, imageMetrics.x, imageMetrics.y, imageMetrics.w, imageMetrics.h);
+    }
+
+    if (!isElementHidden(deterministicOverlay)) {
+      const surfaceRect = clipSurface.getBoundingClientRect();
+      drawLiveTextboxSnapshot(ctx, surfaceRect, deterministicLastNameBox, deterministicLastName);
+      drawLiveTextboxSnapshot(ctx, surfaceRect, deterministicDateBox, deterministicDate);
+
+      const liveIconElements = Array.from(
+        iconLayer.querySelectorAll('.personalization-preview-modal__deterministic-icon')
+      );
+      for (const iconElement of liveIconElements) {
+        await drawLiveIconSnapshot(ctx, surfaceRect, iconElement);
+      }
+    }
+
+    return canvas.toDataURL('image/png');
   }
 
   async function buildDeterministicContextImagePayload(
@@ -2656,9 +2889,94 @@
     };
   }
 
+  async function buildMiniStageCleanGeneratedPreviewDataUrl(generatedImageDataUrl, styleImagePayload, safeAreaBounds) {
+    const normalizedGeneratedImageDataUrl = resolveStagePreviewDataUrl(generatedImageDataUrl);
+    if (!normalizedGeneratedImageDataUrl || !styleImagePayload || !styleImagePayload.dataUrl) {
+      return normalizedGeneratedImageDataUrl;
+    }
+    if (!isMiniStageImageUrl(styleImagePayload.url || activeStageImageUrl)) {
+      return normalizedGeneratedImageDataUrl;
+    }
+
+    try {
+      const [stageImage, generatedImage] = await Promise.all([
+        loadImage(styleImagePayload.dataUrl),
+        loadImage(normalizedGeneratedImageDataUrl),
+      ]);
+      const stageWidth = stageImage.naturalWidth || stageImage.width || 0;
+      const stageHeight = stageImage.naturalHeight || stageImage.height || 0;
+      const generatedWidth = generatedImage.naturalWidth || generatedImage.width || 0;
+      const generatedHeight = generatedImage.naturalHeight || generatedImage.height || 0;
+      const width = stageWidth || generatedWidth;
+      const height = stageHeight || generatedHeight;
+      if (!width || !height) {
+        return normalizedGeneratedImageDataUrl;
+      }
+
+      const ctxSafeArea = sanitizeSafeAreaBounds(safeAreaBounds || activeSafeAreaBounds);
+      const paddingPercent = 0.35;
+      const cropBounds = {
+        x: Math.max(0, ctxSafeArea.x - paddingPercent),
+        y: Math.max(0, ctxSafeArea.y - paddingPercent),
+        w: Math.min(100, ctxSafeArea.w + paddingPercent * 2),
+        h: Math.min(100, ctxSafeArea.h + paddingPercent * 2),
+      };
+      if (cropBounds.x + cropBounds.w > 100) {
+        cropBounds.w = Math.max(0.001, 100 - cropBounds.x);
+      }
+      if (cropBounds.y + cropBounds.h > 100) {
+        cropBounds.h = Math.max(0.001, 100 - cropBounds.y);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return normalizedGeneratedImageDataUrl;
+      }
+
+      ctx.drawImage(stageImage, 0, 0, width, height);
+
+      const sourceRect = {
+        x: Math.floor((cropBounds.x / 100) * generatedWidth),
+        y: Math.floor((cropBounds.y / 100) * generatedHeight),
+        w: Math.max(1, Math.ceil((cropBounds.w / 100) * generatedWidth)),
+        h: Math.max(1, Math.ceil((cropBounds.h / 100) * generatedHeight)),
+      };
+      const destRect = {
+        x: Math.floor((cropBounds.x / 100) * width),
+        y: Math.floor((cropBounds.y / 100) * height),
+        w: Math.max(1, Math.ceil((cropBounds.w / 100) * width)),
+        h: Math.max(1, Math.ceil((cropBounds.h / 100) * height)),
+      };
+
+      ctx.drawImage(
+        generatedImage,
+        sourceRect.x,
+        sourceRect.y,
+        sourceRect.w,
+        sourceRect.h,
+        destRect.x,
+        destRect.y,
+        destRect.w,
+        destRect.h
+      );
+
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      return normalizedGeneratedImageDataUrl;
+    }
+  }
+
   function resolveStagePreviewDataUrl(value) {
     const normalized = String(value || '').trim();
     return normalized.startsWith('data:image/') ? normalized : '';
+  }
+
+  function getPersistedStagePreviewDataUrl(state) {
+    if (!state) return '';
+    return resolveStagePreviewDataUrl(state.stagePreviewDataUrl);
   }
 
   function getStateFontFamilies(state) {
@@ -2675,8 +2993,6 @@
 
   async function buildStagePreviewDataUrlForState(state) {
     if (!state) return '';
-    const generatedDataUrl = resolveStagePreviewDataUrl(state.generatedImage);
-    if (generatedDataUrl) return generatedDataUrl;
 
     const style = normalizeStyle(state.style || DEFAULT_STYLE);
     const styleImagePayload = await getStyleImagePayload(style);
@@ -2714,17 +3030,17 @@
     const state = stateOverride || getScopeState(scope);
     if (!scope || !state) return '';
 
-    const existingDataUrl = resolveStagePreviewDataUrl(state.stagePreviewDataUrl || state.generatedImage);
+    const existingDataUrl = getPersistedStagePreviewDataUrl(state);
     if (existingDataUrl) {
-      if (existingDataUrl !== state.stagePreviewDataUrl) {
-        setScopeState(scope, { stagePreviewDataUrl: existingDataUrl });
-      }
       return existingDataUrl;
     }
 
     const stagePreviewDataUrl = await buildStagePreviewDataUrlForState(state);
     if (stagePreviewDataUrl) {
-      setScopeState(scope, { stagePreviewDataUrl });
+      setScopeState(scope, {
+        generatedImage: state.isSaved ? '' : state.generatedImage,
+        stagePreviewDataUrl,
+      });
       return stagePreviewDataUrl;
     }
 
@@ -2920,6 +3236,39 @@
     scopes.forEach((scope) => {
       scheduleScopePersonalizationEligibilitySync(scope);
     });
+  }
+
+  let pendingGlobalEligibilityAnimationFrame = 0;
+  let pendingGlobalEligibilityTimeout = 0;
+
+  function scheduleGlobalPersonalizationEligibilitySync(delayMs = 0) {
+    const normalizedDelay = Math.max(0, Number(delayMs) || 0);
+
+    if (normalizedDelay > 0) {
+      if (pendingGlobalEligibilityTimeout) {
+        window.clearTimeout(pendingGlobalEligibilityTimeout);
+      }
+      pendingGlobalEligibilityTimeout = window.setTimeout(() => {
+        pendingGlobalEligibilityTimeout = 0;
+        syncAllScopePersonalizationEligibility();
+      }, normalizedDelay);
+      return;
+    }
+
+    if (pendingGlobalEligibilityAnimationFrame) return;
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      pendingGlobalEligibilityAnimationFrame = window.requestAnimationFrame(() => {
+        pendingGlobalEligibilityAnimationFrame = 0;
+        syncAllScopePersonalizationEligibility();
+      });
+      return;
+    }
+
+    pendingGlobalEligibilityTimeout = window.setTimeout(() => {
+      pendingGlobalEligibilityTimeout = 0;
+      syncAllScopePersonalizationEligibility();
+    }, 0);
   }
 
   function syncAllScopePersonalizationEligibility() {
@@ -3173,7 +3522,6 @@
       fontWeight: typography.fontWeight,
       fontSize,
     });
-    const opticalOffsetPct = (getTextOpticalOffsetPx(textMetrics) / frameWidth) * 100;
     const desiredWidth = clampNumber(
       ((textMetrics.width + boxPadding.x + insetX) / frameWidth) * 100,
       MIN_RENDERED_TEXTBOX_WIDTH,
@@ -3196,7 +3544,7 @@
       maxHeight,
       safeAreaTolerance: typography.styleLayoutSettings.safeAreaTolerance,
       renderedLayout: {
-        x: Number((centerX - desiredWidth / 2 - opticalOffsetPct).toFixed(3)),
+        x: Number((centerX - desiredWidth / 2).toFixed(3)),
         y: Number((centerY - desiredHeight / 2).toFixed(3)),
         w: Number(desiredWidth.toFixed(3)),
         h: Number(desiredHeight.toFixed(3)),
@@ -3423,6 +3771,7 @@
     const movedLayout = activeTextLayout[boxInteraction.boxKey];
     if (hasLayoutChangedSignificantly(boxInteraction.startBox, movedLayout)) {
       boxInteraction.layoutChanged = true;
+      invalidateGeneratedPreview();
       armEngravingWarningState();
     }
     renderDeterministicOverlay();
@@ -3585,10 +3934,9 @@
 
     const existingGeneratedImage = getGeneratedImageData();
     if (existingGeneratedImage) {
-      clipSurface.style.setProperty('--quickclip-style-image', 'none');
       stylePreviewImage.src = existingGeneratedImage;
       stylePreviewImage.removeAttribute('hidden');
-      renderDeterministicOverlay();
+      deterministicOverlay.setAttribute('hidden', '');
       return;
     }
 
@@ -3652,6 +4000,24 @@
     );
   }
 
+  function serializeTextLayoutPropertyValue(textLayout) {
+    const normalizedLayout = sanitizeTextLayout(textLayout || activeTextLayout);
+    return JSON.stringify({
+      lastName: {
+        x: Number(normalizedLayout.lastName.x.toFixed(3)),
+        y: Number(normalizedLayout.lastName.y.toFixed(3)),
+        w: Number(normalizedLayout.lastName.w.toFixed(3)),
+        h: Number(normalizedLayout.lastName.h.toFixed(3)),
+      },
+      date: {
+        x: Number(normalizedLayout.date.x.toFixed(3)),
+        y: Number(normalizedLayout.date.y.toFixed(3)),
+        w: Number(normalizedLayout.date.w.toFixed(3)),
+        h: Number(normalizedLayout.date.h.toFixed(3)),
+      },
+    });
+  }
+
   function parseIconsPropertyValue(rawValue, textLayout, fallbackIconValue, fallbackIconLayout) {
     const normalizedRawValue = String(rawValue || '').trim();
     if (!normalizedRawValue) {
@@ -3676,6 +4042,25 @@
     }
   }
 
+  function parseTextLayoutPropertyValue(rawValue, fallbackTextLayout) {
+    const normalizedRawValue = String(rawValue || '').trim();
+    if (!normalizedRawValue) {
+      return sanitizeTextLayout(fallbackTextLayout || createDefaultTextLayout());
+    }
+    try {
+      const parsed = JSON.parse(normalizedRawValue);
+      if (!parsed || typeof parsed !== 'object') {
+        return sanitizeTextLayout(fallbackTextLayout || createDefaultTextLayout());
+      }
+      return sanitizeTextLayout({
+        lastName: parsed.lastName,
+        date: parsed.date,
+      });
+    } catch (error) {
+      return sanitizeTextLayout(fallbackTextLayout || createDefaultTextLayout());
+    }
+  }
+
   function applyStateToContext(context, state) {
     const primaryProperty = context.querySelector('[data-personalization-property="primary"]');
     const secondaryProperty = context.querySelector('[data-personalization-property="secondary"]');
@@ -3685,6 +4070,9 @@
     const dateProperty = context.querySelector('[data-personalization-property="date"]');
     const iconProperty = context.querySelector('[data-personalization-property="icon"]');
     const iconsProperty = context.querySelector('[data-personalization-property="icons"]');
+    const lastNameFontProperty = context.querySelector('[data-personalization-property="last_name_font"]');
+    const dateFontProperty = context.querySelector('[data-personalization-property="date_font"]');
+    const textLayoutProperty = context.querySelector('[data-personalization-property="text_layout"]');
     const geminiSummaryProperty = context.querySelector('[data-personalization-property="gemini_summary"]');
     const scopeProperty = context.querySelector('[data-personalization-property="scope"]');
     const normalizedIcons = normalizeIconEntries(state?.icons, state?.textLayout, state?.flowerIcon, state?.iconLayout);
@@ -3698,6 +4086,9 @@
     if (dateProperty) dateProperty.value = state.date || '';
     if (iconProperty) iconProperty.value = primaryIcon ? primaryIcon.value : '';
     if (iconsProperty) iconsProperty.value = serializeIconsPropertyValue(normalizedIcons, state?.textLayout);
+    if (lastNameFontProperty) lastNameFontProperty.value = state.lastNameFont || '';
+    if (dateFontProperty) dateFontProperty.value = state.dateFont || '';
+    if (textLayoutProperty) textLayoutProperty.value = serializeTextLayoutPropertyValue(state?.textLayout);
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
     if (scopeProperty) scopeProperty.value = context.dataset.personalizationScope || '';
   }
@@ -3782,7 +4173,7 @@
       return;
     }
 
-    const existingPreviewDataUrl = resolveStagePreviewDataUrl(state.stagePreviewDataUrl || state.generatedImage);
+    const existingPreviewDataUrl = getPersistedStagePreviewDataUrl(state);
     if (existingPreviewDataUrl) {
       renderSavedPreviewPanels(scope, state, existingPreviewDataUrl);
       return;
@@ -3796,9 +4187,7 @@
     }
 
     const latestState = getScopeState(scope) || state;
-    const resolvedPreviewDataUrl = resolveStagePreviewDataUrl(
-      generatedStagePreviewDataUrl || latestState.stagePreviewDataUrl || latestState.generatedImage
-    );
+    const resolvedPreviewDataUrl = resolveStagePreviewDataUrl(generatedStagePreviewDataUrl || latestState.stagePreviewDataUrl);
     renderSavedPreviewPanels(scope, latestState, resolvedPreviewDataUrl);
   }
 
@@ -3878,13 +4267,20 @@
       const contextDateValue = (context.querySelector('[data-personalization-property="date"]') || {}).value || '';
       const contextIconValue = (context.querySelector('[data-personalization-property="icon"]') || {}).value || '';
       const contextIconsValue = (context.querySelector('[data-personalization-property="icons"]') || {}).value || '';
+      const contextLastNameFontValue =
+        (context.querySelector('[data-personalization-property="last_name_font"]') || {}).value || '';
+      const contextDateFontValue =
+        (context.querySelector('[data-personalization-property="date_font"]') || {}).value || '';
+      const contextTextLayoutValue =
+        (context.querySelector('[data-personalization-property="text_layout"]') || {}).value || '';
       const contextGeminiSummary =
         (context.querySelector('[data-personalization-property="gemini_summary"]') || {}).value || '';
+      const contextTextLayout = parseTextLayoutPropertyValue(contextTextLayoutValue, defaultState.textLayout);
       const contextIcons = parseIconsPropertyValue(
         contextIconsValue,
-        defaultState.textLayout,
+        contextTextLayout,
         contextIconValue || defaultState.flowerIcon,
-        defaultState.iconLayout
+        createDefaultIconLayout(contextTextLayout)
       );
       const hasPersistedPersonalization = Boolean(
         String(contextNameValue).trim() ||
@@ -3896,14 +4292,10 @@
         style: initialStyle,
         lastName: contextNameValue || defaultState.lastName,
         date: contextDateValue || defaultState.date,
-        lastNameFont: getStylePreset(
-          initialStyle
-        ).nameFamily,
-        dateFont: getStylePreset(
-          initialStyle
-        ).dateFamily,
+        lastNameFont: contextLastNameFontValue || getStylePreset(initialStyle).nameFamily,
+        dateFont: contextDateFontValue || getStylePreset(initialStyle).dateFamily,
         icons: contextIcons,
-        textLayout: defaultState.textLayout,
+        textLayout: contextTextLayout,
         geminiSummary: contextGeminiSummary,
         generatedImage: '',
         stagePreviewDataUrl: '',
@@ -3977,7 +4369,10 @@
     syncTextboxSelectionState();
     setIconSelected(false);
     syncFlowerIconPickerValue();
-    setGeneratedImage(existingState.generatedImage || '');
+    const unsavedGeneratedPreview = existingState.isSaved
+      ? ''
+      : resolveStagePreviewDataUrl(existingState.generatedImage);
+    setGeneratedImage(unsavedGeneratedPreview);
     setPickedPanelVisible(true);
     setGenerationError('');
     isGenerating = false;
@@ -4066,7 +4461,10 @@
     const target = event.target;
     if (!(target instanceof Element)) return;
     const form = resolveAssociatedAddToCartForm(target);
-    if (!form) return;
+    if (!form) {
+      scheduleGlobalPersonalizationEligibilitySync(120);
+      return;
+    }
     scheduleFormPersonalizationEligibilitySync(form);
   });
 
@@ -4080,7 +4478,23 @@
         form = resolveAssociatedAddToCartForm(labelledControl);
       }
     }
-    if (!form) return;
+    if (!form) {
+      scheduleGlobalPersonalizationEligibilitySync();
+      scheduleGlobalPersonalizationEligibilitySync(120);
+      return;
+    }
+    scheduleFormPersonalizationEligibilitySync(form);
+    scheduleGlobalPersonalizationEligibilitySync(120);
+  });
+
+  document.addEventListener('input', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const form = resolveAssociatedAddToCartForm(target);
+    if (!form) {
+      scheduleGlobalPersonalizationEligibilitySync(120);
+      return;
+    }
     scheduleFormPersonalizationEligibilitySync(form);
   });
 
@@ -4139,15 +4553,18 @@
     handleStyleSelectionChange();
   });
   lastNameInput.addEventListener('input', () => {
+    invalidateGeneratedPreview();
     setGenerationError('');
     renderEditorState();
   });
   dateInput.addEventListener('input', () => {
+    invalidateGeneratedPreview();
     setGenerationError('');
     renderEditorState();
   });
   [lastNameFontSelect, dateFontSelect].forEach((selectElement) => {
     selectElement.addEventListener('change', () => {
+      invalidateGeneratedPreview();
       setGenerationError('');
       void refreshPreviewAfterFontsReady({ syncInitialPlacement: true });
     });
@@ -4206,9 +4623,11 @@
     }
     addIconToClip(draggedValue, nextLayout);
   });
-  removeIconButton.addEventListener('click', () => {
-    clearSelectedFlowerIcon();
-  });
+  if (removeIconButton) {
+    removeIconButton.addEventListener('click', () => {
+      clearSelectedFlowerIcon();
+    });
+  }
   window.addEventListener('resize', () => {
     renderDeterministicOverlay();
   });
@@ -4292,7 +4711,7 @@
   });
   modalOpenStateObserver.observe(modal, { attributes: true, attributeFilter: ['open'] });
 
-  function commitActiveState(closeModal) {
+  function commitActiveState(closeModal, options = {}) {
     if (!activeScope) return false;
 
     const error = getValidationError();
@@ -4310,15 +4729,17 @@
       icons: cloneIconEntries(activeIcons),
       textLayout: cloneTextLayout(activeTextLayout),
       geminiSummary: getGeneratedSummary(),
-      generatedImage: getGeneratedImageData(),
-      stagePreviewDataUrl: resolveStagePreviewDataUrl(getGeneratedImageData()),
+      generatedImage: '',
+      stagePreviewDataUrl: '',
       previewOpened: true,
       maxLastName: activeLastNameMax,
       maxDate: activeDateMax,
       isSaved: true,
     });
 
-    syncScope(activeScope);
+    if (!options.skipSync) {
+      syncScope(activeScope);
+    }
 
     if (closeModal) {
       closeEditor();
@@ -4396,8 +4817,13 @@
       if (!generatedImageData) {
         throw new Error('Gemini did not return an edited preview image.');
       }
+      const previewImageData = await buildMiniStageCleanGeneratedPreviewDataUrl(
+        generatedImageData,
+        styleImagePayload,
+        activeSafeAreaBounds
+      );
 
-      setGeneratedImage(generatedImageData);
+      setGeneratedImage(previewImageData);
       setGenerationError('');
 
       setScopeState(activeScope, {
@@ -4409,8 +4835,8 @@
         icons: cloneIconEntries(activeIcons),
         textLayout: cloneTextLayout(activeTextLayout),
         geminiSummary: '',
-        generatedImage: generatedImageData,
-        stagePreviewDataUrl: generatedImageData,
+        generatedImage: previewImageData,
+        stagePreviewDataUrl: '',
         previewOpened: true,
         maxLastName: activeLastNameMax,
         maxDate: activeDateMax,
@@ -4460,14 +4886,24 @@
 
   saveButton.addEventListener('click', async () => {
     const scopeToSave = activeScope;
-    const committed = commitActiveState(false);
-    if (!committed || !scopeToSave) return;
-
     let stagePreviewDataUrl = '';
     try {
-      stagePreviewDataUrl = await ensureScopeStagePreviewDataUrl(scopeToSave);
+      stagePreviewDataUrl = await buildLiveStagePreviewDataUrl(scopeToSave);
     } catch (error) {
-      // Keep save flow non-blocking if stage preview generation fails.
+      stagePreviewDataUrl = '';
+    }
+
+    const committed = commitActiveState(false, { skipSync: true });
+    if (!committed || !scopeToSave) return;
+
+    if (stagePreviewDataUrl) {
+      setScopeState(scopeToSave, { stagePreviewDataUrl });
+    } else {
+      try {
+        stagePreviewDataUrl = await ensureScopeStagePreviewDataUrl(scopeToSave);
+      } catch (error) {
+        // Keep save flow non-blocking if stage preview generation fails.
+      }
     }
 
     const escapedScope = selectorEscape(scopeToSave);
