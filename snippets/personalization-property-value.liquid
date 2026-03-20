@@ -1,0 +1,44 @@
+{% comment %}
+  Renders a personalization line item property value with shared stage-preview
+  image handling for cart, notification, and order templates.
+
+  Accepts:
+  - property_key: {String} The line item property key.
+  - property_value: {String} The line item property value.
+  - product_title: {String} Optional product title for preview image alt text.
+  - preview_width: {Number} Preview image width.
+  - preview_height: {Number} Preview image height.
+{% endcomment %}
+
+{%- liquid
+  assign normalized_key = property_key | default: '' | strip
+  assign normalized_value = property_value | default: ''
+  assign image_width = preview_width | default: 180
+  assign image_height = preview_height | default: 135
+-%}
+
+{%- if normalized_value contains '/uploads/' -%}
+  {%- if normalized_key == 'Personalization Stage Preview' -%}
+    <a
+      href="{{ normalized_value }}"
+      class="link personalization-cart-preview-link"
+      target="_blank"
+      rel="noopener"
+    >
+      <img
+        src="{{ normalized_value }}"
+        alt="Saved personalization preview{% if product_title != blank %} for {{ product_title | escape }}{% endif %}"
+        class="personalization-cart-preview-image"
+        loading="lazy"
+        width="{{ image_width }}"
+        height="{{ image_height }}"
+      >
+    </a>
+  {%- else -%}
+    <a href="{{ normalized_value }}" class="link" target="_blank" rel="noopener">
+      {{ normalized_value | split: '/' | last | escape }}
+    </a>
+  {%- endif -%}
+{%- else -%}
+  {{ normalized_value }}
+{%- endif -%}

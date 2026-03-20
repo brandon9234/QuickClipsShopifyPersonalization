@@ -5,6 +5,7 @@ Run from repo root.
 ## Syntax
 
 ```powershell
+.\.tools\node-v20.19.5-win-x64\node.exe scripts/test-personalization-contract.mjs
 .\.tools\node-v20.19.5-win-x64\node.exe --check assets/personalization-preview.js
 .\.tools\node-v20.19.5-win-x64\node.exe --check QuickClipsPersonalization/gemini-preview-server.mjs
 ```

@@ -82,32 +82,20 @@
                         {%- for property in line_item.properties -%}
                           {% assign property_first_char = property.first | slice: 0 %}
                           {% assign property_key = property.first | strip %}
-                          {%- if property.last != blank and property_first_char != '_' -%}
+                          {%- capture hidden_property_output -%}
+                            {%- render 'personalization-property-hidden', property_key: property_key -%}
+                          {%- endcapture -%}
+                          {%- assign hidden_property_output = hidden_property_output | strip -%}
+                          {%- if property.last != blank and property_first_char != '_' and hidden_property_output != 'true' -%}
                             <span>{{ property.first }}:</span>
                             <span>
-                              {%- if property.last contains '/uploads/' -%}
-                                {%- if property_key == 'Personalization Stage Preview' -%}
-                                  <a
-                                    href="{{ property.last }}"
-                                    class="link personalization-cart-preview-link"
-                                    target="_blank"
-                                    rel="noopener"
-                                  >
-                                    <img
-                                      src="{{ property.last }}"
-                                      alt="Saved personalization preview for {{ line_item.product.title | escape }}"
-                                      class="personalization-cart-preview-image"
-                                      loading="lazy"
-                                      width="180"
-                                      height="135"
-                                    >
-                                  </a>
-                                {%- else -%}
-                                  <a href="{{ property.last }}">{{ property.last | split: '/' | last }}</a>
-                                {%- endif -%}
-                              {%- else -%}
-                                {{ property.last }}
-                              {%- endif -%}
+                              {%- render 'personalization-property-value',
+                                property_key: property_key,
+                                property_value: property.last,
+                                product_title: line_item.product.title,
+                                preview_width: 180,
+                                preview_height: 135
+                              -%}
                             </span>
                           {%- endif -%}
                         {%- endfor -%}

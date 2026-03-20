@@ -122,6 +122,7 @@ Notes:
 
 - `AGENTS.md`: repo operating rules for coding agents.
 - `skills/quickclips-shopify-theme/SKILL.md`: reusable agent skill for this theme.
+- `QuickClipsPersonalization/ARCHITECTURE.md`: live personalization architecture, compatibility notes, and refactor safety rails.
 
 ## Theme Safety Rules
 
@@ -135,4 +136,5 @@ Notes:
 
 1. Read `AGENTS.md`.
 2. Use `skills/quickclips-shopify-theme/SKILL.md` for implementation workflow.
-3. Run `.\scripts\shopify-theme-check.ps1` plus the syntax checks before creating a commit.
+3. Run `.\.tools\node-v20.19.5-win-x64\node.exe scripts/test-personalization-contract.mjs`.
+4. Run `.\scripts\shopify-theme-check.ps1` plus the syntax checks before creating a commit.

@@ -45,7 +45,6 @@
               class="personalization-preview-modal__clip-guide-boundary"
               data-personalization-clip-guide-boundary
               aria-hidden="true"
-              style="display: none !important;"
               hidden
             ></div>
             <div
@@ -57,18 +56,79 @@
                 <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--name" data-personalization-deterministic-last-name></p>
                 <button
                   type="button"
+                  class="personalization-preview-modal__rotate-handle"
+                  data-personalization-rotate="lastName"
+                  aria-label="Rotate text box 1"
+                >
+                  <span aria-hidden="true">&#8635;</span>
+                </button>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__box-action personalization-preview-modal__box-action--delete"
+                  data-personalization-remove-textbox="lastName"
+                  aria-label="Clear text box 1"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <button
+                  type="button"
                   class="personalization-preview-modal__resize-handle"
                   data-personalization-resize="lastName"
-                  aria-label="Resize last name text box"
+                  aria-label="Resize text box 1"
                 ></button>
               </div>
               <div class="personalization-preview-modal__deterministic-textbox personalization-preview-modal__deterministic-textbox--date" data-personalization-textbox="date">
                 <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--date" data-personalization-deterministic-date></p>
                 <button
                   type="button"
+                  class="personalization-preview-modal__rotate-handle"
+                  data-personalization-rotate="date"
+                  aria-label="Rotate text box 2"
+                >
+                  <span aria-hidden="true">&#8635;</span>
+                </button>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__box-action personalization-preview-modal__box-action--delete"
+                  data-personalization-remove-textbox="date"
+                  aria-label="Clear text box 2"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <button
+                  type="button"
                   class="personalization-preview-modal__resize-handle"
                   data-personalization-resize="date"
-                  aria-label="Resize date text box"
+                  aria-label="Resize text box 2"
+                ></button>
+              </div>
+              <div
+                class="personalization-preview-modal__deterministic-textbox personalization-preview-modal__deterministic-textbox--third"
+                data-personalization-textbox="thirdText"
+                hidden
+              >
+                <p class="personalization-preview-modal__deterministic-line personalization-preview-modal__deterministic-line--third" data-personalization-deterministic-third-text></p>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__rotate-handle"
+                  data-personalization-rotate="thirdText"
+                  aria-label="Rotate text box 3"
+                >
+                  <span aria-hidden="true">&#8635;</span>
+                </button>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__box-action personalization-preview-modal__box-action--delete"
+                  data-personalization-remove-textbox="thirdText"
+                  aria-label="Remove text box 3"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <button
+                  type="button"
+                  class="personalization-preview-modal__resize-handle"
+                  data-personalization-resize="thirdText"
+                  aria-label="Resize text box 3"
                 ></button>
               </div>
               <div class="personalization-preview-modal__icon-layer" data-personalization-icon-layer></div>
@@ -77,40 +137,24 @@
               class="personalization-preview-modal__safe-area-warning"
               data-personalization-safe-area-warning
               hidden
-            >
-              <span>You can't engrave here.</span>
-            </div>
+            ></div>
           </div>
         </div>
 
         <div class="personalization-preview-modal__editor">
           <div class="personalization-preview-modal__fields">
             <div class="personalization-preview-modal__field">
-              <p class="form__label">Choose clip style</p>
-              <div class="personalization-preview-modal__field-group">
-                <div class="personalization-preview-modal__field">
-                  <label class="form__label" for="PersonalizationStyleFamily">Style family</label>
-                  <select
-                    id="PersonalizationStyleFamily"
-                    class="personalization-preview-modal__input personalization-preview-modal__select"
-                    data-personalization-input="styleFamily"
-                  ></select>
-                </div>
-
-                <div class="personalization-preview-modal__field">
-                  <label class="form__label" for="PersonalizationStyleVariant">Style option</label>
-                  <select
-                    id="PersonalizationStyleVariant"
-                    class="personalization-preview-modal__input personalization-preview-modal__select"
-                    data-personalization-input="styleVariant"
-                  ></select>
-                </div>
-              </div>
+              <label class="form__label" for="PersonalizationStyle">Choose clip style</label>
+              <select
+                id="PersonalizationStyle"
+                class="personalization-preview-modal__input personalization-preview-modal__select"
+                data-personalization-input="style"
+              ></select>
             </div>
 
             <div class="personalization-preview-modal__field-group">
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationLastName">Last name</label>
+                <label class="form__label" for="PersonalizationLastName">Text box 1</label>
                 <input
                   id="PersonalizationLastName"
                   class="personalization-preview-modal__input"
@@ -122,13 +166,13 @@
               </div>
 
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationDate">Date</label>
+                <label class="form__label" for="PersonalizationDate">Text box 2</label>
                 <input
                   id="PersonalizationDate"
                   class="personalization-preview-modal__input"
                   type="text"
                   autocomplete="off"
-                  placeholder="MM/DD/YYYY"
+                  placeholder="Ex: 03/09/2026"
                   data-personalization-input="date"
                 >
               </div>
@@ -136,7 +180,7 @@
 
             <div class="personalization-preview-modal__field-group">
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationLastNameFont">Last name font</label>
+                <label class="form__label" for="PersonalizationLastNameFont">Text box 1 font</label>
                 <select
                   id="PersonalizationLastNameFont"
                   class="personalization-preview-modal__input personalization-preview-modal__select"
@@ -145,7 +189,7 @@
               </div>
 
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationDateFont">Date font</label>
+                <label class="form__label" for="PersonalizationDateFont">Text box 2 font</label>
                 <select
                   id="PersonalizationDateFont"
                   class="personalization-preview-modal__input personalization-preview-modal__select"
@@ -154,9 +198,46 @@
               </div>
             </div>
 
+            <div class="personalization-preview-modal__field personalization-preview-modal__third-text-add" data-personalization-third-text-add-wrapper>
+              <button
+                type="button"
+                class="button button--secondary personalization-preview-modal__third-text-add-button"
+                data-personalization-add-third-text
+              >
+                Add text box 3
+              </button>
+            </div>
+
+            <div
+              class="personalization-preview-modal__field-group personalization-preview-modal__field-group--third-text"
+              data-personalization-third-text-fields
+              hidden
+            >
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationThirdText">Text box 3</label>
+                <input
+                  id="PersonalizationThirdText"
+                  class="personalization-preview-modal__input"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Add a third line"
+                  data-personalization-input="thirdText"
+                >
+              </div>
+
+              <div class="personalization-preview-modal__field">
+                <label class="form__label" for="PersonalizationThirdTextFont">Text box 3 font</label>
+                <select
+                  id="PersonalizationThirdTextFont"
+                  class="personalization-preview-modal__input personalization-preview-modal__select"
+                  data-personalization-input="thirdTextFont"
+                ></select>
+              </div>
+            </div>
+
             <div class="personalization-preview-modal__field-group">
               <div class="personalization-preview-modal__field">
-                <label class="form__label" for="PersonalizationFlowerIcon">Icon</label>
+                <label class="form__label" for="PersonalizationFlowerIcon">Icon (optional)</label>
                 <select
                   id="PersonalizationFlowerIcon"
                   class="personalization-preview-modal__input personalization-preview-modal__select personalization-preview-modal__icon-native-select"
@@ -170,6 +251,34 @@
                   role="listbox"
                   aria-label="Available icons"
                 ></div>
+              </div>
+            </div>
+
+            <div class="personalization-preview-modal__field">
+              <label class="form__label" for="PersonalizationUploadedArtwork">Photo or logo (optional)</label>
+              <input
+                id="PersonalizationUploadedArtwork"
+                class="personalization-preview-modal__input personalization-preview-modal__file-input"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                data-personalization-input="uploadedArtwork"
+              >
+              <p class="personalization-preview-modal__field-note">
+                Upload a PNG, JPG, WebP, or SVG and we&apos;ll preview it in the engraved brown finish.
+              </p>
+              <div
+                class="personalization-preview-modal__upload-meta"
+                data-personalization-upload-meta
+                hidden
+              >
+                <span class="personalization-preview-modal__upload-name" data-personalization-upload-name></span>
+                <button
+                  type="button"
+                  class="button button--secondary personalization-preview-modal__upload-clear"
+                  data-personalization-upload-clear
+                >
+                  Remove upload
+                </button>
               </div>
             </div>
           </div>

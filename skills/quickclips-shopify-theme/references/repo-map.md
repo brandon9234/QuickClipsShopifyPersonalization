@@ -15,16 +15,20 @@
 - `snippets/personalization-preview-trigger.liquid`: Customize button trigger.
 - `snippets/personalization-preview-modal.liquid`: Modal markup.
 - `snippets/personalization-line-item-properties.liquid`: Hidden cart properties.
+- `snippets/personalization-property-hidden.liquid`: Shared hide/deprecation rules for cart/order property display.
+- `snippets/personalization-property-value.liquid`: Shared cart/order property rendering, including stage preview images.
 - `assets/personalization-preview.js`: Personalization state and generation logic.
 - `assets/personalization-preview.css`: Personalization UI styles.
 - `QuickClipsPersonalization/gemini-preview-server.mjs`: Server-side Gemini call.
 - `QuickClipsPersonalization/README.md`: Behavior and setup details.
+- `QuickClipsPersonalization/ARCHITECTURE.md`: Active runtime contract, compatibility notes, and deprecated-path guidance.
+- `scripts/test-personalization-contract.mjs`: Contract smoke test for Liquid/JS integration points.
 
 ## Agent/Collaboration Docs
 
 - `AGENTS.md`: Repository operating guide.
-- `AGENT_WORKTREE_RULES.md`: Legacy parallel-worktree coordination notes.
-- `CLAUDE_AGENT_NOTES.md`: Legacy handoff notes.
+- `AGENT_WORKTREE_RULES.md`: Current coordination and handoff rules for agent work in this repo.
+- `CODEX_AGENT_NOTES.md`: Current Codex handoff notes and repo-status notes.
 - `skills/quickclips-shopify-theme/`: Reusable skill for this repo.
 - `scripts/bootstrap-shopify-cli.ps1`: Installs Shopify CLI in a local runner directory.
 - `scripts/shopify-cli.ps1`: Wrapper for Shopify CLI commands.

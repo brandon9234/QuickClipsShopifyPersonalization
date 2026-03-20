@@ -1,23 +1,20 @@
-# Parallel Worktree Rules
+# Agent Worktree Rules
 
 ## Ownership
-- This worktree is owned by **Claude** (claude-parallel-preview branch).
-- **Codex** is working in a separate worktree on a separate branch. Do not assume Codex's local edits exist here.
+- This worktree is currently operated through `Codex`.
+- Do not assume a separate agent-specific worktree or parallel branch exists for the current repo state.
 
 ## Branch Rules
-- Do not edit `main` directly.
-- Commit only to `claude-parallel-preview` (or a feature branch off it).
-- Periodically merge or rebase from `main` into this branch to stay current:
-  ```
-  git fetch origin && git merge origin/main
-  ```
+- The current working branch is `main`.
+- Treat the existing local changes on `main` as active in-progress work and do not overwrite them blindly.
+- If future work needs isolation, create a feature branch from the current state before making unrelated changes.
 
 ## Coordination Rules
-- Never overwrite coordination files (`AGENT_WORKTREE_RULES.md`, `CLAUDE_AGENT_NOTES.md`) without first reading their current contents.
+- Never overwrite coordination files (`AGENT_WORKTREE_RULES.md`, `CODEX_AGENT_NOTES.md`) without first reading their current contents.
 - Before major refactors, run `git diff` and inspect working tree state to understand current changes.
 - Keep changes scoped and well-labeled in commit messages.
-- If a merge conflict occurs, **stop and summarize conflict areas** — do not guess at resolution.
+- If a merge conflict occurs, stop and summarize the conflict areas instead of guessing at a resolution.
 
 ## Handoff Notes
-- Leave concise handoff notes in `CLAUDE_AGENT_NOTES.md` under the "Handoff Notes" section after significant work.
+- Leave concise handoff notes in `CODEX_AGENT_NOTES.md` under the `Handoff Notes` section after significant work.
 - Record what was done, what is in progress, and any blockers.

@@ -239,6 +239,10 @@
   margin-top: 1rem;
 }
 
+.personalization-preview-trigger[hidden] {
+  display: none !important;
+}
+
 .personalization-preview-trigger--product {
   margin-bottom: 1rem;
 }
@@ -399,34 +403,17 @@
   gap: 0.9rem;
 }
 
+.personalization-preview-modal__third-text-add {
+  align-items: flex-start;
+}
+
+.personalization-preview-modal__third-text-add-button {
+  width: 100%;
+}
+
 .personalization-preview-modal__field .form__label {
   margin: 0;
   line-height: 1.2;
-}
-
-.personalization-preview-modal__mode-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
-.personalization-preview-modal__mode-option {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  border: 0.1rem solid rgba(var(--color-foreground), 0.18);
-  border-radius: var(--inputs-radius-outset);
-  padding: 0.9rem 1rem;
-  background: rgba(var(--color-background), 1);
-  cursor: pointer;
-}
-
-.personalization-preview-modal__mode-option input {
-  margin: 0;
-}
-
-.personalization-preview-modal__mode-option span {
-  font-size: 1.3rem;
 }
 
 .personalization-preview-modal__input {
@@ -440,9 +427,42 @@
   background-color: rgb(var(--color-background));
 }
 
+.personalization-preview-modal__file-input {
+  padding: 1rem 1.4rem;
+}
+
 .personalization-preview-modal__input:focus {
   outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
   outline-offset: 0.1rem;
+}
+
+.personalization-preview-modal__field-note {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.45;
+  color: rgba(var(--color-foreground), 0.72);
+}
+
+.personalization-preview-modal__upload-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.personalization-preview-modal__upload-name {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: rgb(var(--color-foreground));
+  word-break: break-word;
+}
+
+.personalization-preview-modal__upload-meta[hidden] {
+  display: none !important;
+}
+
+.personalization-preview-modal__upload-clear {
+  min-height: 3.6rem;
 }
 
 .personalization-preview-modal__icon-native-select {
@@ -506,85 +526,6 @@
 .personalization-preview-modal__icon-dropdown-option-label {
   font-size: 1.25rem;
   line-height: 1.25;
-}
-
-.personalization-preview-modal__icon-clear {
-  align-self: flex-start;
-  margin-top: 0.7rem;
-}
-
-.personalization-preview-modal__range {
-  width: 100%;
-  margin: 0;
-}
-
-.personalization-preview-modal__range-value {
-  font-size: 1.2rem;
-  color: rgba(var(--color-foreground), 0.7);
-}
-
-.personalization-preview-modal__count {
-  margin: 0;
-  font-size: 1.2rem;
-  color: rgba(var(--color-foreground), 0.75);
-}
-
-.personalization-preview-modal__helper {
-  margin: 0.2rem 0 0;
-  font-size: 1.2rem;
-  color: rgba(var(--color-foreground), 0.7);
-}
-
-.personalization-preview-modal__style-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.65rem;
-  max-height: 25rem;
-  overflow-y: auto;
-  padding-right: 0.3rem;
-}
-
-.personalization-preview-modal__style-option {
-  position: relative;
-  display: block;
-}
-
-.personalization-preview-modal__style-option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.personalization-preview-modal__style-option-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0.1rem solid rgba(var(--color-foreground), 0.2);
-  border-radius: var(--inputs-radius-outset);
-  cursor: pointer;
-  background-color: rgba(var(--color-background), 1);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  min-height: 4.8rem;
-  padding: 0.9rem 0.8rem;
-}
-
-.personalization-preview-modal__style-option-label {
-  display: block;
-  text-align: center;
-  font-size: 1.3rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: rgb(var(--color-foreground));
-}
-
-.personalization-preview-modal__style-option input:checked + .personalization-preview-modal__style-option-display {
-  border-color: rgb(var(--color-button));
-  box-shadow: 0 0 0 0.2rem rgba(var(--color-button), 0.14);
-}
-
-.personalization-preview-modal__style-option input:focus-visible + .personalization-preview-modal__style-option-display {
-  outline: 0.2rem solid rgba(var(--color-foreground), 0.35);
-  outline-offset: 0.15rem;
 }
 
 .personalization-preview-modal__preview {
@@ -653,10 +594,10 @@
   top: var(--safe-area-y, 0%);
   width: var(--safe-area-w, 100%);
   height: var(--safe-area-h, 100%);
-  border: 0.1rem dashed rgba(75, 52, 31, 0.52);
+  border: 0.12rem dashed rgba(75, 52, 31, 0.72);
   border-radius: 0.8rem;
-  background: rgba(255, 255, 255, 0.025);
-  box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.34);
   pointer-events: none;
   z-index: 2;
 }
@@ -667,13 +608,20 @@
   top: var(--clip-guide-y, 0%);
   width: var(--clip-guide-w, 100%);
   height: var(--clip-guide-h, 100%);
-  display: none !important;
-  border: 0;
+  border: 0.2rem solid transparent;
   border-radius: 2.4rem;
   background: transparent;
   box-shadow: none;
   pointer-events: none;
   z-index: 2;
+}
+
+.personalization-preview-modal__blank-clip:not(.is-mini-stage) .personalization-preview-modal__clip-guide-boundary {
+  display: none;
+}
+
+.personalization-preview-modal__blank-clip.is-mini-stage .personalization-preview-modal__clip-guide-boundary {
+  display: block;
 }
 
 .personalization-preview-modal__safe-area-warning {
@@ -697,22 +645,6 @@
   border-color: rgba(156, 43, 43, 0.92);
   background: rgba(255, 94, 94, 0.08);
   box-shadow: inset 0 0 0 0.14rem rgba(156, 43, 43, 0.28);
-}
-
-.personalization-preview-modal__safe-area-warning span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3.6rem;
-  padding: 0.8rem 1.4rem;
-  border: 0.1rem solid rgba(125, 29, 29, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #7d1d1d;
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.2;
-  box-shadow: 0 0.8rem 1.8rem rgba(125, 29, 29, 0.12);
 }
 
 .personalization-preview-modal__deterministic-overlay {
@@ -745,7 +677,8 @@
   width: var(--box-w, 80%);
   height: var(--box-h, 28%);
   padding: 0.2rem 0.5rem;
-  transform: rotate(0deg);
+  transform: rotate(var(--box-rotation, 0deg));
+  transform-origin: center;
   border: 0.1rem dashed transparent;
   border-radius: 0.45rem;
   background: transparent;
@@ -757,6 +690,10 @@
   cursor: move;
   user-select: none;
   touch-action: none;
+}
+
+.personalization-preview-modal__deterministic-textbox[hidden] {
+  display: none !important;
 }
 
 .personalization-preview-modal__deterministic-textbox.is-selected {
@@ -789,8 +726,61 @@
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
+.personalization-preview-modal__rotate-handle {
+  position: absolute;
+  top: -2.4rem;
+  left: 50%;
+  width: 2rem;
+  height: 2rem;
+  border: 0.1rem solid rgba(75, 52, 31, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(75, 52, 31, 0.88);
+  cursor: grab;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: translateX(-50%);
+  touch-action: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.personalization-preview-modal__box-action {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0.1rem solid rgba(75, 52, 31, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(75, 52, 31, 0.88);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  touch-action: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
 .personalization-preview-modal__deterministic-textbox.is-selected .personalization-preview-modal__resize-handle,
-.personalization-preview-modal__deterministic-textbox.is-active .personalization-preview-modal__resize-handle {
+.personalization-preview-modal__deterministic-textbox.is-active .personalization-preview-modal__resize-handle,
+.personalization-preview-modal__deterministic-textbox.is-selected .personalization-preview-modal__rotate-handle,
+.personalization-preview-modal__deterministic-textbox.is-active .personalization-preview-modal__rotate-handle,
+.personalization-preview-modal__deterministic-textbox.is-selected .personalization-preview-modal__box-action,
+.personalization-preview-modal__deterministic-textbox.is-active .personalization-preview-modal__box-action {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -845,7 +835,8 @@
   top: var(--icon-y, 50%);
   width: var(--icon-box-width, var(--icon-size, 8%));
   height: var(--icon-box-height, var(--icon-size, 8%));
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(var(--icon-rotation, 0deg));
+  transform-origin: center;
   border: 0.1rem dashed transparent;
   border-radius: 0.45rem;
   background: transparent;
@@ -869,6 +860,8 @@
   mask-position: var(--icon-mask-pos-x, 50%) var(--icon-mask-pos-y, 50%);
   mask-repeat: no-repeat;
   mask-size: var(--icon-mask-size-x, 100%) var(--icon-mask-size-y, 100%);
+  transform: scaleX(var(--icon-flip-scale, 1));
+  transform-origin: center;
   pointer-events: none;
 }
 
@@ -881,6 +874,18 @@
   object-fit: contain;
   pointer-events: none;
   opacity: 0;
+}
+
+.personalization-preview-modal__deterministic-icon--uploaded::before {
+  display: none;
+}
+
+.personalization-preview-modal__deterministic-icon--uploaded .personalization-preview-modal__deterministic-icon-image {
+  opacity: 1;
+  object-fit: contain;
+  transform: scaleX(var(--icon-flip-scale, 1));
+  transform-origin: center;
+  filter: saturate(1.02);
 }
 
 .personalization-preview-modal__deterministic-icon.is-selected {
@@ -912,8 +917,48 @@
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
+.personalization-preview-modal__icon-action {
+  position: absolute;
+  top: -0.75rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0.1rem solid rgba(75, 52, 31, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(75, 52, 31, 0.88);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  touch-action: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.personalization-preview-modal__icon-action--mirror {
+  left: -0.75rem;
+}
+
+.personalization-preview-modal__icon-action--rotate {
+  left: 50%;
+  top: -2.4rem;
+  transform: translateX(-50%);
+  cursor: grab;
+}
+
+.personalization-preview-modal__icon-action--delete {
+  right: -0.75rem;
+}
+
 .personalization-preview-modal__deterministic-icon.is-selected .personalization-preview-modal__icon-resize-handle,
-.personalization-preview-modal__deterministic-icon.is-active .personalization-preview-modal__icon-resize-handle {
+.personalization-preview-modal__deterministic-icon.is-active .personalization-preview-modal__icon-resize-handle,
+.personalization-preview-modal__deterministic-icon.is-selected .personalization-preview-modal__icon-action,
+.personalization-preview-modal__deterministic-icon.is-active .personalization-preview-modal__icon-action {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -1065,15 +1110,7 @@
     padding: 2rem 1.5rem 1.8rem;
   }
 
-  .personalization-preview-modal__style-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .personalization-preview-modal__icon-list {
-    grid-template-columns: 1fr;
-  }
-
-  .personalization-preview-modal__mode-options {
     grid-template-columns: 1fr;
   }
 

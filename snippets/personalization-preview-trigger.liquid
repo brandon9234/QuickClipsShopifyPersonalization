@@ -10,7 +10,7 @@
   - button_label: {String} Optional button label.
   - primary_max: {Number} Primary text max length.
   - secondary_max: {Number} Secondary text max length.
-  - date_max: {Number} Date text max length.
+  - date_max: {Number} Text box 3 max length.
   - deterministic_text_max: {Number} Deterministic text max length.
   - force_show: {Boolean} If true, always render trigger.
 {% endcomment %}
@@ -26,11 +26,13 @@
 
   assign primary_limit = primary_max | default: 30
   assign secondary_limit = secondary_max | default: 30
-  assign date_limit = date_max | default: 10
+  assign date_limit = date_max | default: 30
   assign deterministic_text_limit = deterministic_text_max | default: 40
   assign trigger_label = button_label | default: 'Customize Now'
   assign requires_custom_option = false
   assign is_custom_option_selected = false
+  assign has_quickclips_logo_option = false
+  assign is_selected_variant_available = false
   assign stage_image_asset = 'HorizontalOGQuickClipZoomed.jpg'
   assign safe_area_asset = 'HorizontalOGQuickClipZoomedOverLay.jpg'
 
@@ -49,9 +51,11 @@
         echo variant.options | join: '|'
       endcapture
       assign variant_tokens = variant_tokens | downcase
+      if variant_tokens contains 'quickclips logo'
+        assign has_quickclips_logo_option = true
+      endif
       if variant_tokens contains 'custom engraving'
         assign requires_custom_option = true
-        break
       endif
     endfor
 
@@ -63,15 +67,28 @@
           echo option.values | join: '|'
         endcapture
         assign option_tokens = option_tokens | downcase
+        if option_tokens contains 'quickclips logo'
+          assign has_quickclips_logo_option = true
+        endif
         if option_tokens contains 'custom engraving'
           assign requires_custom_option = true
-          break
         endif
       endfor
     endif
 
+    if product_title_tokens contains 'quickclips logo'
+      assign has_quickclips_logo_option = true
+    endif
+    if product_handle_tokens contains 'quickclips-logo' or product_handle_tokens contains 'quickclipslogo'
+      assign has_quickclips_logo_option = true
+    endif
+    if has_quickclips_logo_option
+      assign requires_custom_option = true
+    endif
+
     assign selected_variant = target_product.selected_or_first_available_variant
     if selected_variant != blank
+      assign is_selected_variant_available = selected_variant.available
       capture selected_variant_tokens
         echo selected_variant.title
         echo '|'
@@ -117,7 +134,7 @@
     data-personalization-deterministic-text-max="{{ deterministic_text_limit }}"
     data-personalization-requires-custom-option="{{ requires_custom_option }}"
     data-personalization-custom-selected="{{ is_custom_option_selected }}"
-    {% if requires_custom_option and is_custom_option_selected == false %}
+    {% if is_selected_variant_available == false or requires_custom_option and is_custom_option_selected == false %}
       hidden
     {% endif %}
   >

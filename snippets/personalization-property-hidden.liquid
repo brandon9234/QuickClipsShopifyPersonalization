@@ -1,0 +1,22 @@
+{% comment %}
+  Returns whether a personalization property should be hidden from shopper-facing
+  cart/order UI because it belongs to a deprecated display contract.
+
+  Accepts:
+  - property_key: {String} The line item property key.
+{% endcomment %}
+
+{%- liquid
+  assign deprecated_keys = 'Personalization Deterministic Text|Personalization Deterministic Size|Personalization Deterministic Box Width|Personalization Mode|Personalization Deterministic Font|Personalization Font' | split: '|'
+  assign normalized_key = property_key | default: '' | strip
+  assign should_hide = false
+
+  for deprecated_key in deprecated_keys
+    if normalized_key == deprecated_key
+      assign should_hide = true
+      break
+    endif
+  endfor
+
+  echo should_hide
+-%}
