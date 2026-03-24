@@ -114,6 +114,8 @@ assertIncludes(themeLayout, "{% render 'personalization-preview-modal' %}", 'lay
 [
   'data-personalization-stage-image-url',
   'data-personalization-safe-area-url',
+  'data-personalization-default-last-name',
+  'data-personalization-default-date',
   'data-personalization-primary-max',
   'data-personalization-secondary-max',
   'data-personalization-date-max',

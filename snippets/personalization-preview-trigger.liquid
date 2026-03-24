@@ -35,6 +35,8 @@
   assign is_selected_variant_available = false
   assign stage_image_asset = 'HorizontalOGQuickClipZoomed.jpg'
   assign safe_area_asset = 'HorizontalOGQuickClipZoomedOverLay.jpg'
+  assign default_last_name_sample = 'The Johnsons'
+  assign default_date_sample = '03/09/2026'
 
   if target_product != blank
     assign product_title_tokens = target_product.title | downcase
@@ -42,6 +44,15 @@
     if product_title_tokens contains 'mini' or product_handle_tokens contains 'mini'
       assign stage_image_asset = 'HorizontalMiniQuickClipZoomed.jpg'
       assign safe_area_asset = 'HorizontalMiniQuickClipZoomedOverLay.jpg'
+    endif
+    if product_title_tokens contains 'pack' or product_handle_tokens contains 'pack'
+      unless product_title_tokens contains 'starter pack' or product_handle_tokens contains 'starter-pack' or product_handle_tokens contains 'starterpack'
+        assign default_last_name_sample = 'Your Floral Co.'
+        assign default_date_sample = 'yourwebsite.com'
+        if product_title_tokens contains 'mini' or product_handle_tokens contains 'mini'
+          assign default_date_sample = '555-555-5555'
+        endif
+      endunless
     endif
 
     for variant in target_product.variants
@@ -125,6 +136,8 @@
     data-personalization-scope="{{ scope_id }}"
     data-personalization-product-id="{{ target_product.id }}"
     data-personalization-product-title="{{ target_product.title | escape }}"
+    data-personalization-default-last-name="{{ default_last_name_sample | escape }}"
+    data-personalization-default-date="{{ default_date_sample | escape }}"
     data-personalization-stage-image-url="{{ stage_image_asset | asset_url }}"
     data-personalization-safe-area-url="{{ safe_area_asset | asset_url }}"
     data-personalization-form-id="{{ product_form_id }}"

@@ -102,6 +102,10 @@
     date: DEFAULT_DATE_VALUE,
     thirdText: DEFAULT_THIRD_TEXT_VALUE,
   });
+  const DEFAULT_TEXTBOX_SAMPLE_VALUES = Object.freeze({
+    lastName: DEFAULT_LAST_NAME_VALUE,
+    date: DEFAULT_DATE_VALUE,
+  });
   const MIN_TEXTBOX_WIDTH = 18;
   const MIN_TEXTBOX_HEIGHT = 14;
   const MIN_RENDERED_TEXTBOX_WIDTH = 5;
@@ -230,6 +234,60 @@
     { label: 'KG Sorry Not Sorry Chub', family: FONT_FAMILIES.kgSorryNotSorryChub },
     { label: 'EngraversGothic BT', family: FONT_FAMILIES.engraversGothicBt },
   ];
+
+  function extractPrimaryFontFamilyName(value) {
+    return String(value || '')
+      .split(',')[0]
+      .trim()
+      .replace(/^['"]+|['"]+$/g, '');
+  }
+
+  function normalizeFontAliasKey(value) {
+    return extractPrimaryFontFamilyName(value)
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  const FONT_FAMILY_ALIASES = Object.freeze(
+    FONT_OPTIONS.reduce(
+      (aliases, option) => {
+        const familyValue = String(option.family || '').trim();
+        const labelKey = normalizeFontAliasKey(option.label);
+        const familyKey = normalizeFontAliasKey(familyValue);
+        if (labelKey) aliases[labelKey] = familyValue;
+        if (familyKey) aliases[familyKey] = familyValue;
+        return aliases;
+      },
+      {
+        carly: FONT_FAMILIES.karlie,
+        karlie: FONT_FAMILIES.karlie,
+        brittany: FONT_FAMILIES.brittanySignature,
+        'brittany signature': FONT_FAMILIES.brittanySignature,
+      }
+    )
+  );
+
+  function normalizeFontFamilyValue(value, fallbackValue) {
+    const normalizedValue = String(value || '').trim();
+    if (!normalizedValue) {
+      return String(fallbackValue || '').trim();
+    }
+
+    const aliasKey = normalizeFontAliasKey(normalizedValue);
+    if (aliasKey && FONT_FAMILY_ALIASES[aliasKey]) {
+      return FONT_FAMILY_ALIASES[aliasKey];
+    }
+
+    return normalizedValue;
+  }
+
+  function buildFontLoadDescriptor(fontWeight, fontFamily, fontSize) {
+    const primaryFamily = extractPrimaryFontFamilyName(fontFamily) || 'sans-serif';
+    const escapedFamily = primaryFamily.replace(/"/g, '\\"');
+    return `${String(fontWeight || '400').trim() || '400'} ${Math.max(1, Number(fontSize || 16))}px "${escapedFamily}"`;
+  }
+
   const FONT_WEIGHT_OPTIONS = Object.freeze({
     [FONT_FAMILIES.playpenSansHebrew]: Object.freeze(['400']),
     [FONT_FAMILIES.homemadeApple]: Object.freeze(['400']),
@@ -399,6 +457,7 @@
   let activeLastNameMax = DEFAULT_LAST_NAME_MAX;
   let activeDateMax = DEFAULT_DATE_MAX;
   let activeThirdTextMax = DEFAULT_THIRD_TEXT_MAX;
+  let activeTextboxSampleValues = { ...DEFAULT_TEXTBOX_SAMPLE_VALUES };
   let activeStageImageUrl = defaultStageImageUrl;
   let activeSafeAreaImageUrl = defaultSafeAreaImageUrl;
   let isGenerating = false;
@@ -436,6 +495,61 @@
       date: { ...defaultLayout.date },
       thirdText: { ...defaultLayout.thirdText },
     };
+  }
+
+  function buildTextboxSampleValues(sampleValues = {}) {
+    return {
+      lastName:
+        String(sampleValues.lastName ?? DEFAULT_TEXTBOX_SAMPLE_VALUES.lastName).trim() ||
+        DEFAULT_TEXTBOX_SAMPLE_VALUES.lastName,
+      date:
+        String(sampleValues.date ?? DEFAULT_TEXTBOX_SAMPLE_VALUES.date).trim() ||
+        DEFAULT_TEXTBOX_SAMPLE_VALUES.date,
+    };
+  }
+
+  function applyActiveTextboxSampleValues(sampleValues) {
+    activeTextboxSampleValues = buildTextboxSampleValues(sampleValues);
+    lastNameInput.placeholder = `Ex: ${activeTextboxSampleValues.lastName}`;
+    dateInput.placeholder = `Ex: ${activeTextboxSampleValues.date}`;
+  }
+
+  function getTriggerTextboxSampleValues(trigger) {
+    return buildTextboxSampleValues({
+      lastName: trigger?.dataset?.personalizationDefaultLastName,
+      date: trigger?.dataset?.personalizationDefaultDate,
+    });
+  }
+
+  function shouldApplyTriggerTextboxSampleValues(state, sampleValues) {
+    if (!state || state.isSaved) return false;
+
+    const resolvedSampleValues = buildTextboxSampleValues(sampleValues);
+    const currentLastName = String(state.lastName ?? '').trim();
+    const currentDate = String(state.date ?? '').trim();
+
+    if (
+      currentLastName !== DEFAULT_TEXTBOX_SAMPLE_VALUES.lastName ||
+      currentDate !== DEFAULT_TEXTBOX_SAMPLE_VALUES.date
+    ) {
+      return false;
+    }
+
+    if (
+      String(state.thirdText ?? '').trim() ||
+      normalizeIconEntries(state.icons, state.textLayout, state.flowerIcon, state.iconLayout).length ||
+      hasUploadedArtwork(state.uploadedArtwork) ||
+      String(state.geminiSummary ?? '').trim() ||
+      String(state.generatedImage ?? '').trim() ||
+      String(state.stagePreviewDataUrl ?? '').trim()
+    ) {
+      return false;
+    }
+
+    return (
+      currentLastName !== resolvedSampleValues.lastName ||
+      currentDate !== resolvedSampleValues.date
+    );
   }
 
   function cloneTextLayout(layout) {
@@ -1209,19 +1323,20 @@
     renderEditorState();
 
     if (!modal.hasAttribute('open')) return;
-    if (!document.fonts || typeof document.fonts.load !== 'function') return;
 
     const selectedStyle = getSelectedStyle();
     const activeFonts = getActiveFontFamilies(selectedStyle);
-    const nameSample = lastNameInput.value.trim() || DEFAULT_LAST_NAME_VALUE;
-    const dateSample = dateInput.value.trim() || DEFAULT_DATE_VALUE;
+    const nameSample = lastNameInput.value.trim() || activeTextboxSampleValues.lastName;
+    const dateSample = dateInput.value.trim() || activeTextboxSampleValues.date;
     const thirdTextSample = thirdTextInput.value.trim() || 'Text box 3';
 
-    await Promise.allSettled([
-      document.fonts.load(`${activeFonts.lastNameWeight} 48px ${activeFonts.lastName}`, nameSample),
-      document.fonts.load(`${activeFonts.dateWeight} 36px ${activeFonts.date}`, dateSample),
-      document.fonts.load(`${activeFonts.thirdTextWeight} 32px ${activeFonts.thirdText}`, thirdTextSample),
-    ]);
+    await ensurePreviewFontsReady({
+      styleValue: selectedStyle,
+      fontFamilies: activeFonts,
+      nameSample,
+      dateSample,
+      thirdTextSample,
+    });
 
     if (refreshRequestId !== pendingFontRefreshRequestId) return;
     if (!modal.hasAttribute('open')) return;
@@ -1243,14 +1358,27 @@
     });
   }
 
+  function isFontSelectElement(selectElement) {
+    return (
+      selectElement === lastNameFontSelect ||
+      selectElement === dateFontSelect ||
+      selectElement === thirdTextFontSelect
+    );
+  }
+
   function setSelectValue(selectElement, value, fallbackValue) {
-    const resolvedValue = String(value || fallbackValue || '').trim();
+    const normalizedFallback = isFontSelectElement(selectElement)
+      ? normalizeFontFamilyValue(fallbackValue)
+      : String(fallbackValue || '').trim();
+    const resolvedValue = isFontSelectElement(selectElement)
+      ? normalizeFontFamilyValue(value, normalizedFallback)
+      : String(value || normalizedFallback || '').trim();
     const hasOption = Array.from(selectElement.options).some((option) => option.value === resolvedValue);
     if (hasOption) {
       selectElement.value = resolvedValue;
       return resolvedValue;
     }
-    selectElement.value = String(fallbackValue || '').trim();
+    selectElement.value = normalizedFallback;
     return selectElement.value;
   }
 
@@ -2378,13 +2506,14 @@
     throw new Error(failures.join(' | '));
   }
 
-  function createDefaultState() {
+  function createDefaultState(sampleValues = DEFAULT_TEXTBOX_SAMPLE_VALUES) {
     const defaultPreset = getStylePreset(DEFAULT_STYLE);
     const defaultTextLayout = createDefaultTextLayout();
+    const resolvedSampleValues = buildTextboxSampleValues(sampleValues);
     return {
       style: DEFAULT_STYLE,
-      lastName: DEFAULT_LAST_NAME_VALUE,
-      date: DEFAULT_DATE_VALUE,
+      lastName: resolvedSampleValues.lastName,
+      date: resolvedSampleValues.date,
       thirdText: DEFAULT_THIRD_TEXT_VALUE,
       lastNameFont: defaultPreset.nameFamily,
       dateFont: defaultPreset.dateFamily,
@@ -2588,6 +2717,52 @@
         stylePreset.thirdWeight || stylePreset.dateWeight || '600'
       ),
     };
+  }
+
+  async function ensurePreviewFontsReady(options = {}) {
+    if (!document.fonts || typeof document.fonts.load !== 'function') return;
+
+    const styleValue = normalizeStyle(options.styleValue || getSelectedStyle());
+    const stylePreset = getStylePreset(styleValue);
+    const fontFamilies = options.fontFamilies || getActiveFontFamilies(styleValue);
+    const lastName = normalizeFontFamilyValue(fontFamilies.lastName, stylePreset.nameFamily);
+    const date = normalizeFontFamilyValue(fontFamilies.date, stylePreset.dateFamily);
+    const thirdText = normalizeFontFamilyValue(
+      fontFamilies.thirdText,
+      stylePreset.thirdFamily || stylePreset.dateFamily
+    );
+    const lastNameWeight = resolveFontWeightForFamily(
+      lastName,
+      fontFamilies.lastNameWeight || stylePreset.nameWeight || '600'
+    );
+    const dateWeight = resolveFontWeightForFamily(date, fontFamilies.dateWeight || stylePreset.dateWeight || '600');
+    const thirdTextWeight = resolveFontWeightForFamily(
+      thirdText,
+      fontFamilies.thirdTextWeight || stylePreset.thirdWeight || stylePreset.dateWeight || '600'
+    );
+    const nameSample =
+      String(options.nameSample ?? lastNameInput.value ?? activeTextboxSampleValues.lastName ?? DEFAULT_LAST_NAME_VALUE).trim() ||
+      activeTextboxSampleValues.lastName ||
+      DEFAULT_LAST_NAME_VALUE;
+    const dateSample =
+      String(options.dateSample ?? dateInput.value ?? activeTextboxSampleValues.date ?? DEFAULT_DATE_VALUE).trim() ||
+      activeTextboxSampleValues.date ||
+      DEFAULT_DATE_VALUE;
+    const thirdTextSample = String(options.thirdTextSample ?? thirdTextInput.value ?? 'Text box 3').trim() || 'Text box 3';
+
+    await Promise.allSettled([
+      document.fonts.load(buildFontLoadDescriptor(lastNameWeight, lastName, 48), nameSample),
+      document.fonts.load(buildFontLoadDescriptor(dateWeight, date, 36), dateSample),
+      document.fonts.load(buildFontLoadDescriptor(thirdTextWeight, thirdText, 32), thirdTextSample),
+    ]);
+
+    if (document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      try {
+        await document.fonts.ready;
+      } catch (error) {
+        // Continue even if the browser rejects the readiness promise.
+      }
+    }
   }
 
   function getClipStyleClass(styleValue) {
@@ -3290,6 +3465,16 @@
     if (!scope || scope !== activeScope) return '';
     if (!modal.hasAttribute('open')) return '';
 
+    const selectedStyle = getSelectedStyle();
+    const activeFonts = getActiveFontFamilies(selectedStyle);
+    await ensurePreviewFontsReady({
+      styleValue: selectedStyle,
+      fontFamilies: activeFonts,
+      nameSample: lastNameInput.value.trim() || activeTextboxSampleValues.lastName,
+      dateSample: dateInput.value.trim() || activeTextboxSampleValues.date,
+      thirdTextSample: thirdTextInput.value.trim() || 'Text box 3',
+    });
+
     if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
       try {
         await document.fonts.ready;
@@ -3386,6 +3571,21 @@
       thirdTextFont,
       fontFamilies?.thirdTextWeight || stylePreset.thirdWeight || stylePreset.dateWeight || '600'
     );
+
+    await ensurePreviewFontsReady({
+      styleValue,
+      fontFamilies: {
+        lastName: lastNameFont,
+        date: dateFont,
+        thirdText: thirdTextFont,
+        lastNameWeight,
+        dateWeight,
+        thirdTextWeight,
+      },
+      nameSample: lastNameValue,
+      dateSample: dateValue,
+      thirdTextSample: thirdTextValue,
+    });
 
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -3595,10 +3795,12 @@
 
   function getStateFontFamilies(state) {
     const stylePreset = getStylePreset(state?.style || DEFAULT_STYLE);
-    const lastName = String(state?.lastNameFont || stylePreset.nameFamily).trim() || stylePreset.nameFamily;
-    const date = String(state?.dateFont || stylePreset.dateFamily).trim() || stylePreset.dateFamily;
-    const thirdText =
-      String(state?.thirdTextFont || stylePreset.thirdFamily || stylePreset.dateFamily).trim() || stylePreset.dateFamily;
+    const lastName = normalizeFontFamilyValue(state?.lastNameFont, stylePreset.nameFamily);
+    const date = normalizeFontFamilyValue(state?.dateFont, stylePreset.dateFamily);
+    const thirdText = normalizeFontFamilyValue(
+      state?.thirdTextFont,
+      stylePreset.thirdFamily || stylePreset.dateFamily
+    );
     return {
       lastName,
       date,
@@ -4945,9 +5147,9 @@
     if (dateProperty) dateProperty.value = state.date || '';
     if (iconProperty) iconProperty.value = primaryIcon ? primaryIcon.value : '';
     if (iconsProperty) iconsProperty.value = serializeIconsPropertyValue(normalizedIcons, state?.textLayout);
-    if (lastNameFontProperty) lastNameFontProperty.value = state.lastNameFont || '';
-    if (dateFontProperty) dateFontProperty.value = state.dateFont || '';
-    if (thirdTextFontProperty) thirdTextFontProperty.value = state.thirdTextFont || '';
+    if (lastNameFontProperty) lastNameFontProperty.value = normalizeFontFamilyValue(state.lastNameFont, '');
+    if (dateFontProperty) dateFontProperty.value = normalizeFontFamilyValue(state.dateFont, '');
+    if (thirdTextFontProperty) thirdTextFontProperty.value = normalizeFontFamilyValue(state.thirdTextFont, '');
     if (thirdTextEnabledProperty) thirdTextEnabledProperty.value = state.thirdTextEnabled ? 'true' : 'false';
     if (textLayoutProperty) textLayoutProperty.value = serializeTextLayoutPropertyValue(state?.textLayout);
     if (geminiSummaryProperty) geminiSummaryProperty.value = state.geminiSummary || '';
@@ -4974,7 +5176,6 @@
   function buildSavedPreviewMeta(state) {
     if (!state) return '';
     const segments = [];
-    if (state.style) segments.push(`Style: ${state.style}`);
     if (state.lastName) segments.push(`Text 1: ${state.lastName}`);
     if (state.date) segments.push(`Text 2: ${state.date}`);
     if (state.thirdText) segments.push(`Text 3: ${state.thirdText}`);
@@ -5214,7 +5415,22 @@
     activeScope = trigger.dataset.personalizationScope || '';
     if (!activeScope) return;
 
-    const existingState = getScopeState(activeScope) || createDefaultState();
+    const triggerTextboxSampleValues = getTriggerTextboxSampleValues(trigger);
+    applyActiveTextboxSampleValues(triggerTextboxSampleValues);
+
+    let existingState = getScopeState(activeScope);
+    if (!existingState) {
+      existingState = createDefaultState(triggerTextboxSampleValues);
+      setScopeState(activeScope, existingState);
+    } else if (shouldApplyTriggerTextboxSampleValues(existingState, triggerTextboxSampleValues)) {
+      existingState = {
+        ...existingState,
+        lastName: triggerTextboxSampleValues.lastName,
+        date: triggerTextboxSampleValues.date,
+      };
+      setScopeState(activeScope, existingState);
+    }
+
     activeLastNameMax = parseMaxLength(
       trigger.dataset.personalizationPrimaryMax,
       existingState.maxLastName || DEFAULT_LAST_NAME_MAX
